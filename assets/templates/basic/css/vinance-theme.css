@@ -1319,6 +1319,13 @@ section,
   .wallet-wrapper {
     display: none !important;
   }
+  .dashboard-header__inner {
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+  }
+  .dashboard-header__right {
+    gap: 6px !important;
+  }
   .dashboard-header__right .trade-btn {
     padding: 6px 10px !important;
     font-size: 12px !important;

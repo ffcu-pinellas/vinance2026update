@@ -215,49 +215,30 @@
                     <div class="right-sidebar__header mb-3 skeleton">
                         <div class="d-flex flex-between flex-wrap">
                             <div>
-                                <h4 class="mb-0 fs-18">@lang('Wallet Overview')</h4>
-                                <p class="mt-0 fs-12">@lang('Available wallet balance including the converted total balance')</p>
+                                <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Wallet Overview')</h4>
+                                <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Available wallet balance including the converted total balance')</p>
                             </div>
-                            <span class="toggle-dashboard-right dashboard--popup-close"><i class="las la-times"></i></span>
+                            <span class="toggle-dashboard-right dashboard--popup-close"><i class="las la-times" style="color: var(--vn-text-primary);"></i></span>
                         </div>
                     </div>
                     <div class="text-center mb-3 skeleton">
-                        <h3 class="right-sidebar__number mb-0 pb-0">
+                        <h3 class="right-sidebar__number mb-0 pb-0" style="color: var(--vn-text-primary) !important;">
                             {{ showAmount($estimatedBalance) }}
                         </h3>
-                        <span class="fs-14 mt-0">@lang('Estimated Total Balance')</span>
+                        <span class="fs-14 mt-0" style="color: var(--vn-text-secondary) !important;">@lang('Estimated Total Balance')</span>
                     </div>
                     <div class="right-sidebar__menu">
-                        <div class="wallet-wrapper">
-                            @forelse ($wallets as $wallet)
-                                <div class="right-sidebar__item flex-wrap wallet-list skeleton">
-                                    <div class="d-flex align-items-center">
-                                        <span class="right-sidebar__item-icon">
-                                            <img src="{{ @$wallet->currency->image_url }}">
-                                        </span>
-                                        <h6 class="right-sidebar__item-name">
-                                            {{ strLimit(@$wallet->currency->name, 10) }}
-                                            <span class="fs-11 d-block">
-                                                {{ @$wallet->currency->symbol }}
-                                            </span>
-                                        </h6>
-                                    </div>
-                                    <h6 class="right-sidebar__item-number"> {{ showAmount($wallet->balance, currencyFormat: false) }} </h6>
-                                </div>
-                            @empty
-                            @endforelse
-                        </div>
-                        <button type="button" class="w-100 show-more-wallet right-sidebar__button skeleton mt-2">
-                            <span class="right-sidebar__button-icon">
-                                <i class="las la-chevron-circle-down"></i>@lang('Show More')
+                        <a href="{{ route('user.wallet.list', 'spot') }}" class="w-100 right-sidebar__button skeleton mt-2 text-center d-inline-block text-decoration-none">
+                            <span class="right-sidebar__button-icon" style="color: var(--vn-text-primary);">
+                                <i class="las la-wallet"></i> @lang('Go to Wallet')
                             </span>
-                        </button>
+                        </a>
                     </div>
                 </div>
                 <div class="right-sidebar mt-3">
                     <div class="right-sidebar__header mb-3 skeleton">
-                        <h4 class="mb-0 fs-18">@lang('Deposit Money')</h4>
-                        <p class="mt-0 fs-12">@lang('Make crypto & fiat deposits in a few steps')</p>
+                        <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Deposit Money')</h4>
+                        <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Make crypto & fiat deposits in a few steps')</p>
                     </div>
                     <div class="right-sidebar__deposit custom-select2">
                         <form class="skeleton deposit-form">
@@ -278,8 +259,8 @@
                 </div>
                 <div class="right-sidebar mt-3">
                     <div class="right-sidebar__header mb-3 skeleton">
-                        <h4 class="mb-0 fs-18">@lang('Withdraw Money')</h4>
-                        <p class="mt-0 fs-12">@lang('Withdrawal your balance with our world-class withdrawal process')</p>
+                        <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Withdraw Money')</h4>
+                        <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Withdrawal your balance with our world-class withdrawal process')</p>
                     </div>
                     <div class="right-sidebar__deposit">
                         <form class="skeleton withdraw-form custom-select2">
@@ -300,7 +281,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     </div>
     <x-flexible-view :view="$activeTemplate . 'user.components.canvas.deposit'" :meta="['gateways' => $gateways]" />
     <x-flexible-view :view="$activeTemplate . 'user.components.canvas.withdraw'" :meta="['withdrawMethods' => $withdrawMethods]" />
