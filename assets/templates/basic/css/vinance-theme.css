@@ -1400,8 +1400,8 @@ section,
   box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
 }
 .select2-results__options {
-  max-height: 300px !important;
-  min-height: 150px !important;
+  max-height: 400px !important;
+  min-height: 250px !important;
   overflow-y: auto !important;
   padding: 0 !important;
   margin: 0 !important;
