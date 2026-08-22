@@ -4,7 +4,7 @@
 <div class="dashboard-header">
     <div class="dashboard-header__inner">
         <div class="dashboard-header__left">
-            <a href="{{ route('user.deposit.history') }}" class="btn btn--success btn--sm d-flex align-items-center gap-2">
+            <a href="{{ route('user.deposit.history') }}" class="btn btn--success btn--sm d-flex align-items-center gap-2" style="width: max-content;">
                 <i class="las la-wallet"></i> 
                 <span class="d-none d-sm-inline">@lang('Deposit')</span>
             </a>

@@ -1169,6 +1169,37 @@ section,
   padding: 20px !important;
   transition: var(--vn-transition);
 }
+.right-sidebar {
+  background: var(--vn-bg-card) !important;
+  border: 1px solid var(--vn-border) !important;
+  border-radius: var(--vn-radius-lg) !important;
+  padding: 20px !important;
+  color: var(--vn-text-primary) !important;
+}
+.right-sidebar h1, .right-sidebar h2, .right-sidebar h3, .right-sidebar h4, .right-sidebar h5, .right-sidebar h6, .right-sidebar p, .right-sidebar span {
+  color: var(--vn-text-primary) !important;
+}
+.right-sidebar p, .right-sidebar span {
+  color: var(--vn-text-secondary) !important;
+}
+.right-sidebar .right-sidebar__number {
+  color: var(--vn-text-primary) !important;
+}
+.right-sidebar__item {
+  color: var(--vn-text-primary) !important;
+}
+.right-sidebar__item-name, .right-sidebar__item-number {
+  color: var(--vn-text-primary) !important;
+}
+.right-sidebar__item-name span {
+  color: var(--vn-text-tertiary) !important;
+}
+.right-sidebar__button {
+  background: var(--vn-bg-elevated) !important;
+  color: var(--vn-text-primary) !important;
+  border: 1px solid var(--vn-border) !important;
+  border-radius: var(--vn-radius-md) !important;
+}
 .dashboard-card:hover {
   border-color: var(--vn-border-hover) !important;
   transform: translateY(-2px);
@@ -1286,8 +1317,7 @@ section,
     display: none !important;
   }
   .wallet-wrapper {
-    max-height: 250px !important;
-    overflow-y: auto !important;
+    display: none !important;
   }
   .dashboard-header__right .trade-btn {
     padding: 6px 10px !important;
