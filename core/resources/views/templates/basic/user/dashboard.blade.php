@@ -214,7 +214,7 @@
                                                 <a href="{{ route('trade') }}?pair={{ @$wallet->currency->symbol }}_USDT" target="_blank" class="btn btn--dark btn--sm py-1 px-2 fs-11" title="Trade">
                                                     @lang('Trade')
                                                 </a>
-                                                <a href="{{ route('user.wallet.view', ['type' => $wallet->typeText, 'currencySymbol' => @$wallet->currency->symbol]) }}" class="btn btn--dark btn--sm py-1 px-2 fs-11" title="Details">
+                                                <a href="{{ route('user.wallet.view', ['type' => 'spot', 'currencySymbol' => @$wallet->currency->symbol]) }}" class="btn btn--dark btn--sm py-1 px-2 fs-11" title="Details">
                                                     <i class="las la-eye"></i>
                                                 </a>
                                             </div>
