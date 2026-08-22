@@ -1,385 +1,281 @@
 @extends($activeTemplate . 'layouts.master')
 @section('content')
-    <div class="dashboard-content-wrapper">
-        <!-- Security & KYC Alerts -->
-        @php
-            $kycContent = getContent('kyc_content.content', true);
-        @endphp
-        @if ($user->kv == Status::KYC_UNVERIFIED && $user->kyc_rejection_reason)
-            <div class="alert alert--danger d-flex flex-wrap justify-content-between align-items-center mb-4 p-3 rounded-3" role="alert">
-                <div class="d-flex align-items-center gap-3">
-                    <i class="las la-exclamation-circle fs-24 text--danger"></i>
-                    <div>
-                        <h6 class="alert-heading text--danger mb-0">@lang('KYC Documents Rejected')</h6>
-                        <p class="mb-0 fs-13 text--muted">
-                            {{ __(@$kycContent->data_values->rejection_content) }}
-                        </p>
-                    </div>
-                </div>
-                <div class="d-flex gap-2 mt-2 mt-sm-0">
-                    <button class="btn btn--dark btn--sm" data-bs-toggle="modal" data-bs-target="#kycRejectionReason">@lang('Show Reason')</button>
-                    <a href="{{ route('user.kyc.form') }}" class="btn btn--base btn--sm">@lang('Resubmit KYC')</a>
-                </div>
-            </div>
-        @endif
-        @if ($user->kv == Status::KYC_UNVERIFIED && !$user->kyc_rejection_reason)
-            <div class="alert alert--warning d-flex flex-wrap justify-content-between align-items-center mb-4 p-3 rounded-3" role="alert">
-                <div class="d-flex align-items-center gap-3">
-                    <i class="las la-shield-alt fs-24 text--warning"></i>
-                    <div>
-                        <h6 class="alert-heading text--warning mb-0">@lang('Identity Verification Required')</h6>
-                        <p class="mb-0 fs-13 text--muted">
-                            @lang('Verify your identity to unlock higher withdrawal limits and all trading features.')
-                        </p>
-                    </div>
-                </div>
-                <a href="{{ route('user.kyc.form') }}" class="btn btn--base btn--sm mt-2 mt-sm-0">
-                    <i class="las la-check-circle"></i> @lang('Verify Identity')
-                </a>
-            </div>
-        @endif
-        @if ($user->kv == Status::KYC_PENDING)
-            <div class="alert alert--warning d-flex align-items-center gap-3 mb-4 p-3 rounded-3" role="alert">
-                <i class="las la-hourglass-half fs-24 text--warning"></i>
-                <div>
-                    <h6 class="alert-heading text--warning mb-0">@lang('KYC Verification Under Review')</h6>
-                    <p class="mb-0 fs-13 text--muted">
-                        {{ __(@$kycContent->data_values->pending_content) }}
-                        <a href="{{ route('user.kyc.data') }}" class="text--base ms-1">@lang('View Submitted Data')</a>
-                    </p>
-                </div>
-            </div>
-        @endif
-        @if (!$user->ts)
-            <div class="col-12 mb-4 2fa-notice">
-                <div class="alert alert--danger d-flex justify-content-between align-items-center p-3 rounded-3" role="alert">
-                    <div class="d-flex align-items-center gap-3">
-                        <i class="las la-lock fs-24 text--danger"></i>
-                        <div>
-                            <span class="fw-600 text-white">@lang('Protect Your Account with 2FA')</span>
-                            <p class="mb-0 fs-13 text--muted">@lang('Strengthen your account security by enabling Google Two-Factor Authentication.')</p>
+    <div class="row justify-content-center gy-4">
+        <div class="col-xxl-9 col-lg-12">
+            <div class="row gy-3">
+                @php
+                    $kycContent = getContent('kyc_content.content', true);
+                @endphp
+                @if ($user->kv == Status::KYC_UNVERIFIED && $user->kyc_rejection_reason)
+                    <div class="col-12">
+                        <div class="alert alert--danger skeleton" role="alert">
+                            <div class="flex-align justify-content-between">
+                                <h5 class="alert-heading text--danger mb-2">@lang('KYC Documents Rejected')</h5>
+                                <button data-bs-toggle="modal" data-bs-target="#kycRejectionReason">@lang('Show Reason')</button>
+                            </div>
+                            <p class="mb-0">
+                                {{ __(@$kycContent->data_values->rejection_content) }}
+                                <a href="{{ route('user.kyc.data') }}" class="text--base">@lang('See KYC Data')</a>
+                            </p>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <a href="{{ route('user.twofactor') }}" class="btn btn--base btn--sm">@lang('Enable 2FA')</a>
-                        <button type="button" class="delete-icon btn btn--dark btn--sm p-2"><i class="las la-times"></i></button>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        <!-- ======================= HERO ASSET OVERVIEW CARD ======================= -->
-        <div class="vn-asset-card mb-4 p-4 rounded-4 position-relative overflow-hidden">
-            <div class="row align-items-center gy-4">
-                <div class="col-lg-7">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="fs-13 text--muted fw-500 text-uppercase letter-spacing-1">@lang('Estimated Total Balance')</span>
-                        <button type="button" class="btn-eye-toggle border-0 bg-transparent text--muted p-0 ms-1 cursor-pointer" id="toggleBalanceBtn" title="Hide/Show Balance">
-                            <i class="las la-eye fs-18" id="eyeIcon"></i>
-                        </button>
-                    </div>
-                    <div class="d-flex align-items-baseline gap-3">
-                        <h2 class="vn-balance-number mb-0 fw-700 text-white" id="userBalanceDisplay">
-                            {{ showAmount($estimatedBalance) }} <span class="fs-18 fw-500 text--muted">USD</span>
-                        </h2>
-                    </div>
-                    <div class="d-flex align-items-center gap-3 mt-2">
-                        <span class="badge badge--success fs-12 px-2 py-1">
-                            <i class="las la-arrow-up"></i> @lang('Spot Wallet Active')
-                        </span>
-                        <span class="fs-13 text--muted">
-                            @lang('Approx') ≈ {{ getAmount($estimatedBalance / (gs('currency_rate') ?: 1), 4) }} {{ __(gs('cur_text')) }}
-                        </span>
-                    </div>
-                </div>
-                <div class="col-lg-5">
-                    <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
-                        <button type="button" class="btn btn--base px-3 py-2 deposit-btn-trigger" data-bs-toggle="offcanvas" data-bs-target="#deposit-canvas">
-                            <i class="las la-arrow-down"></i> @lang('Deposit')
-                        </button>
-                        <button type="button" class="btn btn--dark px-3 py-2 withdraw-btn-trigger" data-bs-toggle="offcanvas" data-bs-target="#withdraw-canvas">
-                            <i class="las la-arrow-up"></i> @lang('Withdraw')
-                        </button>
-                        <a href="{{ route('user.coin.swap') }}" class="btn btn--dark px-3 py-2">
-                            <i class="las la-sync-alt"></i> @lang('Swap')
-                        </a>
-                        <a href="{{ route('trade') }}" target="_blank" class="btn btn--dark px-3 py-2">
-                            <i class="las la-exchange-alt"></i> @lang('Trade')
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ======================= STATS SUMMARY ROW ======================= -->
-        <div class="row g-3 mb-4">
-            <div class="col-xxl-3 col-sm-6">
-                <a href="{{ route('user.order.open') }}" class="vn-stat-card d-flex align-items-center justify-content-between p-3 rounded-3 text-decoration-none">
-                    <div>
-                        <span class="fs-12 text--muted d-block mb-1">@lang('Open Orders')</span>
-                        <h4 class="mb-0 text-white fw-700">{{ getAmount($widget['open_order']) }}</h4>
-                    </div>
-                    <div class="vn-stat-icon vn-stat-icon--primary">
-                        <i class="las la-clock"></i>
-                    </div>
-                </a>
-            </div>
-            <div class="col-xxl-3 col-sm-6">
-                <a href="{{ route('user.order.completed') }}" class="vn-stat-card d-flex align-items-center justify-content-between p-3 rounded-3 text-decoration-none">
-                    <div>
-                        <span class="fs-12 text--muted d-block mb-1">@lang('Completed Orders')</span>
-                        <h4 class="mb-0 text-white fw-700">{{ getAmount($widget['completed_order']) }}</h4>
-                    </div>
-                    <div class="vn-stat-icon vn-stat-icon--success">
-                        <i class="las la-check-circle"></i>
-                    </div>
-                </a>
-            </div>
-            <div class="col-xxl-3 col-sm-6">
-                <a href="{{ route('user.order.canceled') }}" class="vn-stat-card d-flex align-items-center justify-content-between p-3 rounded-3 text-decoration-none">
-                    <div>
-                        <span class="fs-12 text--muted d-block mb-1">@lang('Canceled Orders')</span>
-                        <h4 class="mb-0 text-white fw-700">{{ getAmount($widget['canceled_order']) }}</h4>
-                    </div>
-                    <div class="vn-stat-icon vn-stat-icon--danger">
-                        <i class="las la-times-circle"></i>
-                    </div>
-                </a>
-            </div>
-            <div class="col-xxl-3 col-sm-6">
-                <a href="{{ route('user.trade.history') }}" class="vn-stat-card d-flex align-items-center justify-content-between p-3 rounded-3 text-decoration-none">
-                    <div>
-                        <span class="fs-12 text--muted d-block mb-1">@lang('Total Spot Trades')</span>
-                        <h4 class="mb-0 text-white fw-700">{{ getAmount($widget['total_trade']) }}</h4>
-                    </div>
-                    <div class="vn-stat-icon vn-stat-icon--warning">
-                        <i class="las la-chart-bar"></i>
-                    </div>
-                </a>
-            </div>
-        </div>
-
-        <!-- ======================= MAIN 2-COLUMN SECTION ======================= -->
-        <div class="row g-4">
-            <!-- Left Column: Asset Allocation & Recent Orders -->
-            <div class="col-xxl-8 col-xl-7">
-                <!-- Top Asset Holdings Panel -->
-                <div class="vn-card p-4 rounded-4 mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div>
-                            <h5 class="mb-0 fs-16 fw-600 text-white">@lang('Asset Allocation & Balances')</h5>
-                            <p class="fs-12 text--muted mb-0">@lang('Real-time overview of your spot and funding balances')</p>
+                @endif
+                @if ($user->kv == Status::KYC_UNVERIFIED && !$user->kyc_rejection_reason)
+                    <div class="col-12">
+                        <div class="alert alert--danger skeleton" role="alert">
+                            <h5 class="alert-heading text--danger mb-2">@lang('KYC Verification Required')</h5>
+                            <p class="mb-0">
+                                {{ __(@$kycContent->data_values->unverified_content) }}
+                                <a href="{{ route('user.kyc.form') }}" class="text--base">@lang('Click here to verify')</a>
+                            </p>
                         </div>
-                        <a href="{{ route('user.wallet.list', 'spot') }}" class="btn btn--dark btn--sm fs-12">
-                            @lang('View All Wallets') <i class="las la-arrow-right ms-1"></i>
-                        </a>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead>
-                                <tr>
-                                    <th>@lang('Asset')</th>
-                                    <th>@lang('Available Balance')</th>
-                                    <th>@lang('In Order')</th>
-                                    <th class="text-end">@lang('Quick Action')</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($wallets->take(6) as $wallet)
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <img src="{{ @$wallet->currency->image_url }}" alt="{{ @$wallet->currency->symbol }}" class="rounded-circle" width="28" height="28">
-                                                <div>
-                                                    <h6 class="mb-0 fs-13 text-white">{{ @$wallet->currency->name }}</h6>
-                                                    <span class="fs-11 text--muted text-uppercase">{{ @$wallet->currency->symbol }}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="fs-13 fw-600 text-white font-mono">
-                                                {{ showAmount($wallet->balance, currencyFormat: false) }}
-                                            </span>
-                                            <small class="fs-11 text--muted d-block">
-                                                ≈ ${{ showAmount($wallet->balance * (@$wallet->currency->rate ?: 1)) }}
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <span class="fs-13 text--muted font-mono">
-                                                {{ showAmount($wallet->in_order, currencyFormat: false) }}
-                                            </span>
-                                        </td>
-                                        <td class="text-end">
-                                            <div class="d-inline-flex gap-1">
-                                                <a href="{{ route('trade') }}?pair={{ @$wallet->currency->symbol }}_USDT" target="_blank" class="btn btn--dark btn--sm py-1 px-2 fs-11" title="Trade">
-                                                    @lang('Trade')
-                                                </a>
-                                                <a href="{{ route('user.wallet.view', ['type' => 'spot', 'currencySymbol' => @$wallet->currency->symbol]) }}" class="btn btn--dark btn--sm py-1 px-2 fs-11" title="Details">
-                                                    <i class="las la-eye"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center p-4">
-                                            <span class="text--muted fs-13">@lang('No wallet balances found')</span>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Recent Orders Panel -->
-                <div class="vn-card p-4 rounded-4 mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div>
-                            <h5 class="mb-0 fs-16 fw-600 text-white">@lang('Recent Orders')</h5>
-                            <p class="fs-12 text--muted mb-0">@lang('Your latest executed and pending trade orders')</p>
+                @endif
+                @if ($user->kv == Status::KYC_PENDING)
+                    <div class="col-12">
+                        <div class="alert alert--warning flex-column justify-content-start align-items-start skeleton" role="alert">
+                            <h5 class="alert-heading text--warning mb-2">@lang('KYC Verification Pending')</h5>
+                            <p class="mb-0"> {{ __(@$kycContent->data_values->pending_content) }}
+                                <a href="{{ route('user.kyc.data') }}" class="text--base">@lang('See KYC Data')</a>
+                            </p>
                         </div>
-                        <a href="{{ route('user.order.open') }}" class="btn btn--dark btn--sm fs-12">
-                            @lang('All Orders') <i class="las la-arrow-right ms-1"></i>
-                        </a>
                     </div>
-                    <div class="vn-order-list">
-                        @forelse ($recentOrders as $recentOrder)
-                            <div class="vn-order-item d-flex flex-wrap justify-content-between align-items-center p-3 mb-2 rounded-3">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="vn-date-badge text-center p-2 rounded-2">
-                                        <span class="d-block fs-14 fw-700 text-white">{{ showDateTime($recentOrder->created_at, 'd') }}</span>
-                                        <span class="d-block fs-10 text-uppercase text--muted">{{ showDateTime($recentOrder->created_at, 'M') }}</span>
-                                    </div>
-                                    <div>
-                                        <div class="d-flex align-items-center gap-2">
-                                            @php echo $recentOrder->orderSideBadge; @endphp
-                                            <span class="fw-600 text-white fs-13">{{ @$recentOrder->pair->symbol }}</span>
-                                        </div>
-                                        <span class="fs-12 text--muted d-block mt-1">
-                                            {{ showAmount($recentOrder->amount, currencyFormat: false) }} {{ @$recentOrder->pair->coin->symbol }}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="text-end mt-2 mt-sm-0">
-                                    @php echo $recentOrder->statusBadge; @endphp
-                                    <span class="fs-11 text--muted d-block mt-1">{{ showDateTime($recentOrder->created_at, 'H:i') }}</span>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="text-center p-5">
-                                <i class="las la-inbox fs-40 text--muted mb-2"></i>
-                                <p class="fs-13 text--muted mb-0">@lang('No recent orders found')</p>
-                            </div>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: Quick Deposit/Withdraw & Recent Transactions -->
-            <div class="col-xxl-4 col-xl-5">
-                <!-- Fast Action Card: Deposit / Withdraw -->
-                <div class="vn-card p-4 rounded-4 mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0 fs-16 fw-600 text-white">@lang('Fast Transaction')</h5>
-                        <span class="badge badge--primary fs-11">@lang('Instant')</span>
-                    </div>
-
-                    <!-- Deposit Tab Form -->
-                    <div class="mb-3" id="currency_list_wrapper">
-                        <label class="form--label fs-12">@lang('Quick Deposit')</label>
-                        <form class="deposit-form">
-                            <div class="input-group mb-2">
-                                <input type="number" step="any" name="amount" class="form--control form-control" placeholder="@lang('Enter Amount')" required>
-                                <div class="input-group-text">
-                                    <x-currency-list :action="route('user.currency.all')" valueType="2" logCurrency="true" class="ios-select-fix" />
-                                </div>
-                            </div>
-                            <button class="btn btn--base w-100 py-2 fs-13 fw-600" type="submit">
-                                <i class="las la-arrow-circle-down me-1"></i> @lang('Proceed to Deposit')
-                            </button>
-                        </form>
-                    </div>
-
-                    <hr class="border-secondary opacity-25 my-3">
-
-                    <!-- Withdraw Tab Form -->
-                    <div id="withdraw_currency_list_wrapper">
-                        <label class="form--label fs-12">@lang('Quick Withdraw')</label>
-                        <form class="withdraw-form">
-                            <div class="input-group mb-2">
-                                <input type="number" name="amount" step="any" class="form--control form-control" placeholder="@lang('Enter Amount')" required>
-                                <div class="input-group-text">
-                                    <x-currency-list :action="route('user.currency.all')" id="withdraw_currency_list" parent="withdraw_currency_list_wrapper" valueType="2" logCurrency="true" class="ios-select-fix" />
-                                </div>
-                            </div>
-                            <button class="btn btn--dark w-100 py-2 fs-13 fw-600" type="submit">
-                                <i class="las la-arrow-circle-up me-1"></i> @lang('Request Withdrawal')
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Recent Transactions Stream -->
-                <div class="vn-card p-4 rounded-4 mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div>
-                            <h5 class="mb-0 fs-16 fw-600 text-white">@lang('Recent Transactions')</h5>
-                            <p class="fs-12 text--muted mb-0">@lang('Account balance activities')</p>
-                        </div>
-                        <a href="{{ route('user.transactions') }}" class="btn btn--dark btn--sm fs-12">
-                            @lang('All History') <i class="las la-arrow-right ms-1"></i>
-                        </a>
-                    </div>
-                    <div class="vn-transaction-list">
-                        @forelse ($recentTransactions as $recentTransaction)
-                            <div class="vn-transaction-item d-flex justify-content-between align-items-center p-3 mb-2 rounded-3">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="vn-stat-icon @if($recentTransaction->trx_type == '+') vn-stat-icon--success @else vn-stat-icon--danger @endif" style="width: 36px; height: 36px; font-size: 16px;">
-                                        <i class="las @if($recentTransaction->trx_type == '+') la-plus @else la-minus @endif"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0 fs-13 text-white">{{ __(ucwords(keyToTitle($recentTransaction->remark))) }}</h6>
-                                        <span class="fs-11 text--muted d-block">{{ showDateTime($recentTransaction->created_at, 'M d, H:i') }}</span>
-                                    </div>
-                                </div>
-                                <div class="text-end">
-                                    <span class="fs-13 fw-600 font-mono @if($recentTransaction->trx_type == '+') text--success @else text--danger @endif">
-                                        {{ $recentTransaction->trx_type }}{{ showAmount($recentTransaction->amount) }}
+                @endif
+                @if (!$user->ts)
+                    <div class="col-12">
+                        <div class="alert-item 2fa-notice skeleton">
+                            <span class="delete-icon skeleton" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Delete">
+                                <i class="las la-times"></i></span>
+                            <div class="alert flex-align alert--danger remove-2fa-notice" role="alert">
+                                <span class="alert__icon">
+                                    <i class="fas fa-exclamation"></i>
+                                </span>
+                                <div class="alert__content">
+                                    <span class="alert__title">
+                                        @lang('To secure your account add 2FA verification').
+                                        <a href="{{ route('user.twofactor') }}" class="text--base text--small">@lang('Enable')</a>
                                     </span>
                                 </div>
                             </div>
-                        @empty
-                            <div class="text-center p-4">
-                                <i class="las la-receipt fs-36 text--muted mb-2"></i>
-                                <p class="fs-12 text--muted mb-0">@lang('No recent transactions found')</p>
+                        </div>
+                    </div>
+                @endif
+                <div class="col-12">
+                    <div class="portfolio-hero-card mb-4 skeleton">
+                        <div class="portfolio-hero__inner d-flex flex-wrap align-items-center justify-content-between">
+                            <div class="portfolio-hero__balance">
+                                <span class="portfolio-hero__label">@lang('Estimated Total Balance')</span>
+                                <h2 class="portfolio-hero__amount">
+                                    {{ showAmount($estimatedBalance, currencyFormat: false) }} <span class="portfolio-hero__currency">{{ __($general->cur_text) }}</span>
+                                </h2>
                             </div>
-                        @endforelse
+                            <div class="portfolio-hero__actions d-flex flex-wrap gap-3 mt-3 mt-sm-0">
+                                <button class="btn btn--success btn--lg portfolio-btn deposit-btn-trigger">
+                                    <span class="icon"><i class="las la-arrow-down"></i></span> @lang('Deposit')
+                                </button>
+                                <button class="btn btn--dark btn--lg portfolio-btn withdraw-btn-trigger">
+                                    <span class="icon"><i class="las la-arrow-up"></i></span> @lang('Withdraw')
+                                </button>
+                                <a href="{{ route('user.coin.swap') }}" class="btn btn--dark btn--lg portfolio-btn swap-btn-trigger">
+                                    <span class="icon"><i class="las la-exchange-alt"></i></span> @lang('Swap')
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card-wrapper">
+                        <div class="row gy-4 mb-4 justify-content-center">
+                            <div class="col-xxl-3 col-sm-6">
+                                <a href="{{ route('user.order.open') }}" class="dashboard-widget skeleton">
+                                    <div class="dashboard-widget__header">
+                                        <h6 class="dashboard-widget__title">@lang('Open Orders')</h6>
+                                        <span class="dashboard-widget__icon text--base bg--base-subtle">
+                                            <i class="las la-spinner"></i>
+                                        </span>
+                                    </div>
+                                    <h3 class="dashboard-widget__value">{{ getAmount($widget['open_order']) }}</h3>
+                                </a>
+                            </div>
+                            <div class="col-xxl-3 col-sm-6">
+                                <a href="{{ route('user.order.completed') }}" class="dashboard-widget skeleton">
+                                    <div class="dashboard-widget__header">
+                                        <h6 class="dashboard-widget__title">@lang('Completed')</h6>
+                                        <span class="dashboard-widget__icon text--success bg--success-subtle">
+                                            <i class="las la-check-circle"></i>
+                                        </span>
+                                    </div>
+                                    <h3 class="dashboard-widget__value">{{ getAmount($widget['completed_order']) }}</h3>
+                                </a>
+                            </div>
+                            <div class="col-xxl-3 col-sm-6">
+                                <a href="{{ route('user.order.canceled') }}" class="dashboard-widget skeleton">
+                                    <div class="dashboard-widget__header">
+                                        <h6 class="dashboard-widget__title">@lang('Canceled')</h6>
+                                        <span class="dashboard-widget__icon text--danger bg--danger-subtle">
+                                            <i class="las la-times-circle"></i>
+                                        </span>
+                                    </div>
+                                    <h3 class="dashboard-widget__value">{{ getAmount($widget['canceled_order']) }}</h3>
+                                </a>
+                            </div>
+                            <div class="col-xxl-3 col-sm-6">
+                                <a href="{{ route('user.trade.history') }}" class="dashboard-widget skeleton">
+                                    <div class="dashboard-widget__header">
+                                        <h6 class="dashboard-widget__title">@lang('Total Trades')</h6>
+                                        <span class="dashboard-widget__icon text--warning bg--warning-subtle">
+                                            <span class="icon-trade"></span>
+                                        </span>
+                                    </div>
+                                    <h3 class="dashboard-widget__value">{{ getAmount($widget['total_trade']) }}</h3>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="row gy-4 mb-3 justify-content-center">
+                            <div class="col-lg-6">
+                                <div class="transection h-100">
+                                    <h5 class="transection__title skeleton"> @lang('Recent Order') </h5>
+                                    @forelse ($recentOrders as $recentOrder)
+                                        <div class="transection__item skeleton">
+                                            <div class="d-flex flex-wrap align-items-center">
+                                                <div class="transection__date">
+                                                    <h6 class="transection__date-number text-white">
+                                                        {{ showDateTime($recentOrder->created_at, 'd') }}
+                                                    </h6>
+                                                    <span class="transection__date-text">
+                                                        {{ __(strtoupper(showDateTime($recentOrder->created_at, 'M'))) }}
+                                                    </span>
+                                                </div>
+                                                <div class="transection__content">
+                                                    <h6 class="transection__content-title">
+                                                        @php echo $recentOrder->orderSideBadge; @endphp
+                                                    </h6>
+                                                    <p class="transection__content-desc">
+                                                        @lang('Placed an order in the ')
+                                                        {{ @$recentOrder->pair->symbol }} @lang('pair to')
+                                                        {{ __(strtolower(strip_tags($recentOrder->orderSideBadge))) }}
+                                                        {{ showAmount($recentOrder->amount, currencyFormat: false) }}
+                                                        {{ @$recentOrder->pair->coin->symbol }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            @php echo $recentOrder->statusBadge; @endphp
+                                        </div>
+                                    @empty
+                                        <div class="transection__item justify-content-center p-5 skeleton">
+                                            <div class="empty-thumb text-center">
+                                                <img src="{{ asset('assets/images/extra_images/empty.png') }}" />
+                                                <p class="fs-14">@lang('No order found')</p>
+                                            </div>
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="transection h-100">
+                                    <h5 class="transection__title skeleton"> @lang('Recent Transactions') </h5>
+                                    @forelse ($recentTransactions as $recentTransaction)
+                                        <div class="transection__item skeleton">
+                                            <div class="d-flex flex-wrap align-items-center">
+                                                <div class="transection__date">
+                                                    <h6 class="transection__date-number text-white">
+                                                        {{ showDateTime($recentTransaction->created_at, 'd') }}
+                                                    </h6>
+                                                    <span class="transection__date-text">
+                                                        {{ __(strtoupper(showDateTime($recentTransaction->created_at, 'M'))) }}
+                                                    </span>
+                                                </div>
+                                                <div class="transection__content">
+                                                    <h6 class="transection__content-title">
+                                                        {{ __(ucwords(keyToTitle($recentTransaction->remark))) }}
+                                                    </h6>
+                                                    <p class="transection__content-desc">
+                                                        {{ __($recentTransaction->details) }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            @if ($recentTransaction->trx_type == '+')
+                                                <span class="badge badge--success">
+                                                    @lang('Plus')
+                                                </span>
+                                            @else
+                                                <span class="badge badge--danger">
+                                                    @lang('Minus')
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @empty
+                                        <div class="transection__item justify-content-center p-5 skeleton">
+                                            <div class="empty-thumb text-center">
+                                                <img src="{{ asset('assets/images/extra_images/empty.png') }}" />
+                                                <p class="fs-14">@lang('No transactions found')</p>
+                                            </div>
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xxl-3">
+            <div class="dashboard-right">
+                <div class="right-sidebar">
+                    <div class="right-sidebar__header mb-3 skeleton">
+                        <div class="d-flex flex-between flex-wrap">
+                            <div>
+                                <h4 class="mb-0 fs-18">@lang('My Assets')</h4>
+                                <p class="mt-0 fs-12 text-muted">@lang('Overview of your crypto balances')</p>
+                            </div>
+                            <span class="toggle-dashboard-right dashboard--popup-close"><i class="las la-times"></i></span>
+                        </div>
+                    </div>
+                    
+                    <div class="right-sidebar__menu">
+                        <div class="wallet-wrapper">
+                            @forelse ($wallets as $wallet)
+                                <div class="right-sidebar__item flex-wrap wallet-list skeleton">
+                                    <div class="d-flex align-items-center">
+                                        <span class="right-sidebar__item-icon">
+                                            <img src="{{ @$wallet->currency->image_url }}">
+                                        </span>
+                                        <h6 class="right-sidebar__item-name">
+                                            {{ strLimit(@$wallet->currency->name, 10) }}
+                                            <span class="fs-11 d-block text-muted">
+                                                {{ @$wallet->currency->symbol }}
+                                            </span>
+                                        </h6>
+                                    </div>
+                                    <h6 class="right-sidebar__item-number"> {{ showAmount($wallet->balance, currencyFormat: false) }} </h6>
+                                </div>
+                            @empty
+                            @endforelse
+                        </div>
+                        <button type="button" class="w-100 show-more-wallet right-sidebar__button skeleton mt-2">
+                            <span class="right-sidebar__button-icon">
+                                <i class="las la-chevron-circle-down"></i>
+                            </span> @lang('Show More')
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Offcanvas Drawers -->
     <x-flexible-view :view="$activeTemplate . 'user.components.canvas.deposit'" :meta="['gateways' => $gateways]" />
     <x-flexible-view :view="$activeTemplate . 'user.components.canvas.withdraw'" :meta="['withdrawMethods' => $withdrawMethods]" />
 
-    <!-- KYC Rejection Reason Modal -->
     @if ($user->kv == Status::KYC_UNVERIFIED && $user->kyc_rejection_reason)
-        <div class="modal fade custom--modal" id="kycRejectionReason" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal fade custom--modal" id="kycRejectionReason">
+            <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">@lang('KYC Document Rejection Reason')</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <span type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="las la-times"></i>
+                        </span>
                     </div>
                     <div class="modal-body">
-                        <p class="text--danger">{{ auth()->user()->kyc_rejection_reason }}</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn--dark btn--sm" data-bs-dismiss="modal">@lang('Close')</button>
-                        <a href="{{ route('user.kyc.form') }}" class="btn btn--base btn--sm">@lang('Submit Again')</a>
+                        <p>{{ auth()->user()->kyc_rejection_reason }}</p>
                     </div>
                 </div>
             </div>
@@ -399,37 +295,11 @@
 <script>
     "use strict";
     (function($) {
-        // Toggle balance visibility (eye icon)
-        let isBalanceHidden = localStorage.getItem('vn_balance_hidden') === 'true';
-        const actualBalanceHtml = '{{ showAmount($estimatedBalance) }} <span class="fs-18 fw-500 text--muted">USD</span>';
-        const hiddenBalanceHtml = '•••••••• <span class="fs-18 fw-500 text--muted">USD</span>';
-
-        function updateBalanceDisplay() {
-            if (isBalanceHidden) {
-                $('#userBalanceDisplay').html(hiddenBalanceHtml);
-                $('#eyeIcon').removeClass('la-eye').addClass('la-eye-slash');
-            } else {
-                $('#userBalanceDisplay').html(actualBalanceHtml);
-                $('#eyeIcon').removeClass('la-eye-slash').addClass('la-eye');
-            }
-        }
-
-        $('#toggleBalanceBtn').on('click', function() {
-            isBalanceHidden = !isBalanceHidden;
-            localStorage.setItem('vn_balance_hidden', isBalanceHidden);
-            updateBalanceDisplay();
-        });
-
-        updateBalanceDisplay();
-
-        // 2FA Notice Close
-        $('.2fa-notice .delete-icon').on('click', function() {
-            $(this).closest('.2fa-notice').fadeOut(300, function() {
-                $(this).remove();
-            });
-        });
-
-        // Initialize Select2
+        // Enhanced iOS detection
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        
+        // Mobile-optimized Select2 initialization
         function initSelect2() {
             $('.currency_list, #withdraw_currency_list').select2({
                 dropdownParent: $('#currency_list_wrapper, #withdraw_currency_list_wrapper'),
@@ -437,8 +307,8 @@
                 templateResult: function(currency) {
                     if (!currency.id) return currency.text;
                     return $(
-                        '<span class="select2-currency-option d-flex align-items-center gap-2">' +
-                        '<img src="' + $(currency.element).data('image') + '" width="20" height="20" class="rounded-circle" /> ' +
+                        '<span class="select2-currency-option">' +
+                        '<img src="' + $(currency.element).data('image') + '" class="select2-currency-img" /> ' +
                         currency.text +
                         '</span>'
                     );
@@ -446,52 +316,343 @@
                 templateSelection: function(currency) {
                     if (!currency.id) return currency.text;
                     return $(
-                        '<span class="select2-selected-currency d-flex align-items-center gap-2">' +
-                        '<img src="' + $(currency.element).data('image') + '" width="20" height="20" class="rounded-circle" /> ' +
+                        '<span class="select2-selected-currency">' +
+                        '<img src="' + $(currency.element).data('image') + '" class="select2-selected-img" /> ' +
                         currency.text +
                         '</span>'
                     );
                 }
             });
+
+            // iOS-specific fixes
+            if (isIOS) {
+                // Add touchstart event for iOS
+                $('.select2-container').on('touchstart', '.select2-selection', function(e) {
+                    $(this).closest('.select2-container').find('.select2-selection__rendered').trigger('click');
+                });
+
+                // Force dropdown to open on focus for iOS
+                $('.currency_list, #withdraw_currency_list').on('select2:open', function() {
+                    setTimeout(() => {
+                        $('.select2-dropdown').addClass('ios-select2-dropdown');
+                        $('.select2-search__field').trigger('focus');
+                    }, 100);
+                });
+
+                // Close handler for iOS
+                $('.currency_list, #withdraw_currency_list').on('select2:close', function() {
+                    $('body').css('overflow', 'auto');
+                });
+            }
         }
 
+        // Initialize on document ready
         $(document).ready(function() {
             initSelect2();
+            
+            // Reinitialize when modals are shown
+            $(document).on('shown.bs.modal shown.bs.offcanvas', function() {
+                setTimeout(initSelect2, 200);
+            });
+
+            $('.2fa-notice').on('click', '.delete-icon', function(e) {
+                $(this).closest('.col-12').fadeOut('slow', function() {
+                    $(this).remove();
+                });
+            });
+
+            let walletSkip = 3;
+
+            $('.show-more-wallet').on('click', function(e) {
+                let route = "{{ route('user.more.wallet', ':skip') }}";
+                let $this = $(this);
+                $.ajax({
+                    url: route.replace(':skip', walletSkip),
+                    type: "GET",
+                    dataType: 'json',
+                    cache: false,
+                    beforeSend: function() {
+                        $this.html(`
+                        <span class="right-sidebar__button-icon">
+                            <i class="las la-spinner la-spin"></i>
+                        </span>`).attr('disabled', true);
+                    },
+                    complete: function(e) {
+                        setTimeout(() => {
+                            $this.html(`
+                        <span class="right-sidebar__button-icon">
+                            <i class="las la-chevron-circle-down"></i>
+                        </span>@lang('Show More')`).attr('disabled', false);
+                            $('.wallet-list').removeClass('skeleton');
+                        }, 500);
+                    },
+                    success: function(resp) {
+                        if (resp.success && (resp.wallets && resp.wallets.length > 0)) {
+                            let html = "";
+                            $.each(resp.wallets, function(i, wallet) {
+                                html += `
+                            <div class="right-sidebar__item wallet-list skeleton">
+                                <div class="d-flex align-items-center">
+                                    <span class="right-sidebar__item-icon">
+                                        <img src="${wallet.currency.image_url}">
+                                    </span>
+                                    <h6 class="right-sidebar__item-name">
+                                        ${wallet.currency.name}
+                                        <span class="fs-11 d-block">
+                                            ${wallet.currency.symbol}
+                                        </span>
+                                    </h6>
+                                </div>
+
+                                <h6 class="right-sidebar__item-number">${getAmount(wallet.balance)}</h6>
+                            </div>
+                            `
+                            });
+                            walletSkip += 3;
+                            $('.wallet-wrapper').append(html);
+                        } else {
+                            $this.remove();
+                        }
+
+                        $('.right-sidebar__menu').animate({
+                            scrollTop: $('.right-sidebar__menu')[0].scrollHeight + 150
+                        }, "slow");
+                    },
+                    error: function() {
+                        notify('error', "@lang('Something went to wrong')");
+                        $this.remove();
+                    }
+                });
+            });
+
+            // Trigger Deposit Canvas from top hero
+            $(document).on('click', '.deposit-btn-trigger', function(e) {
+                e.preventDefault();
+                $('#depositCanvas').addClass('show');
+                $('body').addClass('canvas-open');
+                $('.dashboard-right').animate({ opacity: 0 }, 300, function() { $(this).css('visibility', 'hidden'); });
+            });
+
+            // Trigger Withdraw Canvas from top hero
+            $(document).on('click', '.withdraw-btn-trigger', function(e) {
+                e.preventDefault();
+                $('#withdrawCanvas').addClass('show');
+                $('body').addClass('canvas-open');
+                $('.dashboard-right').animate({ opacity: 0 }, 300, function() { $(this).css('visibility', 'hidden'); });
+            });
 
             // Handle deposit form submission
             $(document).on('submit', '.deposit-form', function(e) {
                 e.preventDefault();
+                
+                // Hide only the right sidebar (wallet overview)
+                $('.dashboard-right').animate({
+                    opacity: 0
+                }, 300, function() {
+                    $(this).css('visibility', 'hidden');
+                });
+                
+                // Get form values
                 const amount = $(this).find('input[name="amount"]').val();
                 const currency = $(this).find('.currency_list').val();
-
-                const depositOffcanvas = new bootstrap.Offcanvas(document.getElementById('deposit-canvas'));
-                depositOffcanvas.show();
-
+                
+                // Open deposit canvas
+                $('#depositCanvas').addClass('show');
+                $('body').addClass('canvas-open');
+                
+                // Pre-fill values if any
                 if (amount) {
-                    $('#deposit-canvas').find('input[name="amount"]').val(amount);
+                    $('#depositCanvas').find('input[name="amount"]').val(amount);
                 }
                 if (currency) {
-                    $('#deposit-canvas').find('.currency_list').val(currency).trigger('change');
+                    $('#depositCanvas').find('.currency_list').val(currency).trigger('change');
                 }
             });
 
             // Handle withdraw form submission
             $(document).on('submit', '.withdraw-form', function(e) {
                 e.preventDefault();
+                
+                // Hide only the right sidebar (wallet overview)
+                $('.dashboard-right').animate({
+                    opacity: 0
+                }, 300, function() {
+                    $(this).css('visibility', 'hidden');
+                });
+                
+                // Get form values
                 const amount = $(this).find('input[name="amount"]').val();
                 const currency = $(this).find('#withdraw_currency_list').val();
-
-                const withdrawOffcanvas = new bootstrap.Offcanvas(document.getElementById('withdraw-canvas'));
-                withdrawOffcanvas.show();
-
+                
+                // Open withdraw canvas
+                $('#withdrawCanvas').addClass('show');
+                $('body').addClass('canvas-open');
+                
+                // Pre-fill values if any
                 if (amount) {
-                    $('#withdraw-canvas').find('input[name="amount"]').val(amount);
+                    $('#withdrawCanvas').find('input[name="amount"]').val(amount);
                 }
                 if (currency) {
-                    $('#withdraw-canvas').find('.currency_list').val(currency).trigger('change');
+                    $('#withdrawCanvas').find('.currency_list').val(currency).trigger('change');
                 }
+            });
+
+            // When closing the deposit/withdraw canvas, show the wallet overview again
+            $(document).on('click', '[data-bs-dismiss="canvas"], .canvas-backdrop', function() {
+                $('.dashboard-right').css('visibility', 'visible').animate({
+                    opacity: 1
+                }, 300);
             });
         });
     })(jQuery);
 </script>
+@endpush
+
+@push('style')
+<style>
+    /* iOS-specific fixes */
+    @supports (-webkit-touch-callout: none) {
+        select, textarea, input, .form--control {
+            font-size: 16px !important;
+        }
+        
+        .select2-container .select2-selection--single {
+            height: 44px !important;
+            line-height: 44px !important;
+        }
+        
+        .ios-select2-dropdown {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            max-height: 50vh !important;
+            border-radius: 10px 10px 0 0 !important;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.1) !important;
+            border: none !important;
+            transform: none !important;
+        }
+        
+        .select2-results__option {
+            padding: 12px 20px !important;
+            font-size: 16px !important;
+        }
+        
+        .form--control {
+            font-size: 16px !important;
+        }
+    }
+
+    /* Currency selection styling */
+    .select2-currency-img, .select2-selected-img {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    
+    .select2-currency-option, .select2-selected-currency {
+        display: flex;
+        align-items: center;
+    }
+
+    /* Dashboard styling */
+    .dashboard-right {
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .right-sidebar {
+            max-height: 90vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+        
+        .right-sidebar__deposit {
+            overflow-y: visible;
+            min-height: auto;
+            padding-bottom: 20px;
+        }
+        
+        .select2-container--open .select2-dropdown {
+            max-height: 200px !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+        
+        .select2-results {
+            max-height: 180px !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+        
+        .dashboard--popup {
+            z-index: 1040;
+        }
+        
+        #depositCanvas,
+        #withdrawCanvas {
+            z-index: 1050;
+        }
+        
+        .canvas-backdrop {
+            z-index: 1045;
+        }
+        
+        .deposit__button,
+        .right-sidebar__button {
+            min-height: 48px;
+            padding: 12px 20px;
+        }
+        
+        .right-sidebar__menu {
+            max-height: 300px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+        
+        .right-sidebar form {
+            padding-bottom: 15px;
+        }
+        
+        .select2-container--open {
+            z-index: 9999 !important;
+        }
+    }
+    
+    /* Scrollbar styling */
+    .right-sidebar::-webkit-scrollbar,
+    .right-sidebar__menu::-webkit-scrollbar,
+    .select2-results::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .right-sidebar::-webkit-scrollbar-track,
+    .right-sidebar__menu::-webkit-scrollbar-track,
+    .select2-results::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 3px;
+    }
+    
+    .right-sidebar::-webkit-scrollbar-thumb,
+    .right-sidebar__menu::-webkit-scrollbar-thumb,
+    .select2-results::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 3px;
+    }
+    
+    .right-sidebar::-webkit-scrollbar-thumb:hover,
+    .right-sidebar__menu::-webkit-scrollbar-thumb:hover,
+    .select2-results::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.5);
+    }
+</style>
+@endpush
+
+@push('topContent')
+    <h4 class="mb-4">{{ __($pageTitle) }}</h4>
 @endpush
