@@ -1,0 +1,114 @@
+.staking-card {
+    background: var(--section-bg);
+    border-radius: 15px;
+    padding: 20px;
+    height: 100%;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.staking-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.staking-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.staking-card .plan-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--title-color);
+    margin: 0;
+}
+
+.staking-card .plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+}
+
+.staking-card .plan-features li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.staking-card .plan-features li:last-child {
+    border-bottom: none;
+}
+
+.staking-card .caption {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.staking-card .value {
+    font-weight: 600;
+    color: var(--title-color);
+}
+
+.widget-stat {
+    background: var(--primary-color);
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.widget-stat::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: translate(30%, 30%);
+}
+
+.widget-stat .content {
+    position: relative;
+    z-index: 1;
+}
+
+.calculation-result {
+    background: var(--section-bg);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.calculation-result p {
+    margin: 0;
+    padding: 5px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calculation-result p span {
+    font-weight: 600;
+    color: var(--title-color);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .staking-card {
+    background: var(--dark-section-bg);
+    border-color: var(--dark-border-color);
+}
+
+[data-theme="dark"] .widget-stat {
+    background: var(--dark-primary-color);
+}
+
+[data-theme="dark"] .calculation-result {
+    background: var(--dark-section-bg);
+}
