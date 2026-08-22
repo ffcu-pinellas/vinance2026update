@@ -1,0 +1,1 @@
+var firebaseConfig = {"apiKey":"AIzaSyBrUp-Gc3fN6YsWdQlYd9Uo_0PBrqrfsok","authDomain":"vinance-v1.firebaseapp.com","projectId":"vinance-v1","storageBucket":"vinance-v1.firebasestorage.app","messagingSenderId":"3812799817","appId":"1:3812799817:web:f046a4d5f2f786d32b1698","measurementId":"G-G5CL5NL3BG"}
