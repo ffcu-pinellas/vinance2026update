@@ -61,73 +61,64 @@
                     </div>
                 @endif
                 <div class="col-12">
-                    <div class="portfolio-hero-card mb-4 skeleton">
-                        <div class="portfolio-hero__inner d-flex flex-wrap align-items-center justify-content-between">
-                            <div class="portfolio-hero__balance">
-                                <span class="portfolio-hero__label">@lang('Estimated Total Balance')</span>
-                                <h2 class="portfolio-hero__amount">
-                                    {{ showAmount($estimatedBalance, currencyFormat: false) }} <span class="portfolio-hero__currency">{{ __(gs('cur_text')) }}</span>
-                                </h2>
-                            </div>
-                            <div class="portfolio-hero__actions d-flex flex-wrap gap-3 mt-3 mt-sm-0">
-                                <button class="btn btn--success btn--lg portfolio-btn deposit-btn-trigger">
-                                    <span class="icon"><i class="las la-arrow-down"></i></span> @lang('Deposit')
-                                </button>
-                                <button class="btn btn--dark btn--lg portfolio-btn withdraw-btn-trigger">
-                                    <span class="icon"><i class="las la-arrow-up"></i></span> @lang('Withdraw')
-                                </button>
-                                <a href="{{ route('user.coin.swap') }}" class="btn btn--dark btn--lg portfolio-btn swap-btn-trigger">
-                                    <span class="icon"><i class="las la-exchange-alt"></i></span> @lang('Swap')
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <div class="dashboard-card-wrapper">
-                        <div class="row gy-4 mb-4 justify-content-center">
+                        <div class="row gy-4 mb-3 justify-content-center">
                             <div class="col-xxl-3 col-sm-6">
-                                <a href="{{ route('user.order.open') }}" class="dashboard-widget skeleton">
-                                    <div class="dashboard-widget__header">
-                                        <h6 class="dashboard-widget__title">@lang('Open Orders')</h6>
-                                        <span class="dashboard-widget__icon text--base bg--base-subtle">
+                                <div class="dashboard-card skeleton">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="dashboard-card__icon text--base">
                                             <i class="las la-spinner"></i>
                                         </span>
+                                        <div class="dashboard-card__content">
+                                            <a href="{{ route('user.order.open') }}" class="dashboard-card__coin-name mb-0">
+                                                @lang('Open Order') </a>
+                                            <h6 class="dashboard-card__coin-title"> {{ getAmount($widget['open_order']) }} </h6>
+                                        </div>
                                     </div>
-                                    <h3 class="dashboard-widget__value">{{ getAmount($widget['open_order']) }}</h3>
-                                </a>
+                                </div>
                             </div>
                             <div class="col-xxl-3 col-sm-6">
-                                <a href="{{ route('user.order.completed') }}" class="dashboard-widget skeleton">
-                                    <div class="dashboard-widget__header">
-                                        <h6 class="dashboard-widget__title">@lang('Completed')</h6>
-                                        <span class="dashboard-widget__icon text--success bg--success-subtle">
+                                <div class="dashboard-card skeleton">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="dashboard-card__icon text--success">
                                             <i class="las la-check-circle"></i>
                                         </span>
+                                        <div class="dashboard-card__content">
+                                            <a href="{{ route('user.order.completed') }}" class="dashboard-card__coin-name mb-0">
+                                                @lang('Completed Order') </a>
+                                            <h6 class="dashboard-card__coin-title"> {{ getAmount($widget['completed_order']) }}
+                                            </h6>
+                                        </div>
                                     </div>
-                                    <h3 class="dashboard-widget__value">{{ getAmount($widget['completed_order']) }}</h3>
-                                </a>
+                                </div>
                             </div>
                             <div class="col-xxl-3 col-sm-6">
-                                <a href="{{ route('user.order.canceled') }}" class="dashboard-widget skeleton">
-                                    <div class="dashboard-widget__header">
-                                        <h6 class="dashboard-widget__title">@lang('Canceled')</h6>
-                                        <span class="dashboard-widget__icon text--danger bg--danger-subtle">
+                                <div class="dashboard-card skeleton">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="dashboard-card__icon text--danger">
                                             <i class="las la-times-circle"></i>
                                         </span>
+                                        <div class="dashboard-card__content">
+                                            <a href="{{ route('user.order.canceled') }}" class="dashboard-card__coin-name mb-0">
+                                                @lang('Canceled Order') </a>
+                                            <h6 class="dashboard-card__coin-title"> {{ getAmount($widget['canceled_order']) }}
+                                            </h6>
+                                        </div>
                                     </div>
-                                    <h3 class="dashboard-widget__value">{{ getAmount($widget['canceled_order']) }}</h3>
-                                </a>
+                                </div>
                             </div>
                             <div class="col-xxl-3 col-sm-6">
-                                <a href="{{ route('user.trade.history') }}" class="dashboard-widget skeleton">
-                                    <div class="dashboard-widget__header">
-                                        <h6 class="dashboard-widget__title">@lang('Total Trades')</h6>
-                                        <span class="dashboard-widget__icon text--warning bg--warning-subtle">
-                                            <span class="icon-trade"></span>
+                                <div class="dashboard-card skeleton">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="dashboard-card__icon text--base">
+                                            <span class="icon-trade fs-50"></span>
                                         </span>
+                                        <div class="dashboard-card__content">
+                                            <a href="{{ route('user.trade.history') }}" class="dashboard-card__coin-name mb-0">@lang('Total Trade') </a>
+                                            <h6 class="dashboard-card__coin-title"> {{ getAmount($widget['total_trade']) }} </h6>
+                                        </div>
                                     </div>
-                                    <h3 class="dashboard-widget__value">{{ getAmount($widget['total_trade']) }}</h3>
-                                </a>
+                                </div>
                             </div>
                         </div>
                         <div class="row gy-4 mb-3 justify-content-center">
@@ -224,13 +215,18 @@
                     <div class="right-sidebar__header mb-3 skeleton">
                         <div class="d-flex flex-between flex-wrap">
                             <div>
-                                <h4 class="mb-0 fs-18">@lang('My Assets')</h4>
-                                <p class="mt-0 fs-12 text-muted">@lang('Overview of your crypto balances')</p>
+                                <h4 class="mb-0 fs-18">@lang('Wallet Overview')</h4>
+                                <p class="mt-0 fs-12">@lang('Available wallet balance including the converted total balance')</p>
                             </div>
                             <span class="toggle-dashboard-right dashboard--popup-close"><i class="las la-times"></i></span>
                         </div>
                     </div>
-                    
+                    <div class="text-center mb-3 skeleton">
+                        <h3 class="right-sidebar__number mb-0 pb-0">
+                            {{ showAmount($estimatedBalance) }}
+                        </h3>
+                        <span class="fs-14 mt-0">@lang('Estimated Total Balance')</span>
+                    </div>
                     <div class="right-sidebar__menu">
                         <div class="wallet-wrapper">
                             @forelse ($wallets as $wallet)
@@ -241,7 +237,7 @@
                                         </span>
                                         <h6 class="right-sidebar__item-name">
                                             {{ strLimit(@$wallet->currency->name, 10) }}
-                                            <span class="fs-11 d-block text-muted">
+                                            <span class="fs-11 d-block">
                                                 {{ @$wallet->currency->symbol }}
                                             </span>
                                         </h6>
@@ -253,9 +249,54 @@
                         </div>
                         <button type="button" class="w-100 show-more-wallet right-sidebar__button skeleton mt-2">
                             <span class="right-sidebar__button-icon">
-                                <i class="las la-chevron-circle-down"></i>
-                            </span> @lang('Show More')
+                                <i class="las la-chevron-circle-down"></i>@lang('Show More')
+                            </span>
                         </button>
+                    </div>
+                </div>
+                <div class="right-sidebar mt-3">
+                    <div class="right-sidebar__header mb-3 skeleton">
+                        <h4 class="mb-0 fs-18">@lang('Deposit Money')</h4>
+                        <p class="mt-0 fs-12">@lang('Make crypto & fiat deposits in a few steps')</p>
+                    </div>
+                    <div class="right-sidebar__deposit custom-select2">
+                        <form class="skeleton deposit-form">
+                            <div class="form-group position-relative" id="currency_list_wrapper">
+                                <div class="input-group">
+                                    <input type="number" step="any" name="amount" class="form--control form-control ios-input-fix"
+                                        placeholder="@lang('Amount')">
+                                    <div class="input-group-text skeleton">
+                                        <x-currency-list :action="route('user.currency.all')" valueType="2" logCurrency="true" class="ios-select-fix" />
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="deposit__button btn btn--base w-100" type="submit">
+                                <span class="icon-deposit"></span> @lang('Deposit')
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="right-sidebar mt-3">
+                    <div class="right-sidebar__header mb-3 skeleton">
+                        <h4 class="mb-0 fs-18">@lang('Withdraw Money')</h4>
+                        <p class="mt-0 fs-12">@lang('Withdrawal your balance with our world-class withdrawal process')</p>
+                    </div>
+                    <div class="right-sidebar__deposit">
+                        <form class="skeleton withdraw-form custom-select2">
+                            <div class="form-group position-relative" id="withdraw_currency_list_wrapper">
+                                <div class="input-group">
+                                    <input type="number" name="amount" step="any" class="form--control form-control ios-input-fix"
+                                        placeholder="@lang('Amount')">
+                                    <div class="input-group-text skeleton">
+                                        <x-currency-list :action="route('user.currency.all')" id="withdraw_currency_list" parent="withdraw_currency_list_wrapper"
+                                            valueType="2" logCurrency="true" class="ios-select-fix" />
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="deposit__button btn btn--base w-100" type="submit">
+                                <span class="icon-withdraw"></span> @lang('Withdraw')
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -423,22 +464,6 @@
                         $this.remove();
                     }
                 });
-            });
-
-            // Trigger Deposit Canvas from top hero
-            $(document).on('click', '.deposit-btn-trigger', function(e) {
-                e.preventDefault();
-                $('#depositCanvas').addClass('show');
-                $('body').addClass('canvas-open');
-                $('.dashboard-right').animate({ opacity: 0 }, 300, function() { $(this).css('visibility', 'hidden'); });
-            });
-
-            // Trigger Withdraw Canvas from top hero
-            $(document).on('click', '.withdraw-btn-trigger', function(e) {
-                e.preventDefault();
-                $('#withdrawCanvas').addClass('show');
-                $('body').addClass('canvas-open');
-                $('.dashboard-right').animate({ opacity: 0 }, 300, function() { $(this).css('visibility', 'hidden'); });
             });
 
             // Handle deposit form submission

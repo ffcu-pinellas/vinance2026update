@@ -7,7 +7,6 @@
             </a>
         </div>
         <ul class="sidebar-menu-list">
-            <li class="sidebar-menu-list__header">@lang('Overview')</li>
             <li class="sidebar-menu-list__item ">
                 <a href="{{ route('user.home') }}" class="sidebar-menu-list__link {{ menuActive('user.home') }}">
                     <span class="icon"><span class="icon-dashboard"></span></span>
@@ -15,17 +14,15 @@
                 </a>
             </li>
             <li class="sidebar-menu-list__item ">
-                <a href="{{ route('user.transactions') }}" class="sidebar-menu-list__link {{ menuActive('user.transactions') }}">
-                    <span class="icon"><span class="icon-transaction"></span></span>
-                    <span class="text">@lang('Transaction History')</span>
-                </a>
-            </li>
-
-            <li class="sidebar-menu-list__header mt-4">@lang('Trading')</li>
-            <li class="sidebar-menu-list__item ">
                 <a href="{{ route('user.order.open') }}" class="sidebar-menu-list__link {{ menuActive('user.order.*') }} ">
                     <span class="icon"><span class="icon-order"></span></span>
                     <span class="text">@lang('Manage Order')</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-list__item ">
+                <a href="{{ route('user.ai.trader') }}" class="sidebar-menu-list__link {{ menuActive('user.ai.trader') }}">
+                    <span class="icon"><i class="fas fa-robot"></i></span>
+                    <span class="text">@lang('AI Auto-Trader')</span>
                 </a>
             </li>
             <li class="sidebar-menu-list__item ">
@@ -41,38 +38,34 @@
                 </a>
             </li>
             <li class="sidebar-menu-list__item ">
-                <a href="{{ route('user.ai.trader') }}" class="sidebar-menu-list__link {{ menuActive('user.ai.trader') }}">
-                    <span class="icon"><i class="fas fa-robot"></i></span>
-                    <span class="text">@lang('AI Auto-Trader')</span>
-                </a>
-            </li>
-            <li class="sidebar-menu-list__item ">
                 <a href="{{ route('user.p2p.dashboard') }}" class="sidebar-menu-list__link {{ menuActive('user.p2p.dashboard') }} ">
                     <span class="icon"><span class="icon-trade"></span></span>
                     <span class="text">@lang('P2P Center')</span>
                 </a>
             </li>
 
-            <li class="sidebar-menu-list__header mt-4">@lang('Assets & Earn')</li>
             <li class="sidebar-menu-list__item ">
                 <a href="{{ route('user.wallet.list', 'spot') }}" class="sidebar-menu-list__link {{ menuActive('user.wallet.*') }}">
                     <span class="icon"><span class="icon-wallet"></span></span>
                     <span class="text">@lang('Manage Wallet')</span>
                 </a>
             </li>
+            
             <li class="sidebar-menu-list__item ">
                  <a href="{{ route('user.coin.swap') }}" class="sidebar-menu-list__link {{ menuActive('user.coin.swap*') }}">
                      <span class="icon"><span class="las la-exchange-alt"></span></span>
                      <span class="text">@lang('Coin Swap')</span>
                  </a>
             </li>
+            
             <li class="sidebar-menu-list__item ">
                  <a href="{{ route('user.staking.index') }}" class="sidebar-menu-list__link {{ menuActive('user.staking*') }}">
                       <span class="icon"><span class="menu-icon las la-coins"></span></span>
                       <span class="text">@lang('Coin Staking')</span>
                  </a>
             </li>
-            <li class="sidebar-menu-list__item ">
+            
+        <li class="sidebar-menu-list__item ">
                 <a href="{{ route('user.deposit.history') }}" class="sidebar-menu-list__link {{ menuActive('user.deposit.*') }}">
                     <span class="icon"><span class="icon-deposit"></span></span>
                     <span class="text">@lang('Deposit History')</span>
@@ -84,8 +77,6 @@
                     <span class="text">@lang('Withdraw History')</span>
                 </a>
             </li>
-
-            <li class="sidebar-menu-list__header mt-4">@lang('Account')</li>
             <li class="sidebar-menu-list__item ">
                 <a href="{{ route('user.referrals') }}" class="sidebar-menu-list__link {{ menuActive('user.referrals') }}">
                     <span class="icon"><span class="icon-affiliation"></span></span>
@@ -93,15 +84,21 @@
                 </a>
             </li>
             <li class="sidebar-menu-list__item ">
-                <a href="{{ route('user.twofactor') }}" class="sidebar-menu-list__link {{ menuActive('user.twofactor') }}">
-                    <span class="icon"><span class="icon-security"></span></span>
-                    <span class="text">@lang('Security')</span>
+                <a href="{{ route('user.transactions') }}" class="sidebar-menu-list__link {{ menuActive('user.transactions') }}">
+                    <span class="icon"><span class="icon-transaction"></span></span>
+                    <span class="text">@lang('Transaction Histoy')</span>
                 </a>
             </li>
             <li class="sidebar-menu-list__item ">
                 <a href="{{ route('ticket.index') }}" class="sidebar-menu-list__link {{ menuActive('ticket.*') }}">
                     <span class="icon"><span class="icon-support"></span></span>
                     <span class="text">@lang('Get Support')</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-list__item ">
+                <a href="{{ route('user.twofactor') }}" class="sidebar-menu-list__link {{ menuActive('user.twofactor') }}">
+                    <span class="icon"><span class="icon-security"></span></span>
+                    <span class="text">@lang('Security')</span>
                 </a>
             </li>
             <li class="sidebar-menu-list__item ">

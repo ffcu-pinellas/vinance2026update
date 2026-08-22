@@ -4,18 +4,19 @@
 <div class="dashboard-header">
     <div class="dashboard-header__inner">
         <div class="dashboard-header__left">
-            <div class="copy-link topbar-referral-pill">
+            <div class="copy-link">
                 <input type="text" class="copyText" value="{{ route('home') }}?reference={{ $user->username }}" readonly>
                 <button class="copy-link__button copyTextBtn" data-bs-toggle="tooltip" data-bs-placement="right" title="@lang('Copy URL')">
-                    <span class="copy-link__icon"><i class="las la-copy"></i></span>
+                    <span class="copy-link__icon"><i class="las la-copy"></i>
+                    </span>
                 </button>
             </div>
         </div>
         <div class="dashboard-header__right">
-            <a href="{{ route('binary') }}" target="_blank" class="btn btn--base btn--sm trade-btn topbar-trade-btn">
+            <a href="{{ route('binary') }}" target="_blank" class="btn btn--base outline btn--sm trade-btn">
                 <i class="las la-lg la-chart-line"></i> @lang('BINARY TRADE')
             </a>
-            <a href="{{ route('trade') }}" target="_blank" class="btn btn--base btn--sm trade-btn topbar-trade-btn">
+            <a href="{{ route('trade') }}" target="_blank" class="btn btn--base outline btn--sm trade-btn">
                 <span class="icon-trade"></span> @lang('SPOT TRADE')
             </a>
             <div class="user-info">
