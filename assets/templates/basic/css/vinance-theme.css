@@ -1305,6 +1305,10 @@ section,
   .sidebar-menu {
     box-shadow: var(--vn-shadow-lg) !important;
   }
+  .dashboard-right {
+    background: var(--vn-bg-primary) !important;
+    color: var(--vn-text-primary) !important;
+  }
 }
 @media (max-width: 767px) {
   .dashboard-body {
@@ -1320,11 +1324,25 @@ section,
     display: none !important;
   }
   .dashboard-header__inner {
+    display: flex !important;
     flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     gap: 8px !important;
+    width: 100% !important;
+  }
+  .dashboard-header__left {
+    display: flex !important;
+    align-items: center !important;
+    width: auto !important;
+    flex: 0 0 auto !important;
   }
   .dashboard-header__right {
+    display: flex !important;
+    align-items: center !important;
     gap: 6px !important;
+    width: auto !important;
+    flex: 0 0 auto !important;
   }
   .dashboard-header__right .trade-btn {
     padding: 6px 10px !important;
