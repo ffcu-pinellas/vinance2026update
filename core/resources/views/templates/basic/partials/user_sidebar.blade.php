@@ -52,14 +52,14 @@
             </li>
             
             <li class="sidebar-menu-list__item ">
-                 <a href="{{ route('user.coin.swap') }}" class="sidebar-menu-list__link {{ route('user.coin.swap') }}">
+                 <a href="{{ route('user.coin.swap') }}" class="sidebar-menu-list__link {{ menuActive('user.coin.swap*') }}">
                      <span class="icon"><span class="las la-exchange-alt"></span></span>
                      <span class="text">@lang('Coin Swap')</span>
                  </a>
             </li>
             
-            <li class="sidebar-menu-item {{ menuActive('user.staking*') }}">
-                 <a href="{{ route('user.staking.index') }}" class="sidebar-menu-list__link {{ route('user.staking.index') }}">
+            <li class="sidebar-menu-list__item ">
+                 <a href="{{ route('user.staking.index') }}" class="sidebar-menu-list__link {{ menuActive('user.staking*') }}">
                       <span class="icon"><span class="menu-icon las la-coins"></span></span>
                       <span class="text">@lang('Coin Staking')</span>
                  </a>
