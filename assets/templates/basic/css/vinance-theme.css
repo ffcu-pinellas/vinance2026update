@@ -1353,6 +1353,36 @@ section,
   }
 }
 
+/* Deposit & Withdraw Input Styles */
+.right-sidebar__deposit .input-group-text {
+  background: var(--vn-bg-elevated) !important;
+  border: 1px solid var(--vn-border) !important;
+  border-left: none !important;
+  color: var(--vn-text-primary) !important;
+  border-radius: 0 var(--vn-radius-md) var(--vn-radius-md) 0 !important;
+  padding: 0 10px !important;
+}
+.right-sidebar__deposit .form-control {
+  background: var(--vn-bg-elevated) !important;
+  border: 1px solid var(--vn-border) !important;
+  border-right: none !important;
+  color: var(--vn-text-primary) !important;
+  border-radius: var(--vn-radius-md) 0 0 var(--vn-radius-md) !important;
+}
+.right-sidebar__deposit .select2-container--default .select2-selection--single {
+  background-color: transparent !important;
+  border: none !important;
+  height: 40px !important;
+}
+.right-sidebar__deposit .select2-container--default .select2-selection--single .select2-selection__rendered {
+  color: var(--vn-text-primary) !important;
+  line-height: 40px !important;
+  padding-left: 8px !important;
+}
+.right-sidebar__deposit .select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 40px !important;
+}
+
 /* ========================= ANIMATIONS ========================= */
 @keyframes vnFadeIn {
   from { opacity: 0; transform: translateY(6px); }
