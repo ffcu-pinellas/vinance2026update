@@ -123,35 +123,33 @@
                 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
                     let windowsIsDarkTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
                     if (windowsIsDarkTheme) {
-                        setTheme('light');
-                    } else {
                         setTheme('dark');
+                    } else {
+                        setTheme('light');
                     }
                 });
 
-                const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
                 const currentTheme = localStorage.getItem('theme');
 
                 if (currentTheme) {
                     setTheme(currentTheme);
                 } else {
                     let defaultTheme = `{{ gs('default_theme') }}`;
-
-                    if (defaultTheme == 'dark') {
-                        setTheme('dark');
-                    } else {
+                    if (defaultTheme == 'light') {
                         setTheme('light');
+                    } else {
+                        setTheme('dark');
                     }
                 }
 
                 function setTheme(theme) {
                     document.documentElement.setAttribute('data-theme', theme);
                     localStorage.setItem('theme', theme);
-                    theme == 'dark' ? toggleSwitch.checked = true : toggleSwitch.checked = false;
+                    $('.theme-switch input[type="checkbox"]').prop('checked', theme === 'dark');
                 }
 
-                toggleSwitch.addEventListener('change', function(e) {
-                    setTheme(e.target.checked ? 'dark' : 'light');
+                $(document).on('change', '.theme-switch input[type="checkbox"]', function(e) {
+                    setTheme(this.checked ? 'dark' : 'light');
                 });
             @endif
 
