@@ -121,6 +121,26 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Portfolio Analytics Chart -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card dashboard-card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title mb-0">@lang('Portfolio Analytics')</h5>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-secondary active">7D</button>
+                                            <button type="button" class="btn btn-outline-secondary">1M</button>
+                                            <button type="button" class="btn btn-outline-secondary">All</button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="portfolioChart" style="height: 300px; width: 100%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row gy-4 mb-3 justify-content-center">
                             <div class="col-lg-6">
                                 <div class="transection h-100">
@@ -254,6 +274,35 @@
                         </button>
                     </div>
                 </div>
+                
+                <!-- Quick Convert Widget -->
+                <div class="right-sidebar mt-3">
+                    <div class="right-sidebar__header mb-3 skeleton">
+                        <h4 class="mb-0 fs-18">@lang('Quick Convert')</h4>
+                        <p class="mt-0 fs-12">@lang('Swap coins instantly with zero fees')</p>
+                    </div>
+                    <div class="right-sidebar__deposit custom-select2">
+                        <form action="{{ route('user.coin.swap') }}" method="GET" class="skeleton">
+                            <div class="form-group position-relative mb-2">
+                                <div class="input-group">
+                                    <input type="number" step="any" class="form--control form-control ios-input-fix" placeholder="From (e.g. USDT)">
+                                </div>
+                            </div>
+                            <div class="text-center my-1">
+                                <i class="las la-exchange-alt fs-20 text--base" style="transform: rotate(90deg);"></i>
+                            </div>
+                            <div class="form-group position-relative mb-3">
+                                <div class="input-group">
+                                    <input type="number" step="any" class="form--control form-control ios-input-fix" placeholder="To (e.g. BTC)" disabled>
+                                </div>
+                            </div>
+                            <button class="deposit__button btn btn--base w-100" type="submit">
+                                <i class="las la-sync"></i> @lang('Convert Now')
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
                 <div class="right-sidebar mt-3">
                     <div class="right-sidebar__header mb-3 skeleton">
                         <h4 class="mb-0 fs-18">@lang('Deposit Money')</h4>
@@ -680,4 +729,86 @@
 
 @push('topContent')
     <h4 class="mb-4">{{ __($pageTitle) }}</h4>
+@endpush
+
+@push('script-lib')
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+@endpush
+
+@push('script')
+<script>
+    (function ($) {
+        "use strict";
+        
+        // Mock data for the 7-day balance curve
+        var options = {
+            series: [{
+                name: 'Portfolio Value',
+                data: [310, 350, 320, 390, 375, 410, 450]
+            }],
+            chart: {
+                type: 'area',
+                height: 300,
+                toolbar: { show: false },
+                fontFamily: 'var(--body-font)',
+                background: 'transparent'
+            },
+            colors: ['var(--vn-accent)'],
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.4,
+                    opacityTo: 0.0,
+                    stops: [0, 100]
+                }
+            },
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth', width: 2 },
+            xaxis: {
+                categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                labels: {
+                    style: { colors: 'var(--vn-text-secondary)' }
+                }
+            },
+            yaxis: {
+                labels: {
+                    style: { colors: 'var(--vn-text-secondary)' },
+                    formatter: function (value) { return "$" + value; }
+                }
+            },
+            grid: {
+                borderColor: 'var(--vn-border)',
+                strokeDashArray: 4,
+                yaxis: { lines: { show: true } },
+                xaxis: { lines: { show: false } }
+            },
+            theme: { mode: $('html').attr('data-theme') === 'dark' ? 'dark' : 'light' },
+            tooltip: {
+                theme: $('html').attr('data-theme') === 'dark' ? 'dark' : 'light',
+                y: { formatter: function (val) { return "$" + val } }
+            }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#portfolioChart"), options);
+        chart.render();
+        
+        // Handle theme switches
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'data-theme') {
+                    const newTheme = $('html').attr('data-theme') === 'dark' ? 'dark' : 'light';
+                    chart.updateOptions({
+                        theme: { mode: newTheme },
+                        tooltip: { theme: newTheme }
+                    });
+                }
+            });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+
+    })(jQuery);
+</script>
 @endpush

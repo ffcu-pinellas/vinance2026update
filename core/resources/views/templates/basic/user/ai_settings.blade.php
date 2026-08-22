@@ -2,11 +2,20 @@
 
 @section('content')
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0"><i class="fas fa-sliders-h text-primary me-2"></i>Vinance AI Auto Trader V2.02 Settings</h4>
-        <a href="{{ route('user.ai.trader') }}" class="btn btn-outline-primary">
-            <i class="fas fa-arrow-left me-1"></i> Back to Trader
-        </a>
+    <!-- Unified AI Console Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <h4 class="mb-0"><i class="fas fa-robot text-primary me-2"></i>Vinance AI Auto Trader V2.02</h4>
+        
+        <div class="d-flex align-items-center gap-3">
+            <div class="table-header-menu">
+                <a href="{{ route('user.ai.trader') }}" class="table-header-menu__link">Overview</a>
+                <a href="{{ route('user.ai.settings') }}" class="table-header-menu__link active">Settings</a>
+                <a href="{{ route('user.documentation') }}" class="table-header-menu__link">Logs & Guide</a>
+            </div>
+            <a href="{{ route('user.ai.trader') }}" class="btn btn-outline-primary btn-icon rounded-circle shadow-sm d-md-none">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
     </div>
 
 <div class="container-fluid px-4">

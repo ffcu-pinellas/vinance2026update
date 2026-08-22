@@ -1,16 +1,27 @@
 @extends($activeTemplate . 'layouts.master')
 
 @section('content')
-<div class="container py-4">
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-robot me-2"></i> AI Trader Documentation
-                    </h4>
-                </div>
-                <div class="card-body">
+<div class="container-fluid px-4">
+    <!-- Unified AI Console Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 mt-4">
+        <h4 class="mb-0"><i class="fas fa-robot text-primary me-2"></i>Vinance AI Auto Trader V2.02</h4>
+        
+        <div class="d-flex align-items-center gap-3">
+            <div class="table-header-menu">
+                <a href="{{ route('user.ai.trader') }}" class="table-header-menu__link">Overview</a>
+                <a href="{{ route('user.ai.settings') }}" class="table-header-menu__link">Settings</a>
+                <a href="{{ route('user.documentation') }}" class="table-header-menu__link active">Logs & Guide</a>
+            </div>
+            <a href="{{ route('user.ai.trader') }}" class="btn btn-outline-primary btn-icon rounded-circle shadow-sm d-md-none">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <div class="card dashboard-card">
+                <div class="card-body p-4">
                     <!-- Getting Started -->
                     <section class="mb-5">
                         <h2 class="h4 border-bottom pb-2">
