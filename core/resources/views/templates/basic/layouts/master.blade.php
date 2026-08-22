@@ -51,26 +51,15 @@
             <div class="dashboard__right">
                 @include($activeTemplate . 'partials.user_topbar')
                 <div class="dashboard-body">
-                    <div class="d-flex justify-content-between mb-3 align-items-center dashboardBodyNav">
-                        <div class="dashboard-body__bar d-xl-none d-inline-block">
-                            <button class="dashboard-sidebar-filter__button">
-                                <i class="las la-bars"></i>
-                            </button>
-                        </div>
-                        @if (request()->routeIs('user.home'))
-                            <div class="dashboard-body__bar style ">
-                                <span class="dashboard-body__bar-two-icon toggle-dashboard-right"><i class="fas fa-bars"></i></span>
-                            </div>
-                        @endif
-
-                        @if (request()->routeIs('user.p2p*'))
+                    @if (request()->routeIs('user.p2p*'))
+                        <div class="d-flex justify-content-between mb-3 align-items-center dashboardBodyNav">
                             <div class="p2p-sidebar__menu">
                                 <span class="p2p-sidebar__menu-icon">
                                     <i class="fas fa-bars"></i>
                                 </span>
                             </div>
-                        @endif
-                    </div>
+                        </div>
+                    @endif
                     @stack('topContent')
                     @yield('content')
                 </div>
