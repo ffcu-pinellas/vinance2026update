@@ -12,10 +12,10 @@
     <link rel="stylesheet" href="{{ asset('assets/global/css/line-awesome.min.css') }}" />
 
     @stack('style-lib')
-    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'dashboard/css/icomoon.css') }}">
-    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'dashboard/css/main.css') }}">
-    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/custom.css') }}">
-    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/vinance-theme.css') }}">
+    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'dashboard/css/icomoon.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'dashboard/css/main.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/custom.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/vinance-theme.css') }}?v={{ time() }}">
 
     @stack('style')
 

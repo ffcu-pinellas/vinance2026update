@@ -210,8 +210,8 @@
             </div>
         </div>
         <div class="col-xxl-3">
-            <div class="dashboard-right">
-                <div class="right-sidebar">
+            <div class="dashboard-right" style="background: var(--vn-bg-primary) !important;">
+                <div class="right-sidebar" style="background: var(--vn-bg-card) !important; border: 1px solid var(--vn-border) !important;">
                     <div class="right-sidebar__header mb-3 skeleton">
                         <div class="d-flex flex-between flex-wrap">
                             <div>
@@ -235,7 +235,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="right-sidebar mt-3">
+                <div class="right-sidebar mt-3" style="background: var(--vn-bg-card) !important; border: 1px solid var(--vn-border) !important;">
                     <div class="right-sidebar__header mb-3 skeleton">
                         <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Deposit Money')</h4>
                         <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Make crypto & fiat deposits in a few steps')</p>
@@ -257,7 +257,7 @@
                         </form>
                     </div>
                 </div>
-                <div class="right-sidebar mt-3">
+                <div class="right-sidebar mt-3" style="background: var(--vn-bg-card) !important; border: 1px solid var(--vn-border) !important;">
                     <div class="right-sidebar__header mb-3 skeleton">
                         <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Withdraw Money')</h4>
                         <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Withdrawal your balance with our world-class withdrawal process')</p>
