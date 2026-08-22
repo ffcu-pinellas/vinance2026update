@@ -66,7 +66,7 @@
                             <div class="portfolio-hero__balance">
                                 <span class="portfolio-hero__label">@lang('Estimated Total Balance')</span>
                                 <h2 class="portfolio-hero__amount">
-                                    {{ showAmount($estimatedBalance, currencyFormat: false) }} <span class="portfolio-hero__currency">{{ __($general->cur_text) }}</span>
+                                    {{ showAmount($estimatedBalance, currencyFormat: false) }} <span class="portfolio-hero__currency">{{ __(gs('cur_text')) }}</span>
                                 </h2>
                             </div>
                             <div class="portfolio-hero__actions d-flex flex-wrap gap-3 mt-3 mt-sm-0">
