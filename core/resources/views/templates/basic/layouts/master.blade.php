@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'dashboard/css/icomoon.css') }}">
     <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'dashboard/css/main.css') }}">
     <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/custom.css') }}">
+    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/vinance-theme.css') }}">
 
     @stack('style')
 

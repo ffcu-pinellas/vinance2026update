@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/main.css') }}">
     <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/binary-trade.css') }}">
     <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/custom.css') }}">
+    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/vinance-theme.css') }}">
     <link rel="manifest" href="{{ route('pwa.configuration') }}">
 
     @stack('style')
