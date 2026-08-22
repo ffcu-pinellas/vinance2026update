@@ -1,17 +1,6 @@
 @extends($activeTemplate . 'layouts.master')
 @section('content')
-    <div class="container-fluid px-4">
-        <!-- Security Hub Header -->
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 mt-2">
-            <h4 class="mb-0"><i class="fas fa-shield-alt text-primary me-2"></i>Security Hub</h4>
-            
-            <div class="table-header-menu">
-                <a href="{{ route('user.profile.setting') }}" class="table-header-menu__link active">Profile</a>
-                <a href="{{ route('user.change.password') }}" class="table-header-menu__link">Password</a>
-                <a href="{{ route('user.twofactor') }}" class="table-header-menu__link">2FA Security</a>
-            </div>
-        </div>
-
+    <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <div class="card custom--card">

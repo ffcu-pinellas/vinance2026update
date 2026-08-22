@@ -4,26 +4,28 @@
 <div class="dashboard-header">
     <div class="dashboard-header__inner">
         <div class="dashboard-header__left">
-            <div class="copy-link">
-                <input type="text" class="copyText" value="{{ route('home') }}?reference={{ $user->username }}" readonly>
-                <button class="copy-link__button copyTextBtn" data-bs-toggle="tooltip" data-bs-placement="right" title="@lang('Copy URL')">
-                    <span class="copy-link__icon"><i class="las la-copy"></i>
-                    </span>
-                </button>
-            </div>
+            <a href="{{ route('user.deposit.history') }}" class="btn btn--success btn--sm d-flex align-items-center gap-2">
+                <i class="las la-wallet"></i> 
+                <span class="d-none d-sm-inline">@lang('Deposit')</span>
+            </a>
         </div>
         <div class="dashboard-header__right">
             <a href="{{ route('binary') }}" target="_blank" class="btn btn--base outline btn--sm trade-btn">
-                <i class="las la-lg la-chart-line"></i> @lang('BINARY TRADE')
+                <i class="las la-lg la-chart-line"></i> 
+                <span class="d-none d-sm-inline">@lang('BINARY TRADE')</span>
+                <span class="d-inline d-sm-none">@lang('BINARY')</span>
             </a>
             <a href="{{ route('trade') }}" target="_blank" class="btn btn--base outline btn--sm trade-btn">
-                <span class="icon-trade"></span> @lang('SPOT TRADE')
+                <span class="icon-trade"></span> 
+                <span class="d-none d-sm-inline">@lang('SPOT TRADE')</span>
+                <span class="d-inline d-sm-none">@lang('SPOT')</span>
             </a>
             <div class="user-info">
                 <div class="user-info__right">
                     <div class="user-info__button">
                         <div class="user-info__profile">
-                            <p class="user-info__name">{{ __($user->username) }}</p>
+                            <span class="d-inline d-sm-none"><i class="far fa-user-circle fs-4" style="color: var(--vn-text-secondary);"></i></span>
+                            <p class="user-info__name d-none d-sm-block">{{ __($user->username) }}</p>
                         </div>
                     </div>
                 </div>

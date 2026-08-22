@@ -44,20 +44,12 @@
 </div>
 
 <div class="container-fluid px-4">
-    <!-- Unified AI Console Header -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <!-- Header with Menu Toggle -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0"><i class="fas fa-robot text-primary me-2"></i>Vinance AI Auto Trader V2.02</h4>
-        
-        <div class="d-flex align-items-center gap-3">
-            <div class="table-header-menu">
-                <a href="{{ route('user.ai.trader') }}" class="table-header-menu__link active">Overview</a>
-                <a href="{{ route('user.ai.settings') }}" class="table-header-menu__link">Settings</a>
-                <a href="{{ route('user.documentation') }}" class="table-header-menu__link">Logs & Guide</a>
-            </div>
-            <button class="btn btn-outline-primary btn-icon rounded-circle shadow-sm d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#rightNavMenu" aria-controls="rightNavMenu">
-                <i class="fas fa-bars fa-lg"></i>
-            </button>
-        </div>
+        <button class="btn btn-primary btn-icon rounded-circle shadow-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#rightNavMenu" aria-controls="rightNavMenu">
+            <i class="fas fa-bars fa-lg"></i>
+        </button>
     </div>
 
     <!-- Stats Cards Row -->

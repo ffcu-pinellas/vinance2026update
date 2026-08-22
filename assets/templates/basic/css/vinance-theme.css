@@ -1162,41 +1162,17 @@ section,
   font-weight: 600 !important;
 }
 
-.dashboard-card,
-.stat-card,
-.dashboard-widget,
-.staking-card,
-.card {
+.dashboard-card {
   background: var(--vn-bg-card) !important;
   border: 1px solid var(--vn-border) !important;
   border-radius: var(--vn-radius-lg) !important;
   padding: 20px !important;
   transition: var(--vn-transition);
 }
-.dashboard-card:hover,
-.stat-card:hover,
-.dashboard-widget:hover,
-.staking-card:hover,
-.card:hover {
+.dashboard-card:hover {
   border-color: var(--vn-border-hover) !important;
   transform: translateY(-2px);
   box-shadow: var(--vn-shadow-md) !important;
-}
-
-/* Base Card adjustments */
-.card-body {
-  padding: 0 !important; /* The outer .card handles padding now */
-}
-.card-header {
-  background: transparent !important;
-  border-bottom: 1px solid var(--vn-border) !important;
-  padding: 0 0 16px 0 !important;
-  margin-bottom: 16px !important;
-}
-.card-title {
-  color: var(--vn-text-primary) !important;
-  font-weight: 600 !important;
-  font-size: 16px !important;
 }
 .dashboard-card__coin-name {
   color: var(--vn-text-secondary) !important;
@@ -1307,6 +1283,17 @@ section,
     padding: 40px 0 30px !important;
   }
   .account-left {
+    display: none !important;
+  }
+  .wallet-wrapper {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+  }
+  .dashboard-header__right .trade-btn {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+  .user-info__name {
     display: none !important;
   }
 }

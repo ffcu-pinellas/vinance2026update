@@ -58,35 +58,6 @@
             </div>
         </div>
 
-        <!-- VIP Tier Banner -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card dashboard-card bg-primary-light border-primary-light">
-                    <div class="card-body d-flex flex-column flex-md-row align-items-center justify-content-between p-4">
-                        <div class="d-flex align-items-center mb-3 mb-md-0">
-                            <div class="vip-badge me-3 text-center" style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(253, 185, 49, 0.4);">
-                                <i class="fas fa-crown text-white fs-4"></i>
-                            </div>
-                            <div>
-                                <h4 class="mb-1 text-primary">Gold VIP Status</h4>
-                                <p class="mb-0 text-muted fs-14">You are earning <strong>+2.5% APY</strong> bonus on all stakes.</p>
-                            </div>
-                        </div>
-                        <div class="text-md-end w-100" style="max-width: 300px;">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="fs-12 text-muted">Progress to Platinum</span>
-                                <span class="fs-12 text-primary fw-bold">75%</span>
-                            </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-primary" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <small class="text-muted fs-11 mt-1 d-block">Stake $2,500 more to unlock Platinum (+5.0% APY)</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Available Staking Options -->
         <div class="row mb-4">
             <div class="col-12">

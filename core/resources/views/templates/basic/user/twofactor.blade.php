@@ -1,42 +1,8 @@
 @extends($activeTemplate . 'layouts.master')
 @section('content')
     <div class="container">
-        <!-- Security Hub Header -->
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 mt-2">
-            <h4 class="mb-0"><i class="fas fa-shield-alt text-primary me-2"></i>Security Hub</h4>
-            
-            <div class="table-header-menu">
-                <a href="{{ route('user.profile.setting') }}" class="table-header-menu__link">Profile</a>
-                <a href="{{ route('user.change.password') }}" class="table-header-menu__link">Password</a>
-                <a href="{{ route('user.twofactor') }}" class="table-header-menu__link active">2FA Security</a>
-            </div>
-        </div>
-
-        <div class="row justify-content-center mb-4">
-            <div class="col-12">
-                <div class="card dashboard-card bg-primary-light border-primary-light">
-                    <div class="card-body d-flex flex-column flex-md-row align-items-center justify-content-between p-4">
-                        <div class="d-flex align-items-center mb-3 mb-md-0">
-                            <div class="vip-badge me-3 text-center" style="width: 50px; height: 50px; border-radius: 50%; background: var(--vn-accent); display: flex; align-items: center; justify-content: center; box-shadow: var(--vn-shadow-glow);">
-                                <i class="fas fa-lock text-white fs-4"></i>
-                            </div>
-                            <div>
-                                <h4 class="mb-1 text-primary">Account Protection Score: @if(auth()->user()->ts) 100% @else 50% @endif</h4>
-                                <p class="mb-0 text-muted fs-14">
-                                    @if(auth()->user()->ts) 
-                                        Your account is highly secure. Two-factor authentication is active.
-                                    @else 
-                                        Enable Two-Factor Authentication to reach 100% security and protect your funds.
-                                    @endif
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <div class="row justify-content-center gy-4">
+
             @if (!auth()->user()->ts)
                 <div class="col-md-6">
                     <div class="card custom--card">
