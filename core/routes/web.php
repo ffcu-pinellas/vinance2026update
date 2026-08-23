@@ -12,7 +12,9 @@ use App\Http\Controllers\User\CoinSwapController;
 use App\Http\Controllers\User\StakingController;
 
 Route::get('/clear', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
     \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+    return 'System Optimized and Migrations Ran Successfully.';
 });
 
 Route::get('cron', 'CronController@cron')->name('cron');
