@@ -247,7 +247,7 @@
                                     <input type="number" step="any" name="amount" class="form--control form-control ios-input-fix"
                                         placeholder="@lang('Amount')">
                                     <div class="input-group-text skeleton">
-                                        <x-currency-list :action="route('user.currency.all')" valueType="2" logCurrency="true" class="ios-select-fix" />
+                                        <x-currency-list :action="route('user.currency.all')" parent="body" valueType="2" logCurrency="true" class="ios-select-fix" />
                                     </div>
                                 </div>
                             </div>
@@ -269,7 +269,7 @@
                                     <input type="number" name="amount" step="any" class="form--control form-control ios-input-fix"
                                         placeholder="@lang('Amount')">
                                     <div class="input-group-text skeleton">
-                                        <x-currency-list :action="route('user.currency.all')" id="withdraw_currency_list" parent="withdraw_currency_list_wrapper"
+                                        <x-currency-list :action="route('user.currency.all')" id="withdraw_currency_list" parent="body"
                                             valueType="2" logCurrency="true" class="ios-select-fix" />
                                     </div>
                                 </div>
