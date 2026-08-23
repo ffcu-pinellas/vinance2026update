@@ -40,6 +40,13 @@
                         <i class="las la-list-alt"></i>@lang('Logins')
                     </a>
                 </div>
+
+                <div class="flex-fill">
+                    <a href="{{ route('admin.users.limits.settings', $user->id) }}" class="btn btn--info btn--shadow w-100 btn-lg">
+                        <i class="las la-cogs"></i>@lang('Limits & Forms')
+                    </a>
+                </div>
+
                 <div class="flex-fill">
                     <a href="{{ route('admin.users.notification.log', $user->id) }}" class="btn btn--secondary btn--shadow w-100 btn-lg">
                         <i class="las la-bell"></i>@lang('Notifications')

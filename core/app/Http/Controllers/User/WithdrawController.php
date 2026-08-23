@@ -15,7 +15,11 @@ use Illuminate\Http\Request;
 
 class WithdrawController extends Controller
 {
-
+    public function withdrawMoney()
+    {
+        $pageTitle = 'Withdraw Money';
+        return view('Template::user.withdraw_page', compact('pageTitle'));
+    }
 
     public function withdrawStore(Request $request)
     {
@@ -53,10 +57,16 @@ class WithdrawController extends Controller
             return returnBack('Requested withdraw method not found');
         }
         
-        if ($request->amount < $method->min_limit) {
+        $override = \App\Models\UserWithdrawSetting::where('user_id', $user->id)->where('withdraw_method_id', $method->id)->first();
+        $minLimit = $override ? $override->min_amount : $method->min_limit;
+        $maxLimit = $override ? $override->max_amount : $method->max_limit;
+        $fixedCharge = $override ? $override->fixed_charge : $method->fixed_charge;
+        $percentCharge = $override ? $override->percent_charge : $method->percent_charge;
+        
+        if ($request->amount < $minLimit) {
             return returnBack('Your requested amount is smaller than minimum amount.');
         }
-        if ($request->amount > $method->max_limit) {
+        if ($request->amount > $maxLimit) {
             return returnBack('Your requested amount is larger than maximum amount.');
         }
         
@@ -64,8 +74,7 @@ class WithdrawController extends Controller
             return returnBack('You do not have sufficient wallet balance for withdraw.');
         }
 
-
-        $charge      = $method->fixed_charge + ($request->amount * $method->percent_charge / 100);
+        $charge      = $fixedCharge + ($request->amount * $percentCharge / 100);
         $afterCharge = $request->amount - $charge;
         $finalAmount = $afterCharge;
 
@@ -89,6 +98,12 @@ class WithdrawController extends Controller
     {
         $withdraw = Withdrawal::with('method', 'user')->where('trx', session()->get('wtrx'))->where('status', Status::PAYMENT_INITIATE)->orderBy('id', 'desc')->firstOrFail();
         $pageTitle = 'Withdraw Preview';
+        
+        $override = \App\Models\UserWithdrawSetting::where('user_id', auth()->id())->where('withdraw_method_id', $withdraw->method_id)->first();
+        if ($override && $override->form_id) {
+            $withdraw->method->form = \App\Models\Form::find($override->form_id);
+        }
+        
         return view('Template::user.withdraw.preview', compact('pageTitle', 'withdraw'));
     }
 
@@ -100,6 +115,11 @@ class WithdrawController extends Controller
 
         if ($method->status == Status::DISABLE) {
             abort(404);
+        }
+        
+        $override = \App\Models\UserWithdrawSetting::where('user_id', auth()->id())->where('withdraw_method_id', $method->id)->first();
+        if ($override && $override->form_id) {
+            $method->form = \App\Models\Form::find($override->form_id);
         }
 
         $formData       = $method->form->form_data;

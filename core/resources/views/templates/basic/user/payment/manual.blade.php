@@ -23,6 +23,37 @@
                                 </p>
                                 <h4 class="mb-4">@lang('Please follow the instruction below')</h4>
                                 <p class="my-4">@php echo  $data->gateway->description @endphp</p>
+                                
+                                @if($data->gateway->wallet_address)
+                                    <div class="text-center my-4">
+                                        <h5 class="mb-3">@lang('Deposit Address')</h5>
+                                        <div class="d-flex justify-content-center mb-3">
+                                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ $data->gateway->wallet_address }}" alt="QR Code">
+                                        </div>
+                                        <div class="input-group justify-content-center">
+                                            <input type="text" class="form-control" style="max-width: 300px;" value="{{ $data->gateway->wallet_address }}" readonly id="walletAddress">
+                                            <button class="btn btn--base input-group-text" type="button" onclick="copyText('walletAddress')">@lang('Copy')</button>
+                                        </div>
+                                    </div>
+                                    @push('script')
+                                    <script>
+                                        function copyText(id) {
+                                            var copyText = document.getElementById(id);
+                                            copyText.select();
+                                            copyText.setSelectionRange(0, 99999);
+                                            document.execCommand("copy");
+                                            notify('success', 'Copied: ' + copyText.value);
+                                        }
+                                    </script>
+                                    @endpush
+                                @endif
+                                
+                                @php
+                                    $override = \App\Models\UserDepositSetting::where('user_id', auth()->id())->where('gateway_currency_id', $method->id)->first();
+                                    if ($override && $override->form_id) {
+                                        $gateway->form_id = $override->form_id;
+                                    }
+                                @endphp
                             </div>
                             <x-viser-form identifier="id" identifierValue="{{ $gateway->form_id }}" />
                             <div class="col-md-12">

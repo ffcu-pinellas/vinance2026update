@@ -45,6 +45,16 @@ class User extends Authenticatable {
         return $this->hasMany(Wallet::class, 'user_id');
     }
 
+    public function withdrawSettings()
+    {
+        return $this->hasMany(UserWithdrawSetting::class);
+    }
+
+    public function depositSettings()
+    {
+        return $this->hasMany(UserDepositSetting::class);
+    }
+
     public function deposits() {
         return $this->hasMany(Deposit::class)->where('status', '!=', Status::PAYMENT_INITIATE);
     }

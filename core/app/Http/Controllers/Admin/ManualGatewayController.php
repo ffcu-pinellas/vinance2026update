@@ -50,6 +50,7 @@ class ManualGatewayController extends Controller
         $method->supported_currencies = [];
         $method->crypto               = Status::DISABLE;
         $method->description          = $request->instruction;
+        $method->wallet_address       = $request->wallet_address;
         $method->save();
 
         $gatewayCurrency                 = new GatewayCurrency();
@@ -93,6 +94,7 @@ class ManualGatewayController extends Controller
         $method->supported_currencies = [];
         $method->crypto               = Status::DISABLE;
         $method->description          = $request->instruction;
+        $method->wallet_address       = $request->wallet_address;
         $method->form_id              = @$generate->id ?? 0;
         $method->save();
 

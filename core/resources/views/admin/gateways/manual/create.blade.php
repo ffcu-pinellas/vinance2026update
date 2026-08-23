@@ -27,6 +27,12 @@
                                             </div>
 
                                         </div>
+                                        <div class="col-sm-12 mt-3">
+                                            <div class="form-group">
+                                                <label>@lang('Wallet Address (Optional for Auto QR)')</label>
+                                                <input type="text" class="form-control" name="wallet_address" value="{{ old('wallet_address') }}" placeholder="e.g. 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

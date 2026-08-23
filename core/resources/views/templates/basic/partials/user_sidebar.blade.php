@@ -14,6 +14,18 @@
                 </a>
             </li>
             <li class="sidebar-menu-list__item ">
+                <a href="{{ route('user.deposit.index') }}" class="sidebar-menu-list__link {{ menuActive('user.deposit.*') }}">
+                    <span class="icon"><i class="las la-wallet"></i></span>
+                    <span class="text">@lang('Deposit')</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-list__item ">
+                <a href="{{ route('user.withdraw.index') }}" class="sidebar-menu-list__link {{ menuActive('user.withdraw.*') }}">
+                    <span class="icon"><i class="las la-money-check"></i></span>
+                    <span class="text">@lang('Withdraw')</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-list__item ">
                 <a href="{{ route('user.order.open') }}" class="sidebar-menu-list__link {{ menuActive('user.order.*') }} ">
                     <span class="icon"><span class="icon-order"></span></span>
                     <span class="text">@lang('Manage Order')</span>

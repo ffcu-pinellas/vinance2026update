@@ -16,6 +16,11 @@ use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
+    public function deposit()
+    {
+        $pageTitle = 'Deposit Money';
+        return view('Template::user.deposit_page', compact('pageTitle'));
+    }
 
     public function depositInsert(Request $request)
     {
@@ -47,12 +52,19 @@ class PaymentController extends Controller
         if (!$gate) {
             return returnBack("Invalid gateway");
         }
+        
+        $user = auth()->user();
+        $override = \App\Models\UserDepositSetting::where('user_id', $user->id)->where('gateway_currency_id', $gate->id)->first();
+        $minLimit = $override ? $override->min_amount : $gate->min_amount;
+        $maxLimit = $override ? $override->max_amount : $gate->max_amount;
+        $fixedCharge = $override ? $override->fixed_charge : $gate->fixed_charge;
+        $percentCharge = $override ? $override->percent_charge : $gate->percent_charge;
 
-        if ($gate->min_amount > $request->amount || $gate->max_amount < $request->amount) {
+        if ($minLimit > $request->amount || $maxLimit < $request->amount) {
             return returnBack("Please follow deposit limit");
         }
 
-        $charge      = $gate->fixed_charge + ($request->amount * $gate->percent_charge / 100);
+        $charge      = $fixedCharge + ($request->amount * $percentCharge / 100);
         $payable     = $request->amount + $charge;
         $finalAmount = $payable;
 
@@ -214,6 +226,12 @@ class PaymentController extends Controller
         abort_if(!$data, 404);
         $gatewayCurrency = $data->gatewayCurrency();
         $gateway = $gatewayCurrency->method;
+        
+        $override = \App\Models\UserDepositSetting::where('user_id', auth()->id())->where('gateway_currency_id', $gatewayCurrency->id)->first();
+        if ($override && $override->form_id) {
+            $gateway->form = \App\Models\Form::find($override->form_id);
+        }
+        
         $formData = $gateway->form->form_data;
 
         $formProcessor = new FormProcessor();

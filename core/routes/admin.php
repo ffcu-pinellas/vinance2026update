@@ -139,6 +139,11 @@ Route::middleware('admin')->group(function () {
         Route::get('with-balance', 'usersWithBalance')->name('with.balance');
 
         Route::get('detail/{id}', 'detail')->name('detail');
+        Route::get('limits-settings/{id}', 'UserLimitsController@limitsSettings')->name('limits.settings');
+        Route::post('limits-settings/deposit/{id}', 'UserLimitsController@updateDepositSetting')->name('limits.settings.deposit.update');
+        Route::post('limits-settings/deposit/remove/{id}/{setting_id}', 'UserLimitsController@removeDepositSetting')->name('limits.settings.deposit.remove');
+        Route::post('limits-settings/withdraw/{id}', 'UserLimitsController@updateWithdrawSetting')->name('limits.settings.withdraw.update');
+        Route::post('limits-settings/withdraw/remove/{id}/{setting_id}', 'UserLimitsController@removeWithdrawSetting')->name('limits.settings.withdraw.remove');
         Route::get('kyc-data/{id}', 'kycDetails')->name('kyc.details');
         Route::post('kyc-approve/{id}', 'kycApprove')->name('kyc.approve');
         Route::post('kyc-reject/{id}', 'kycReject')->name('kyc.reject');
