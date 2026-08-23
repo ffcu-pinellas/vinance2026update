@@ -1,5 +1,16 @@
 @extends($activeTemplate . 'layouts.master')
 @section('content')
+<style>
+.select2-dropdown { background-color: var(--vn-bg-elevated) !important; border: 1px solid var(--vn-border) !important; color: var(--vn-text-primary) !important; z-index: 999999 !important; min-width: 220px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important; }
+.select2-results__options { max-height: 400px !important; min-height: 250px !important; overflow-y: auto !important; padding: 0 !important; margin: 0 !important; display: block !important; }
+.select2-results__option { padding: 12px 12px !important; font-size: 14px !important; background-color: var(--vn-bg-elevated) !important; color: var(--vn-text-primary) !important; border-bottom: 1px solid var(--vn-border) !important; min-height: 40px !important; display: block !important; }
+.select2-container--default .select2-search--dropdown .select2-search__field { background-color: var(--vn-bg-primary) !important; color: var(--vn-text-primary) !important; border: 1px solid var(--vn-border) !important; border-radius: var(--vn-radius-sm) !important; padding: 6px !important; }
+.select2-container--default .select2-results__option[aria-selected=true] { background-color: var(--vn-bg-card) !important; color: var(--vn-text-primary) !important; }
+.select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: var(--vn-bg-primary) !important; color: var(--vn-text-primary) !important; }
+.select2-container--default .select2-selection--single { background-color: var(--vn-bg-elevated) !important; border: 1px solid var(--vn-border) !important; height: 40px !important; border-radius: var(--vn-radius-md) !important; }
+.select2-container--default .select2-selection--single .select2-selection__rendered { color: var(--vn-text-primary) !important; line-height: 40px !important; padding-left: 12px !important; }
+.select2-container--default .select2-selection--single .select2-selection__arrow { height: 40px !important; }
+</style>
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card custom--card">
@@ -10,9 +21,9 @@
                     <form action="{{ route('user.deposit.insert') }}" method="post" class="deposit-form">
                         @csrf
                         <input type="hidden" name="currency">
-                        <div class="form-group">
+                        <div class="form-group position-relative" id="currency_list_wrapper">
                             <label class="form-label">@lang('Select Currency')</label>
-                            <x-currency-list :action="route('user.currency.all')" valueType="2" logCurrency="true" />
+                            <x-currency-list :action="route('user.currency.all')" valueType="2" logCurrency="true" parent="currency_list_wrapper" class="form-control currency-list" />
                         </div>
                         <div class="form-group">
                             <label class="form-label">@lang('Amount')</label>
@@ -153,4 +164,12 @@
             $(document).off('submit', '.deposit-form');
         })(jQuery);
     </script>
+@endpush
+
+@push('style-lib')
+    <link rel="stylesheet" href="{{ asset('assets/global/css/select2.min.css') }}">
+@endpush
+
+@push('script-lib')
+    <script src="{{ asset('assets/global/js/select2.min.js') }}"></script>
 @endpush
