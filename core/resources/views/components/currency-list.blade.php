@@ -54,7 +54,7 @@
                     },
                     cache: false,
                 },
-                dropdownParent: '{{$parent}}' === 'body' ? $('body') : $(`#{{$parent}}`)
+                dropdownParent: $(`#{{$parent}}`)
             });
         })(jQuery);
 

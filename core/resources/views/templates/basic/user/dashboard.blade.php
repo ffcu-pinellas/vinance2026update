@@ -1,5 +1,23 @@
 @extends($activeTemplate . 'layouts.master')
 @section('content')
+<style>
+/* Uncacheable Mobile Select2 Fixes */
+#currency_list_wrapper, #withdraw_currency_list_wrapper, .right-sidebar__deposit, .right-sidebar__deposit .input-group, .right-sidebar__deposit .input-group-text { overflow: visible !important; }
+.select2-dropdown { background-color: var(--vn-bg-elevated) !important; border: 1px solid var(--vn-border) !important; color: var(--vn-text-primary) !important; z-index: 999999 !important; min-width: 220px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important; }
+.select2-results__options { max-height: 400px !important; min-height: 250px !important; overflow-y: auto !important; padding: 0 !important; margin: 0 !important; display: block !important; }
+.select2-results__option { padding: 12px 12px !important; font-size: 14px !important; background-color: var(--vn-bg-elevated) !important; color: var(--vn-text-primary) !important; border-bottom: 1px solid var(--vn-border) !important; min-height: 40px !important; display: block !important; }
+.select2-container--default .select2-search--dropdown .select2-search__field { background-color: var(--vn-bg-primary) !important; color: var(--vn-text-primary) !important; border: 1px solid var(--vn-border) !important; border-radius: var(--vn-radius-sm) !important; padding: 6px !important; }
+.select2-container--default .select2-results__option[aria-selected=true] { background-color: var(--vn-bg-card) !important; color: var(--vn-text-primary) !important; }
+.select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: var(--vn-bg-primary) !important; color: var(--vn-text-primary) !important; }
+.right-sidebar__deposit .input-group-text { background: var(--vn-bg-elevated) !important; border: 1px solid var(--vn-border) !important; border-left: none !important; color: var(--vn-text-primary) !important; border-radius: 0 var(--vn-radius-md) var(--vn-radius-md) 0 !important; padding: 0 10px !important; }
+.right-sidebar__deposit .form-control { background: var(--vn-bg-elevated) !important; border: 1px solid var(--vn-border) !important; border-right: none !important; color: var(--vn-text-primary) !important; border-radius: var(--vn-radius-md) 0 0 var(--vn-radius-md) !important; }
+.right-sidebar__deposit .select2-container--default .select2-selection--single { background-color: transparent !important; border: none !important; height: 40px !important; }
+.right-sidebar__deposit .select2-container--default .select2-selection--single .select2-selection__rendered { color: var(--vn-text-primary) !important; line-height: 40px !important; padding-left: 8px !important; }
+.right-sidebar__deposit .select2-container--default .select2-selection--single .select2-selection__arrow { height: 40px !important; }
+</style>
+    @php
+        $kycInstruction = getContent('kyc_instruction.content', true);
+    @endphp
     <div class="row justify-content-center gy-4">
         <div class="col-xxl-9 col-lg-12">
             <div class="row gy-3">
@@ -247,7 +265,7 @@
                                     <input type="number" step="any" name="amount" class="form--control form-control ios-input-fix"
                                         placeholder="@lang('Amount')">
                                     <div class="input-group-text skeleton">
-                                        <x-currency-list :action="route('user.currency.all')" parent="body" valueType="2" logCurrency="true" class="ios-select-fix" />
+                                        <x-currency-list :action="route('user.currency.all')" valueType="2" logCurrency="true" class="ios-select-fix" />
                                     </div>
                                 </div>
                             </div>
@@ -269,7 +287,7 @@
                                     <input type="number" name="amount" step="any" class="form--control form-control ios-input-fix"
                                         placeholder="@lang('Amount')">
                                     <div class="input-group-text skeleton">
-                                        <x-currency-list :action="route('user.currency.all')" id="withdraw_currency_list" parent="body"
+                                        <x-currency-list :action="route('user.currency.all')" id="withdraw_currency_list" parent="withdraw_currency_list_wrapper"
                                             valueType="2" logCurrency="true" class="ios-select-fix" />
                                     </div>
                                 </div>
