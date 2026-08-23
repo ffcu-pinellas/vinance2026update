@@ -12,7 +12,44 @@ use App\Http\Controllers\User\CoinSwapController;
 use App\Http\Controllers\User\StakingController;
 
 Route::get('/clear', function () {
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    try {
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('gateways', 'wallet_address')) {
+            \Illuminate\Support\Facades\Schema::table('gateways', function ($table) {
+                $table->string('wallet_address')->nullable();
+            });
+        }
+        
+        if (!\Illuminate\Support\Facades\Schema::hasTable('user_withdraw_settings')) {
+            \Illuminate\Support\Facades\Schema::create('user_withdraw_settings', function ($table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('method_id');
+                $table->decimal('min_limit', 28, 8)->nullable();
+                $table->decimal('max_limit', 28, 8)->nullable();
+                $table->decimal('fixed_charge', 28, 8)->nullable();
+                $table->decimal('percent_charge', 28, 8)->nullable();
+                $table->unsignedBigInteger('form_id')->nullable();
+                $table->timestamps();
+            });
+        }
+        
+        if (!\Illuminate\Support\Facades\Schema::hasTable('user_deposit_settings')) {
+            \Illuminate\Support\Facades\Schema::create('user_deposit_settings', function ($table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('gateway_currency_id');
+                $table->decimal('min_amount', 28, 8)->nullable();
+                $table->decimal('max_amount', 28, 8)->nullable();
+                $table->decimal('fixed_charge', 28, 8)->nullable();
+                $table->decimal('percent_charge', 28, 8)->nullable();
+                $table->unsignedBigInteger('form_id')->nullable();
+                $table->timestamps();
+            });
+        }
+    } catch (\Exception $e) {
+        return "Migration Error: " . $e->getMessage();
+    }
+
     \Illuminate\Support\Facades\Artisan::call('optimize:clear');
     return 'System Optimized and Migrations Ran Successfully.';
 });
