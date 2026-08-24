@@ -276,5 +276,4 @@ class AITraderController extends Controller
         $notify[] = ['success', 'Successfully harvested $' . showAmount($harvestAmount, currencyFormat: false) . ' USDT to your Spot Wallet!'];
         return back()->withNotify($notify);
     }
-    }
 }
