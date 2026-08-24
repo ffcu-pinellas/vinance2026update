@@ -144,18 +144,42 @@ class AITraderController extends Controller
         $userBot->expires_at = now()->addDays($plan->trade_duration_days);
         $userBot->save();
 
-        // Seed an immediate initial execution trade
+        // Dynamic pair pricing and realistic variable return
+        $selectedPair = is_array($plan->trading_pairs) && count($plan->trading_pairs) > 0 ? $plan->trading_pairs[0] : 'BTC/USDT';
+        $entryPrice = 64500.00;
+
+        try {
+            $coinSym = explode('/', $selectedPair)[0];
+            $pairModel = \App\Models\CoinPair::whereHas('coin', function($q) use ($coinSym) {
+                $q->where('symbol', $coinSym);
+            })->first();
+            if ($pairModel && $pairModel->price > 0) {
+                $entryPrice = (float)$pairModel->price;
+            }
+        } catch (\Exception $e) {
+            // fallback safe entry price
+        }
+
+        // Realistic variable return based on plan ROI parameters
+        $minTradePct = max(0.25, ($plan->daily_roi_min / 3.0));
+        $maxTradePct = max(0.60, ($plan->daily_roi_max / 2.0));
+        $randomTradePct = round(mt_rand($minTradePct * 100, $maxTradePct * 100) / 100, 2);
+        
+        $exitPrice = $entryPrice * (1 + ($randomTradePct / 100));
+        $tradeVolume = $request->amount * round(mt_rand(20, 35) / 100, 2);
+        $initialProfit = round($tradeVolume * ($randomTradePct / 100), 4);
+
+        // Seed initial execution trade
         $trade = new AiTradeLog();
         $trade->user_id = $user->id;
         $trade->user_ai_bot_id = $userBot->id;
-        $trade->pair_symbol = 'BTC/USDT';
+        $trade->pair_symbol = $selectedPair;
         $trade->side = 'BUY';
-        $trade->entry_price = 64250.00;
-        $trade->exit_price = 65480.00;
-        $trade->amount = $request->amount * 0.25;
-        $initialProfit = round($request->amount * 0.008, 4);
+        $trade->entry_price = $entryPrice;
+        $trade->exit_price = $exitPrice;
+        $trade->amount = $tradeVolume;
         $trade->profit_amount = $initialProfit;
-        $trade->profit_percentage = 1.91;
+        $trade->profit_percentage = $randomTradePct;
         $trade->status = 'closed';
         $trade->save();
 

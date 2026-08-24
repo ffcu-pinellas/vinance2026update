@@ -3,9 +3,9 @@
 @section('content')
 <div class="ai-terminal-wrapper pb-5">
     <!-- Header with Back Button and Engine Status -->
-    <div class="ai-header-container mb-4">
+    <div class="ai-header-card bg--dark-two p-3 p-sm-4 rounded-4 mb-3 border-0 shadow-sm">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-            <div class="d-flex align-items-center gap-2 gap-md-3">
+            <div class="d-flex align-items-center gap-2 gap-sm-3">
                 <a href="{{ route('user.home') }}" class="btn btn-outline--light btn-sm rounded-pill px-3 py-2 text-nowrap d-inline-flex align-items-center">
                     <i class="las la-arrow-left me-1"></i> <span>@lang('Dashboard')</span>
                 </a>
@@ -20,20 +20,24 @@
                 </div>
             </div>
 
-            <div class="d-flex align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end flex-wrap">
-                <a href="{{ route('user.deposit.index') }}" class="btn btn-outline--base btn-sm rounded-pill px-3 py-2 flex-grow-1 flex-md-grow-0 text-nowrap">
-                    <i class="las la-wallet me-1"></i> @lang('Deposit Capital')
-                </a>
-                <button type="button" class="btn btn--base btn-sm rounded-pill px-4 py-2 flex-grow-1 flex-md-grow-0 text-nowrap openMarketplaceBtn">
-                    <i class="las la-plus-circle me-1"></i> @lang('Deploy New AI Bot')
+            <div class="d-flex align-items-center gap-2 w-100 w-md-auto justify-content-between justify-content-md-end flex-wrap">
+                <!-- User Wallet Balance Pill -->
+                <div class="user-wallet-pill bg--dark-three border border-dark rounded-pill px-3 py-2 d-flex align-items-center gap-2 text--small">
+                    <span class="text-muted"><i class="las la-wallet text--base"></i> Spot: <strong class="text-white">${{ showAmount($spotBalance, currencyFormat: false) }}</strong></span>
+                    <span class="text-muted opacity-50">|</span>
+                    <span class="text-muted"><i class="las la-coins text--info"></i> Funding: <strong class="text-white">${{ showAmount($fundingBalance, currencyFormat: false) }}</strong></span>
+                </div>
+
+                <button type="button" class="btn btn--base btn-sm rounded-pill px-3 py-2 text-nowrap openMarketplaceBtn">
+                    <i class="las la-plus-circle me-1"></i> @lang('Deploy Bot')
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Mobile View Quick Switcher Tabs (Only on Mobile) -->
+    <!-- Mobile View Tab Switcher (Visible only on Mobile screens) -->
     <div class="d-md-none mb-3">
-        <div class="ai-mobile-nav p-1 rounded-pill bg--dark-two d-flex">
+        <div class="ai-mobile-nav p-1 rounded-pill bg--dark-two d-flex shadow-sm">
             <button type="button" class="btn btn-sm text-white flex-fill rounded-pill py-2 active mobile-tab-btn" data-target="#activeBotsSection">
                 <i class="las la-robot me-1"></i> @lang('Bots') ({{ $activeBots->count() }})
             </button>
@@ -59,7 +63,7 @@
                 </div>
                 <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4">${{ showAmount($totalAllocated, currencyFormat: false) }}</h3>
                 <div class="d-flex align-items-center justify-content-between text--small">
-                    <span class="text-muted">@lang('Spot'): <strong class="text-white">${{ showAmount($spotBalance, currencyFormat: false) }}</strong></span>
+                    <span class="text-muted">@lang('Spot Balance'): <strong class="text-white">${{ showAmount($spotBalance, currencyFormat: false) }}</strong></span>
                 </div>
             </div>
         </div>
@@ -75,7 +79,7 @@
                 </div>
                 <h3 class="text--success fw-bold mb-1 fs-5 fs-sm-4">+${{ showAmount($totalProfit, currencyFormat: false) }}</h3>
                 <div class="d-flex align-items-center justify-content-between text--small">
-                    <span class="badge badge--success-soft rounded-pill px-2"><i class="las la-arrow-up"></i> @lang('Net PnL')</span>
+                    <span class="badge badge--success-soft rounded-pill px-2"><i class="las la-arrow-up"></i> @lang('Cumulative Net PnL')</span>
                 </div>
             </div>
         </div>
@@ -91,7 +95,7 @@
                 </div>
                 <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4">{{ number_format($winRate, 1) }}%</h3>
                 <div class="d-flex align-items-center text--small text-muted text-truncate">
-                    <i class="las la-check-circle text--success me-1"></i> @lang('Neural Verified')
+                    <i class="las la-check-circle text--success me-1"></i> @lang('Neural Consensus')
                 </div>
             </div>
         </div>
@@ -107,14 +111,14 @@
                 </div>
                 <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4">{{ $activeBots->count() }} <span class="text-muted fs-6 fw-normal">/ {{ $plans->count() }}</span></h3>
                 <div class="d-flex align-items-center text--small text-muted">
-                    <span class="live-pulse-dot me-1"></span> {{ $totalTrades }} @lang('Trades')
+                    <span class="live-pulse-dot me-1"></span> {{ $totalTrades }} @lang('Trades Executed')
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Active Bots Section -->
-    <div id="activeBotsSection" class="card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
+    <div id="activeBotsSection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
         <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
             <h5 class="text-white mb-0 d-flex align-items-center gap-2">
                 <i class="las la-server text--base"></i> @lang('My Active AI Bots')
@@ -197,7 +201,7 @@
         </div>
     </div>
 
-    <!-- Strategy Marketplace (Full Grid on Desktop, Modal on Mobile) -->
+    <!-- Strategy Marketplace (Desktop Full Grid) -->
     <div id="desktopMarketplace" class="d-none d-md-block mb-5 pt-2">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
@@ -268,7 +272,7 @@
     </div>
 
     <!-- Live AI Signal Feed & Market Intelligence -->
-    <div id="liveSignalsSection" class="row g-4 mb-4">
+    <div id="liveSignalsSection" class="ai-content-section row g-4 mb-4">
         <!-- Live AI Signal Stream -->
         <div class="col-lg-7">
             <div class="card bg--dark-two border-0 rounded-4 shadow-sm h-100">
@@ -277,27 +281,24 @@
                         <i class="las la-bolt text--base"></i> @lang('Live AI Signal & Execution Feed')
                         <span class="badge badge--success-soft rounded-pill text--small"><span class="live-pulse-dot"></span> @lang('LIVE')</span>
                     </h5>
-                    <small class="text-muted d-none d-sm-inline">@lang('Sub-millisecond WebSocket')</small>
+                    <small class="text-muted d-none d-sm-inline">@lang('Sub-millisecond Real-Time WebSocket')</small>
                 </div>
                 <div class="card-body p-3">
                     <div class="ai-signal-terminal p-3 rounded-3" id="signalTerminal">
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s') }}]</span> <span class="text--base fw-bold">[QUANT-SCAN]</span> Scanning 48 Spot & Derivative pairs for volatility compression...
+                            <span class="text-muted">[{{ date('H:i:s') }}]</span> <span class="text--base fw-bold">[QUANT-SCAN]</span> Scanning 48 Spot & Derivative pairs via low-latency WebSocket feed...
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-8) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> BTC/USDT Multi-Timeframe Momentum Breakout confirmed at $64,320.00 &rarr; Neural Consensus: 98.4%
+                            <span class="text-muted">[{{ date('H:i:s', time()-8) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> <strong>BTC/USDT</strong> Momentum Breakout confirmed &rarr; Neural Consensus: 98.6%
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-21) }}]</span> <span class="text--info fw-bold">[ARBITRAGE]</span> Cross-Exchange liquidity spread +0.38% captured on SOL/USDT
+                            <span class="text-muted">[{{ date('H:i:s', time()-21) }}]</span> <span class="text--info fw-bold">[ARBITRAGE]</span> <strong>SOL/USDT</strong> Cross-Exchange triangular spread +0.42% captured
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-39) }}]</span> <span class="text--success fw-bold">[TAKE-PROFIT]</span> ETH/USDT Target 2 reached (+3.12%) &rarr; Trailing stop ratchet engaged
+                            <span class="text-muted">[{{ date('H:i:s', time()-39) }}]</span> <span class="text--success fw-bold">[TAKE-PROFIT]</span> <strong>ETH/USDT</strong> Target 2 cleared (+3.12%) &rarr; Profit locked
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-58) }}]</span> <span class="text--warning fw-bold">[DEPTH-SWEEP]</span> XRP/USDT bid wall imbalance absorbed &rarr; Order fill complete
-                        </div>
-                        <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-82) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> AVAX/USDT Volatility expansion triggered at $28.45 &rarr; Risk: Low
+                            <span class="text-muted">[{{ date('H:i:s', time()-58) }}]</span> <span class="text--warning fw-bold">[DEPTH-SWEEP]</span> <strong>XRP/USDT</strong> Orderbook bid wall imbalance absorbed
                         </div>
                     </div>
                 </div>
@@ -316,7 +317,7 @@
                     <div class="row g-3">
                         <div class="col-6">
                             <div class="bg--dark-three p-3 rounded-3">
-                                <small class="text-muted text-uppercase d-block mb-1">@lang('Latency')</small>
+                                <small class="text-muted text-uppercase d-block mb-1">@lang('Execution Latency')</small>
                                 <h4 class="text-white fw-bold mb-0">1.2 <span class="fs-6 text-muted">ms</span></h4>
                             </div>
                         </div>
@@ -345,7 +346,7 @@
     </div>
 
     <!-- Trade Execution Logs Table -->
-    <div id="tradeHistorySection" class="card bg--dark-two border-0 rounded-4 shadow-sm">
+    <div id="tradeHistorySection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm">
         <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
             <h5 class="text-white mb-0 d-flex align-items-center gap-2">
                 <i class="las la-history text--base"></i> @lang('AI Trade Execution History')
@@ -412,7 +413,7 @@
     </div>
 </div>
 
-<!-- Strategy Selection & Marketplace Modal (For Mobile & Quick Launch) -->
+<!-- Strategy Selection Modal (For Mobile & Quick Launch) -->
 <div id="marketplaceModal" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
         <div class="modal-content bg--dark-two border-0 rounded-4 text-white shadow-lg">
@@ -488,12 +489,12 @@
                         <small class="text-muted">@lang('Contract Duration'): <strong class="text-white" id="modalDurationText">30</strong> @lang('Days')</small>
                     </div>
 
-                    <!-- Wallet Selection -->
+                    <!-- Wallet Selection with Custom Dark Styling -->
                     <div class="form-group mb-3">
                         <label class="form-label text-muted text--small text-uppercase">@lang('Funding Wallet Source')</label>
-                        <select name="wallet_type" class="form-control form-select bg--dark-three text-white border-dark" id="walletTypeSelect" required>
-                            <option value="spot" selected>@lang('Spot Wallet') (${{ showAmount($spotBalance, currencyFormat: false) }} USDT)</option>
-                            <option value="funding">@lang('Funding Wallet') (${{ showAmount($fundingBalance, currencyFormat: false) }} USDT)</option>
+                        <select name="wallet_type" class="form-control form-select custom-dark-select" id="walletTypeSelect" required>
+                            <option value="spot" selected>Spot Wallet (${{ showAmount($spotBalance, currencyFormat: false) }} USDT)</option>
+                            <option value="funding">Funding Wallet (${{ showAmount($fundingBalance, currencyFormat: false) }} USDT)</option>
                         </select>
                     </div>
 
@@ -543,7 +544,7 @@
         color: #e2e8f0;
     }
     .ai-main-title {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         line-height: 1.3;
         word-break: normal;
     }
@@ -667,6 +668,34 @@
         padding: 10px 8px;
         font-size: 13px;
     }
+
+    /* Custom Dark Dropdown Styling */
+    .custom-dark-select,
+    select.custom-dark-select {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        border: 1px solid #475569 !important;
+        border-radius: 10px !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 1rem center !important;
+        background-size: 16px 12px !important;
+    }
+    .custom-dark-select:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+    }
+    .custom-dark-select option {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+        padding: 12px !important;
+    }
 </style>
 @endpush
 
@@ -737,39 +766,88 @@
             }
         }
 
-        // Mobile Tabs Switcher
+        // Mobile Tabs Switcher - Exclusive visibility on mobile screens
+        function handleMobileTabs() {
+            if ($(window).width() < 768) {
+                var activeTarget = $('.mobile-tab-btn.active').data('target') || '#activeBotsSection';
+                $('.ai-content-section').addClass('d-none');
+                $(activeTarget).removeClass('d-none');
+            } else {
+                $('.ai-content-section').removeClass('d-none');
+            }
+        }
+
+        handleMobileTabs();
+        $(window).on('resize', handleMobileTabs);
+
         $('.mobile-tab-btn').on('click', function() {
             $('.mobile-tab-btn').removeClass('active text-white').addClass('text-muted');
             $(this).addClass('active text-white').removeClass('text-muted');
 
             var target = $(this).data('target');
-            $('html, body').animate({
-                scrollTop: $(target).offset().top - 80
-            }, 300);
+            $('.ai-content-section').addClass('d-none');
+            $(target).removeClass('d-none');
         });
 
-        // Live Simulated Signal Feed Updater with rich event pool
-        var signalPool = [
-            { pair: 'BTC/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Neural Breakout Target $66,400 &rarr; Consensus 98.6%' },
-            { pair: 'ETH/USDT', type: 'ARBITRAGE', tag: 'text--info', text: 'Atomic triangular delta 0.44% executed' },
-            { pair: 'SOL/USDT', type: 'TAKE-PROFIT', tag: 'text--success', text: 'Grid Level 4 cleared (+2.75%)' },
-            { pair: 'BNB/USDT', type: 'QUANT-SCAN', tag: 'text--base', text: 'Bollinger Band contraction detected' },
-            { pair: 'XRP/USDT', type: 'DEPTH-SWEEP', tag: 'text--warning', text: 'Institutional ask wall absorb confirmed' },
-            { pair: 'AVAX/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Volume surge +340% &rarr; Multi-timeframe long' },
-            { pair: 'SUI/USDT', type: 'TRAILING-STOP', tag: 'text--info', text: 'Dynamic ratchet updated to +4.10%' },
-            { pair: 'NEAR/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Mean reversion channel bounce &rarr; Entry triggered' },
-            { pair: 'DOGE/USDT', type: 'RISK-GUARD', tag: 'text--warning', text: 'Volatility delta normalized &rarr; Limits safe' }
+        // Real-Time Live Crypto Prices Cache
+        var liveCryptoPrices = {
+            'BTC/USDT': 64250.00,
+            'ETH/USDT': 3450.00,
+            'SOL/USDT': 152.40,
+            'BNB/USDT': 578.20,
+            'XRP/USDT': 0.5840,
+            'AVAX/USDT': 28.60,
+            'SUI/USDT': 1.94,
+            'DOGE/USDT': 0.124,
+            'NEAR/USDT': 4.82
+        };
+
+        // Fetch actual live ticker prices from Binance public endpoint
+        fetch('https://api.binance.com/api/v3/ticker/price')
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (Array.isArray(data)) {
+                    data.forEach(function(item) {
+                        if (item.symbol === 'BTCUSDT') liveCryptoPrices['BTC/USDT'] = parseFloat(item.price);
+                        if (item.symbol === 'ETHUSDT') liveCryptoPrices['ETH/USDT'] = parseFloat(item.price);
+                        if (item.symbol === 'SOLUSDT') liveCryptoPrices['SOL/USDT'] = parseFloat(item.price);
+                        if (item.symbol === 'BNBUSDT') liveCryptoPrices['BNB/USDT'] = parseFloat(item.price);
+                        if (item.symbol === 'XRPUSDT') liveCryptoPrices['XRP/USDT'] = parseFloat(item.price);
+                        if (item.symbol === 'AVAXUSDT') liveCryptoPrices['AVAX/USDT'] = parseFloat(item.price);
+                        if (item.symbol === 'SUIUSDT') liveCryptoPrices['SUI/USDT'] = parseFloat(item.price);
+                        if (item.symbol === 'DOGEUSDT') liveCryptoPrices['DOGE/USDT'] = parseFloat(item.price);
+                        if (item.symbol === 'NEARUSDT') liveCryptoPrices['NEAR/USDT'] = parseFloat(item.price);
+                    });
+                }
+            })
+            .catch(function(e) {
+                console.log('Using fallback live price matrix');
+            });
+
+        // Real-Time Signal Stream Generator with Actual Live Market Prices
+        var signalTemplates = [
+            { pair: 'BTC/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Neural Breakout target confirmed &rarr; 98.4% Consensus' },
+            { pair: 'ETH/USDT', type: 'ARBITRAGE', tag: 'text--info', text: 'Cross-Exchange liquidity delta +0.38% captured' },
+            { pair: 'SOL/USDT', type: 'TAKE-PROFIT', tag: 'text--success', text: 'Trailing stop ratchet locked &rarr; Profit secured' },
+            { pair: 'BNB/USDT', type: 'QUANT-SCAN', tag: 'text--base', text: 'Volatility compression band expansion detected' },
+            { pair: 'XRP/USDT', type: 'DEPTH-SWEEP', tag: 'text--warning', text: 'Institutional bid wall absorb complete' },
+            { pair: 'AVAX/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Volume surge +280% on 15m timeframe &rarr; Long position' },
+            { pair: 'SUI/USDT', type: 'TRAILING-STOP', tag: 'text--info', text: 'Dynamic trailing profit adjusted (+3.40%)' },
+            { pair: 'NEAR/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Mean reversion bounce &rarr; Atomic order fill' }
         ];
 
         setInterval(function() {
-            var item = signalPool[Math.floor(Math.random() * signalPool.length)];
+            var item = signalTemplates[Math.floor(Math.random() * signalTemplates.length)];
+            var price = liveCryptoPrices[item.pair] || 64200.00;
+            var formattedPrice = (price > 10) ? '$' + price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '$' + price.toFixed(4);
+
             var now = new Date();
             var timeStr = now.toTimeString().split(' ')[0];
 
             var lineHtml = '<div class="signal-line text--small mb-2" style="display:none;">' +
                 '<span class="text-muted">[' + timeStr + ']</span> ' +
                 '<span class="' + item.tag + ' fw-bold">[' + item.type + ']</span> ' +
-                '<strong>' + item.pair + '</strong>: ' + item.text +
+                '<strong>' + item.pair + '</strong> (@ ' + formattedPrice + '): ' + item.text +
                 '</div>';
 
             var line = $(lineHtml);
@@ -779,7 +857,7 @@
             if ($('#signalTerminal .signal-line').length > 15) {
                 $('#signalTerminal .signal-line').last().remove();
             }
-        }, 4000);
+        }, 3500);
     })(jQuery);
 </script>
 @endpush
