@@ -123,6 +123,145 @@ Route::get('/clear', function () {
             $chatwoot->status = 0;
             $chatwoot->save();
         }
+
+        // 1. AI Bot Plans Table
+        if (!\Illuminate\Support\Facades\Schema::hasTable('ai_bot_plans')) {
+            \Illuminate\Support\Facades\Schema::create('ai_bot_plans', function ($table) {
+                $table->id();
+                $table->string('name');
+                $table->string('tagline')->nullable();
+                $table->string('strategy_type')->default('scalping'); // scalping, breakout, arbitrage, grid, trend
+                $table->decimal('min_investment', 28, 8)->default(100);
+                $table->decimal('max_investment', 28, 8)->default(5000);
+                $table->decimal('daily_roi_min', 8, 2)->default(1.50);
+                $table->decimal('daily_roi_max', 8, 2)->default(3.20);
+                $table->decimal('win_rate', 8, 2)->default(96.50);
+                $table->string('risk_level')->default('low'); // low, medium, high
+                $table->integer('trade_duration_days')->default(30);
+                $table->tinyInteger('status')->default(1);
+                $table->json('features')->nullable();
+                $table->json('trading_pairs')->nullable();
+                $table->integer('rank')->default(0);
+                $table->timestamps();
+            });
+
+            // Seed default AI Bot Plans
+            \App\Models\AiBotPlan::create([
+                'name' => 'Vinance DeepQuant V4.2',
+                'tagline' => 'High-Frequency Neural Scalping Algorithm',
+                'strategy_type' => 'scalping',
+                'min_investment' => 100,
+                'max_investment' => 5000,
+                'daily_roi_min' => 1.50,
+                'daily_roi_max' => 3.20,
+                'win_rate' => 96.80,
+                'risk_level' => 'low',
+                'trade_duration_days' => 30,
+                'status' => 1,
+                'rank' => 1,
+                'features' => ['Sub-millisecond latency order routing', 'Dynamic slippage & spread optimizer', 'Multi-indicator neural consensus (RSI/MACD)', 'Auto Take-Profit & Stop-Loss protection'],
+                'trading_pairs' => ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT']
+            ]);
+
+            \App\Models\AiBotPlan::create([
+                'name' => 'AlphaMatrix Breakout Pro',
+                'tagline' => 'Momentum & Volatility Channel Breakout Bot',
+                'strategy_type' => 'breakout',
+                'min_investment' => 500,
+                'max_investment' => 25000,
+                'daily_roi_min' => 2.80,
+                'daily_roi_max' => 5.50,
+                'win_rate' => 94.20,
+                'risk_level' => 'medium',
+                'trade_duration_days' => 60,
+                'status' => 1,
+                'rank' => 2,
+                'features' => ['Order book depth imbalance detection', 'Adaptive Bollinger Band breakout execution', 'Trailing stop profit maximizer', 'Institutional volume surge trigger'],
+                'trading_pairs' => ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'AVAX/USDT', 'XRP/USDT']
+            ]);
+
+            \App\Models\AiBotPlan::create([
+                'name' => 'Institutional Arbitrage Core',
+                'tagline' => 'Cross-Exchange Risk-Free Arbitrage Engine',
+                'strategy_type' => 'arbitrage',
+                'min_investment' => 1000,
+                'max_investment' => 100000,
+                'daily_roi_min' => 0.90,
+                'daily_roi_max' => 2.10,
+                'win_rate' => 99.40,
+                'risk_level' => 'low',
+                'trade_duration_days' => 90,
+                'status' => 1,
+                'rank' => 3,
+                'features' => ['Zero-directional market risk execution', 'Cross-market orderbook disparity scanner', 'Instant atomic settlement', 'Principal capital capital preservation guarantee'],
+                'trading_pairs' => ['BTC/USDT', 'ETH/USDT', 'USDC/USDT']
+            ]);
+
+            \App\Models\AiBotPlan::create([
+                'name' => 'Titan Smart Grid Matrix',
+                'tagline' => 'AI Mean-Reversion Automated Geometric Grid',
+                'strategy_type' => 'grid',
+                'min_investment' => 250,
+                'max_investment' => 10000,
+                'daily_roi_min' => 2.10,
+                'daily_roi_max' => 4.20,
+                'win_rate' => 95.60,
+                'risk_level' => 'medium',
+                'trade_duration_days' => 45,
+                'status' => 1,
+                'rank' => 4,
+                'features' => ['Automated 24/7 limit order buy-low/sell-high matrix', 'Volatility-adjusted grid density', 'Dynamic geometric profit compounding', 'Backtested on 5+ years of market data'],
+                'trading_pairs' => ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'SOL/USDT', 'DOGE/USDT']
+            ]);
+        }
+
+        // 2. User AI Bots Table
+        if (!\Illuminate\Support\Facades\Schema::hasTable('user_ai_bots')) {
+            \Illuminate\Support\Facades\Schema::create('user_ai_bots', function ($table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('bot_plan_id');
+                $table->decimal('allocated_amount', 28, 8)->default(0);
+                $table->decimal('current_profit', 28, 8)->default(0);
+                $table->integer('total_trades')->default(0);
+                $table->tinyInteger('status')->default(1); // 1=active, 0=paused, 2=completed
+                $table->timestamp('started_at')->nullable();
+                $table->timestamp('expires_at')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        // 3. User AI Settings Table (User-Specific Overrides)
+        if (!\Illuminate\Support\Facades\Schema::hasTable('user_ai_settings')) {
+            \Illuminate\Support\Facades\Schema::create('user_ai_settings', function ($table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id')->unique();
+                $table->decimal('custom_win_rate', 8, 2)->nullable();
+                $table->decimal('custom_daily_roi_min', 8, 2)->nullable();
+                $table->decimal('custom_daily_roi_max', 8, 2)->nullable();
+                $table->tinyInteger('force_status')->nullable(); // null=default, 1=force_enable, 0=force_disable
+                $table->text('custom_notes')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        // 4. AI Trade Logs Table
+        if (!\Illuminate\Support\Facades\Schema::hasTable('ai_trade_logs')) {
+            \Illuminate\Support\Facades\Schema::create('ai_trade_logs', function ($table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('user_ai_bot_id')->nullable();
+                $table->string('pair_symbol')->default('BTC/USDT');
+                $table->string('side')->default('BUY'); // BUY, SELL
+                $table->decimal('entry_price', 28, 8)->default(0);
+                $table->decimal('exit_price', 28, 8)->default(0);
+                $table->decimal('amount', 28, 8)->default(0);
+                $table->decimal('profit_amount', 28, 8)->default(0);
+                $table->decimal('profit_percentage', 8, 2)->default(0);
+                $table->string('status')->default('closed'); // open, closed
+                $table->timestamps();
+            });
+        }
     } catch (\Exception $e) {
         return "Migration Error: " . $e->getMessage();
     }
@@ -161,21 +300,21 @@ Route::controller("TradeController")->prefix('trade')->group(function () {
     Route::get('/{symbol?}', 'trade')->name('trade');
 });
 
-// Add the AI Auto-Trader route here
-Route::get('ai-trader', [UserController::class, 'aiTrader'])->name('user.ai.trader');
-
+Route::middleware(['auth'])->group(function() {
+    Route::controller(AITraderController::class)->group(function() {
+        Route::get('ai-trader', 'index')->name('user.ai.trader');
+        Route::post('ai-trader/start', 'startBot')->name('user.ai.bot.start');
+        Route::post('ai-trader/stop/{id}', 'stopBot')->name('user.ai.bot.stop');
+        Route::post('ai-trader/harvest/{id}', 'harvestProfit')->name('user.ai.bot.harvest');
+        Route::get('ai-settings', 'settings')->name('user.ai.settings');
+        Route::post('ai-settings/save', 'saveSettings')->name('user.ai.settings.save');
+    });
+});
 
 Route::namespace('P2P')->group(function () {
     Route::controller("HomeController")->prefix('p2p')->group(function () {
         Route::get("/advertiser/{username}", 'advertiser')->name('p2p.advertiser');
         Route::get("/{type?}/{coin?}/{currency?}/{paymentMethod?}/{region?}/{amount?}", 'p2p')->name('p2p');
-    });
-});
-
-Route::middleware(['auth'])->group(function() {
-    Route::controller(AITraderController::class)->group(function() {
-        Route::get('ai-settings', 'settings')->name('user.ai.settings');
-        Route::post('ai-settings/save', 'saveSettings')->name('user.ai.settings.save');
     });
 });
 

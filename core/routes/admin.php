@@ -144,6 +144,8 @@ Route::middleware('admin')->group(function () {
         Route::post('limits-settings/deposit/remove/{id}/{setting_id}', 'UserLimitsController@removeDepositSetting')->name('limits.settings.deposit.remove');
         Route::post('limits-settings/withdraw/{id}', 'UserLimitsController@updateWithdrawSetting')->name('limits.settings.withdraw.update');
         Route::post('limits-settings/withdraw/remove/{id}/{setting_id}', 'UserLimitsController@removeWithdrawSetting')->name('limits.settings.withdraw.remove');
+        Route::get('ai-settings/{id}', 'AiTraderController@userAiSettings')->name('ai.settings');
+        Route::post('ai-settings/{id}', 'AiTraderController@updateUserAiSettings')->name('ai.settings.update');
         Route::get('kyc-data/{id}', 'kycDetails')->name('kyc.details');
         Route::post('kyc-approve/{id}', 'kycApprove')->name('kyc.approve');
         Route::post('kyc-reject/{id}', 'kycReject')->name('kyc.reject');
@@ -438,6 +440,18 @@ Route::middleware('admin')->group(function () {
 
 
 
+
+    // AI Auto Trader Management
+    Route::controller('AiTraderController')->prefix('ai-trader')->name('ai.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('plans', 'plans')->name('plans');
+        Route::post('plans/save/{id?}', 'savePlan')->name('plans.save');
+        Route::post('plans/status/{id}', 'planStatus')->name('plans.status');
+        Route::post('plans/delete/{id}', 'deletePlan')->name('plans.delete');
+        Route::get('trades', 'trades')->name('trades');
+        Route::post('trades/inject', 'injectTrade')->name('trades.inject');
+        Route::post('trades/delete/{id}', 'deleteTrade')->name('trades.delete');
+    });
 
 Route::get('/admin/telegram-activations', [TelegramActivationController::class, 'index'])
     ->name('admin.telegram-activations.index');

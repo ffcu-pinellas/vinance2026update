@@ -65,6 +65,31 @@
                 }
             ]
         },
+        "manage_ai_trader": {
+            "title": "AI Auto Trader",
+            "icon": "las la-robot",
+            "menu_active": "admin.ai*",
+            "submenu": [
+                {
+                    "keyword": ["AI Trader", "Overview", "Dashboard", "Bot"],
+                    "title": "Overview",
+                    "route_name": "admin.ai.index",
+                    "menu_active": "admin.ai.index"
+                },
+                {
+                    "keyword": ["AI Bot Strategies", "Bot Plans", "Models"],
+                    "title": "Bot Strategies",
+                    "route_name": "admin.ai.plans",
+                    "menu_active": "admin.ai.plans"
+                },
+                {
+                    "keyword": ["AI Trades", "Trade Monitor", "Trade Injector"],
+                    "title": "Trade Logs & Inject",
+                    "route_name": "admin.ai.trades",
+                    "menu_active": "admin.ai.trades"
+                }
+            ]
+        },
         "manage_p2p": {
             "title": "Manage P2P",
             "icon": "las la-users",

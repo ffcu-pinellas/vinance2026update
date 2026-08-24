@@ -48,6 +48,12 @@
                 </div>
 
                 <div class="flex-fill">
+                    <a href="{{ route('admin.users.ai.settings', $user->id) }}" class="btn btn--success btn--shadow w-100 btn-lg">
+                        <i class="las la-robot"></i>@lang('AI Trader')
+                    </a>
+                </div>
+
+                <div class="flex-fill">
                     <a href="{{ route('admin.users.notification.log', $user->id) }}" class="btn btn--secondary btn--shadow w-100 btn-lg">
                         <i class="las la-bell"></i>@lang('Notifications')
                     </a>
