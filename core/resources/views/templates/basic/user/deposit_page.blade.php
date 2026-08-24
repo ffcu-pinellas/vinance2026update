@@ -80,8 +80,20 @@
                                 <span class="step-badge">3</span>
                                 <label class="form-label text-white fw-semibold mb-0">@lang('Payment Gateway / Network')</label>
                             </div>
-                            <select class="form-control form--control form-select select2" name="gateway" required data-minimum-results-for-search="-1">
-                                <option selected disabled>@lang('Select Payment Gateway')</option>
+                            <button type="button" class="btn btn-outline--light d-flex align-items-center justify-content-between gap-2 rounded-3 px-3 py-3 w-100 bg--dark-three border border-dark" id="openGatewayModalBtn">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="coin-avatar-circle bg--dark-two text--base fw-bold rounded-circle d-flex align-items-center justify-content-center border border-dark" style="width: 32px; height: 32px; font-size: 14px;" id="gatewaySelectedIcon">
+                                        <i class="las la-network-wired"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <span class="fw-bold font-mono text-white fs-6 d-block" id="gatewaySelectedName">@lang('Select Payment Gateway')</span>
+                                        <small class="text-muted" id="gatewaySelectedDetails">@lang('Tap to select network / provider')</small>
+                                    </div>
+                                </div>
+                                <i class="las la-angle-down text-muted fs-5"></i>
+                            </button>
+                            <select class="d-none" name="gateway" id="depositGatewaySelect" required>
+                                <option selected disabled value="">@lang('Select Payment Gateway')</option>
                             </select>
                         </div>
 
@@ -91,14 +103,28 @@
                                 <span class="step-badge">4</span>
                                 <label class="form-label text-white fw-semibold mb-0">@lang('Destination Wallet Type')</label>
                             </div>
-                            <select class="form-control form--control form-select" name="wallet_type" required>
-                                <option value="" selected disabled>@lang('Select Wallet Type')</option>
+                            <div class="row g-2" id="walletTypePillsContainer">
                                 @foreach (gs('wallet_types') as $k => $walletType)
                                     @if (checkWalletConfiguration($k, 'deposit'))
-                                        <option value="{{ $k }}" {{ $loop->first ? 'selected' : '' }}>{{ __($walletType->title) }}</option>
+                                        <div class="col-6">
+                                            <div class="wallet-type-card p-3 rounded-3 border border-dark bg--dark-three cursor-pointer d-flex align-items-center gap-3 {{ $loop->first ? 'active border--base' : '' }}" data-val="{{ $k }}" style="cursor: pointer; transition: all 0.2s ease;">
+                                                <div class="wallet-icon-box text--base fs-3">
+                                                    @if($k == 'spot')
+                                                        <i class="las la-chart-line"></i>
+                                                    @else
+                                                        <i class="las la-wallet"></i>
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    <strong class="text-white d-block text--small font-mono">{{ __($walletType->title) }}</strong>
+                                                    <small class="text-muted" style="font-size: 11px;">{{ $k == 'spot' ? __('Trading & AI Bots') : __('P2P & Yield') }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @endif
                                 @endforeach
-                            </select>
+                            </div>
+                            <input type="hidden" name="wallet_type" id="depositWalletTypeInput" value="{{ array_key_first((array)gs('wallet_types')) }}" required>
                         </div>
 
                         <button class="deposit__button btn btn--base btn-lg w-100 py-3 fw-bold fs-6 mt-3 shadow-sm" type="submit">
@@ -213,6 +239,34 @@
             </div>
         </div>
     </div>
+
+    <!-- Instant Searchable Payment Gateway Modal -->
+    <div class="modal fade" id="depositGatewayModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg--dark-two border border-dark rounded-4 shadow-lg">
+                <div class="modal-header border-bottom border-dark p-3 px-4">
+                    <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2">
+                        <i class="las la-network-wired text--base"></i> @lang('Select Gateway / Network')
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3 px-4">
+                    <!-- Instant Search Input -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg--dark-three border-dark text-muted"><i class="las la-search fs-5"></i></span>
+                        <input type="text" class="form-control bg--dark-three text-white border-dark font-mono shadow-none" id="depositGatewaySearchInput" placeholder="@lang('Search network or gateway...')" autocomplete="off">
+                    </div>
+
+                    <!-- Fast Gateway List -->
+                    <div class="gateway-search-list-wrapper overflow-auto pe-1" style="max-height: 360px;">
+                        <div class="list-group list-group-flush" id="depositGatewaySearchList">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -247,9 +301,13 @@
 }
 .bg--dark-two { background: #0f172a !important; }
 .bg--dark-three { background: #1e293b !important; }
-.deposit-coin-item-btn:hover {
+.deposit-coin-item-btn:hover, .deposit-gateway-item-btn:hover {
     background-color: rgba(59, 130, 246, 0.15) !important;
     border-color: #3b82f6 !important;
+}
+.wallet-type-card.active {
+    border-color: #00C087 !important;
+    background: rgba(0, 192, 135, 0.08) !important;
 }
 </style>
 @endpush
@@ -258,6 +316,7 @@
     <script>
         "use strict";
         let gateways = @json(\App\Models\GatewayCurrency::whereHas('method', function ($gate) { $gate->active(); })->with('method')->get());
+        let currentCurrencyGateways = [];
 
         function addAmount(val) {
             let current = parseFloat($('#depositAmount').val()) || 0;
@@ -269,6 +328,40 @@
         }
 
         (function($) {
+            function selectDepositGateway(gatewayObj) {
+                if (!gatewayObj) return;
+                $('#depositGatewaySelect').html(`<option value="${gatewayObj.method_code}" data-gateway='${JSON.stringify(gatewayObj)}' selected>${gatewayObj.name}</option>`).trigger('change');
+                $('#gatewaySelectedName').text(gatewayObj.name);
+                $('#gatewaySelectedDetails').text(`Min: ${getAmount(gatewayObj.min_amount)} - Max: ${getAmount(gatewayObj.max_amount)}`);
+            }
+
+            function renderGatewayModalList(gatewaysList) {
+                let html = '';
+                $.each(gatewaysList, function(i, g) {
+                    html += `
+                        <button type="button" class="list-group-item list-group-item-action bg-transparent text-white border-dark d-flex justify-content-between align-items-center py-2 px-2 rounded-3 deposit-gateway-item-btn mb-1" 
+                            data-methodcode="${g.method_code}" 
+                            data-name="${g.name}" 
+                            data-gateway='${JSON.stringify(g)}'>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="coin-avatar-circle bg--dark-three text--base fw-bold rounded-circle d-flex align-items-center justify-content-center border border-dark" style="width: 36px; height: 36px; font-size: 14px;">
+                                    <i class="las la-network-wired"></i>
+                                </div>
+                                <div class="text-start">
+                                    <div class="fw-bold font-mono text-white fs-6">${g.name}</div>
+                                    <small class="text-muted">Charge: ${getAmount(g.fixed_charge)} + ${g.percent_charge}%</small>
+                                </div>
+                            </div>
+                            <div class="text-end font-mono">
+                                <span class="text-white d-block text--small">${getAmount(g.min_amount)} - ${getAmount(g.max_amount)}</span>
+                                <small class="text-muted" style="font-size: 11px;">@lang('Limits')</small>
+                            </div>
+                        </button>
+                    `;
+                });
+                $('#depositGatewaySearchList').html(html);
+            }
+
             function selectDepositCurrency(currencySymbol, currencyName) {
                 $('#depositCurrencyInput').val(currencySymbol);
                 $('#depositCoinBadge').text(currencySymbol.substring(0, 3));
@@ -276,29 +369,22 @@
                 $('#depositCoinNameText').text(currencyName || currencySymbol);
                 $('.deposit-currency-symbol').text(currencySymbol || 'USD');
 
-                let currencyGateways = gateways.filter(ele => ele.currency == currencySymbol);
+                currentCurrencyGateways = gateways.filter(ele => ele.currency == currencySymbol);
 
-                if (currencyGateways && currencyGateways.length) {
-                    let gatewaysOption = "<option selected disabled> @lang('Select Payment Gateway')</option>";
-                    $.each(currencyGateways, function(i, currencyGateway) {
-                        gatewaysOption += `<option value="${currencyGateway.method_code}" data-gateway='${JSON.stringify(currencyGateway)}'>${currencyGateway.name}</option>`;
-                    });
-
+                if (currentCurrencyGateways && currentCurrencyGateways.length) {
                     $(".empty-gateway").addClass('d-none');
                     $("#depositForm").removeClass('d-none');
                     $("#gateway-selection").removeClass('d-none');
-                    $('select[name=gateway]').html(gatewaysOption);
                     
-                    if (currencyGateways.length === 1) {
-                        $('select[name=gateway]').val(currencyGateways[0].method_code).trigger('change');
-                    }
+                    renderGatewayModalList(currentCurrencyGateways);
+                    selectDepositGateway(currentCurrencyGateways[0]);
                 } else {
                     $(".empty-gateway").removeClass('d-none');
                     $("#gateway-selection").addClass('d-none');
                 }
             }
 
-            // Open Modal
+            // Open Coin Modal
             $('#openDepositCoinBtn').on('click', function() {
                 $('#depositCoinSearchInput').val('');
                 $('#depositCoinSearchList .deposit-coin-item-btn').removeClass('d-none');
@@ -308,7 +394,7 @@
                 }, 300);
             });
 
-            // Instant Search-as-you-type
+            // Instant Coin Search
             $('#depositCoinSearchInput').on('input keyup', function() {
                 let q = $(this).val().toLowerCase().trim();
                 $('#depositCoinSearchList .deposit-coin-item-btn').each(function() {
@@ -322,7 +408,7 @@
                 });
             });
 
-            // Select Coin
+            // Select Coin Item
             $(document).on('click', '.deposit-coin-item-btn', function() {
                 let sym = $(this).data('symbol');
                 let name = $(this).data('name');
@@ -330,12 +416,49 @@
                 $('#depositCoinModal').modal('hide');
             });
 
+            // Open Gateway Modal
+            $('#openGatewayModalBtn').on('click', function() {
+                $('#depositGatewaySearchInput').val('');
+                $('#depositGatewaySearchList .deposit-gateway-item-btn').removeClass('d-none');
+                $('#depositGatewayModal').modal('show');
+                setTimeout(function() {
+                    $('#depositGatewaySearchInput').focus();
+                }, 300);
+            });
+
+            // Instant Gateway Search
+            $('#depositGatewaySearchInput').on('input keyup', function() {
+                let q = $(this).val().toLowerCase().trim();
+                $('#depositGatewaySearchList .deposit-gateway-item-btn').each(function() {
+                    let name = ($(this).data('name') || '').toString().toLowerCase();
+                    if (name.indexOf(q) > -1) {
+                        $(this).removeClass('d-none');
+                    } else {
+                        $(this).addClass('d-none');
+                    }
+                });
+            });
+
+            // Select Gateway Item
+            $(document).on('click', '.deposit-gateway-item-btn', function() {
+                let gwObj = $(this).data('gateway');
+                selectDepositGateway(gwObj);
+                $('#depositGatewayModal').modal('hide');
+            });
+
+            // Wallet Type Pills
+            $(document).on('click', '.wallet-type-card', function() {
+                $('.wallet-type-card').removeClass('active border--base');
+                $(this).addClass('active border--base');
+                $('#depositWalletTypeInput').val($(this).data('val'));
+            });
+
             // Auto-select first currency
             let defaultSym = "{{ @$currencies->first()->symbol ?? 'USDT' }}";
             let defaultName = "{{ @$currencies->first()->name ?? 'Tether' }}";
             selectDepositCurrency(defaultSym, defaultName);
 
-            $('select[name=gateway]').on('change', function() {
+            $('#depositGatewaySelect').on('change', function() {
                 if (!$(this).val()) {
                     return false;
                 }
@@ -362,7 +485,7 @@
             $('#depositAmount').on('input', function() {
                 var amount = parseFloat($(this).val()) || 0;
                 $('.summary-amount').text(getAmount(amount));
-                $('select[name=gateway]').trigger('change');
+                $('#depositGatewaySelect').trigger('change');
             });
             
             $(document).off('submit', '.deposit-form');

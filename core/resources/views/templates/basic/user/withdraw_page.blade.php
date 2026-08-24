@@ -80,8 +80,20 @@
                                 <span class="step-badge">3</span>
                                 <label class="form-label text-white fw-semibold mb-0">@lang('Withdrawal Method')</label>
                             </div>
-                            <select class="form-control form--control form-select select2" name="method_code" required data-minimum-results-for-search="-1">
-                                <option selected disabled>@lang('Select Withdraw Method')</option>
+                            <button type="button" class="btn btn-outline--light d-flex align-items-center justify-content-between gap-2 rounded-3 px-3 py-3 w-100 bg--dark-three border border-dark" id="openWithdrawMethodBtn">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="coin-avatar-circle bg--dark-two text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center border border-dark" style="width: 32px; height: 32px; font-size: 14px;" id="withdrawMethodSelectedIcon">
+                                        <i class="las la-money-bill-wave"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <span class="fw-bold font-mono text-white fs-6 d-block" id="withdrawMethodSelectedName">@lang('Select Withdraw Method')</span>
+                                        <small class="text-muted" id="withdrawMethodSelectedDetails">@lang('Tap to select payout provider / network')</small>
+                                    </div>
+                                </div>
+                                <i class="las la-angle-down text-muted fs-5"></i>
+                            </button>
+                            <select class="d-none" name="method_code" id="withdrawMethodSelect" required>
+                                <option selected disabled value="">@lang('Select Withdraw Method')</option>
                             </select>
                         </div>
 
@@ -91,14 +103,28 @@
                                 <span class="step-badge">4</span>
                                 <label class="form-label text-white fw-semibold mb-0">@lang('Source Wallet Type')</label>
                             </div>
-                            <select class="form-control form--control form-select" name="wallet_type" required>
-                                <option value="" selected disabled>@lang('Select Wallet Type')</option>
+                            <div class="row g-2" id="withdrawWalletTypePillsContainer">
                                 @foreach (gs('wallet_types') as $k => $walletType)
                                     @if (checkWalletConfiguration($k, 'withdraw'))
-                                        <option value="{{ $k }}" {{ $loop->first ? 'selected' : '' }}>{{ __($walletType->title) }}</option>
+                                        <div class="col-6">
+                                            <div class="wallet-type-card p-3 rounded-3 border border-dark bg--dark-three cursor-pointer d-flex align-items-center gap-3 {{ $loop->first ? 'active border-primary' : '' }}" data-val="{{ $k }}" style="cursor: pointer; transition: all 0.2s ease;">
+                                                <div class="wallet-icon-box text-primary fs-3">
+                                                    @if($k == 'spot')
+                                                        <i class="las la-chart-line"></i>
+                                                    @else
+                                                        <i class="las la-wallet"></i>
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    <strong class="text-white d-block text--small font-mono">{{ __($walletType->title) }}</strong>
+                                                    <small class="text-muted" style="font-size: 11px;">{{ $k == 'spot' ? __('Trading & Spot Balances') : __('Funding & P2P Balances') }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @endif
                                 @endforeach
-                            </select>
+                            </div>
+                            <input type="hidden" name="wallet_type" id="withdrawWalletTypeInput" value="{{ array_key_first((array)gs('wallet_types')) }}" required>
                         </div>
 
                         <button class="deposit__button btn btn--base btn-lg w-100 py-3 fw-bold fs-6 mt-3 shadow-sm" type="submit">
@@ -213,6 +239,34 @@
             </div>
         </div>
     </div>
+
+    <!-- Instant Searchable Withdraw Method Modal -->
+    <div class="modal fade" id="withdrawMethodModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg--dark-two border border-dark rounded-4 shadow-lg">
+                <div class="modal-header border-bottom border-dark p-3 px-4">
+                    <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2">
+                        <i class="las la-money-bill-wave text-primary"></i> @lang('Select Withdrawal Method')
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3 px-4">
+                    <!-- Instant Search Input -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg--dark-three border-dark text-muted"><i class="las la-search fs-5"></i></span>
+                        <input type="text" class="form-control bg--dark-three text-white border-dark font-mono shadow-none" id="withdrawMethodSearchInput" placeholder="@lang('Search method name or provider...')" autocomplete="off">
+                    </div>
+
+                    <!-- Fast Method List -->
+                    <div class="method-search-list-wrapper overflow-auto pe-1" style="max-height: 360px;">
+                        <div class="list-group list-group-flush" id="withdrawMethodSearchList">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -247,9 +301,13 @@
 }
 .bg--dark-two { background: #0f172a !important; }
 .bg--dark-three { background: #1e293b !important; }
-.withdraw-coin-item-btn:hover {
-    background-color: rgba(59, 130, 246, 0.15) !important;
-    border-color: #3b82f6 !important;
+.withdraw-coin-item-btn:hover, .withdraw-method-item-btn:hover {
+    background-color: rgba(56, 97, 251, 0.15) !important;
+    border-color: #3861FB !important;
+}
+.wallet-type-card.active {
+    border-color: #3861FB !important;
+    background: rgba(56, 97, 251, 0.08) !important;
 }
 </style>
 @endpush
@@ -258,6 +316,7 @@
     <script>
         "use strict";
         let methods = @json(\App\Models\WithdrawMethod::where('status', \App\Constants\Status::ENABLE)->get());
+        let currentCurrencyMethods = [];
 
         function addWithdrawAmount(val) {
             let current = parseFloat($('#withdrawAmount').val()) || 0;
@@ -269,6 +328,40 @@
         }
 
         (function($) {
+            function selectWithdrawMethod(methodObj) {
+                if (!methodObj) return;
+                $('#withdrawMethodSelect').html(`<option value="${methodObj.id}" data-method='${JSON.stringify(methodObj)}' selected>${methodObj.name}</option>`).trigger('change');
+                $('#withdrawMethodSelectedName').text(methodObj.name);
+                $('#withdrawMethodSelectedDetails').text(`Min: ${getAmount(methodObj.min_limit)} - Max: ${getAmount(methodObj.max_limit)}`);
+            }
+
+            function renderMethodModalList(methodsList) {
+                let html = '';
+                $.each(methodsList, function(i, m) {
+                    html += `
+                        <button type="button" class="list-group-item list-group-item-action bg-transparent text-white border-dark d-flex justify-content-between align-items-center py-2 px-2 rounded-3 withdraw-method-item-btn mb-1" 
+                            data-id="${m.id}" 
+                            data-name="${m.name}" 
+                            data-method='${JSON.stringify(m)}'>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="coin-avatar-circle bg--dark-three text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center border border-dark" style="width: 36px; height: 36px; font-size: 14px;">
+                                    <i class="las la-money-bill-wave"></i>
+                                </div>
+                                <div class="text-start">
+                                    <div class="fw-bold font-mono text-white fs-6">${m.name}</div>
+                                    <small class="text-muted">Charge: ${getAmount(m.fixed_charge)} + ${m.percent_charge}%</small>
+                                </div>
+                            </div>
+                            <div class="text-end font-mono">
+                                <span class="text-white d-block text--small">${getAmount(m.min_limit)} - ${getAmount(m.max_limit)}</span>
+                                <small class="text-muted" style="font-size: 11px;">@lang('Limits')</small>
+                            </div>
+                        </button>
+                    `;
+                });
+                $('#withdrawMethodSearchList').html(html);
+            }
+
             function selectWithdrawCurrency(currencySymbol, currencyName) {
                 $('#withdrawCurrencyInput').val(currencySymbol);
                 $('#withdrawCoinBadge').text(currencySymbol.substring(0, 3));
@@ -276,29 +369,22 @@
                 $('#withdrawCoinNameText').text(currencyName || currencySymbol);
                 $('.withdraw-currency-symbol').text(currencySymbol || 'USD');
                 
-                let currencyMethods = methods.filter(ele => ele.currency == currencySymbol);
+                currentCurrencyMethods = methods.filter(ele => ele.currency == currencySymbol);
 
-                if (currencyMethods && currencyMethods.length) {
-                    let methodsOption = "<option selected disabled> @lang('Select Withdraw Method')</option>";
-                    $.each(currencyMethods, function(i, currencyMethod) {
-                        methodsOption += `<option value="${currencyMethod.id}" data-method='${JSON.stringify(currencyMethod)}'>${currencyMethod.name}</option>`;
-                    });
-
+                if (currentCurrencyMethods && currentCurrencyMethods.length) {
                     $(".empty-gateway").addClass('d-none');
                     $("#withdrawForm").removeClass('d-none');
                     $("#method-selection").removeClass('d-none');
-                    $('select[name=method_code]').html(methodsOption);
                     
-                    if (currencyMethods.length === 1) {
-                        $('select[name=method_code]').val(currencyMethods[0].id).trigger('change');
-                    }
+                    renderMethodModalList(currentCurrencyMethods);
+                    selectWithdrawMethod(currentCurrencyMethods[0]);
                 } else {
                     $(".empty-gateway").removeClass('d-none');
                     $("#method-selection").addClass('d-none');
                 }
             }
 
-            // Open Modal
+            // Open Coin Modal
             $('#openWithdrawCoinBtn').on('click', function() {
                 $('#withdrawCoinSearchInput').val('');
                 $('#withdrawCoinSearchList .withdraw-coin-item-btn').removeClass('d-none');
@@ -308,7 +394,7 @@
                 }, 300);
             });
 
-            // Instant Search-as-you-type
+            // Instant Coin Search
             $('#withdrawCoinSearchInput').on('input keyup', function() {
                 let q = $(this).val().toLowerCase().trim();
                 $('#withdrawCoinSearchList .withdraw-coin-item-btn').each(function() {
@@ -322,7 +408,7 @@
                 });
             });
 
-            // Select Coin
+            // Select Coin Item
             $(document).on('click', '.withdraw-coin-item-btn', function() {
                 let sym = $(this).data('symbol');
                 let name = $(this).data('name');
@@ -330,12 +416,49 @@
                 $('#withdrawCoinModal').modal('hide');
             });
 
+            // Open Method Modal
+            $('#openWithdrawMethodBtn').on('click', function() {
+                $('#withdrawMethodSearchInput').val('');
+                $('#withdrawMethodSearchList .withdraw-method-item-btn').removeClass('d-none');
+                $('#withdrawMethodModal').modal('show');
+                setTimeout(function() {
+                    $('#withdrawMethodSearchInput').focus();
+                }, 300);
+            });
+
+            // Instant Method Search
+            $('#withdrawMethodSearchInput').on('input keyup', function() {
+                let q = $(this).val().toLowerCase().trim();
+                $('#withdrawMethodSearchList .withdraw-method-item-btn').each(function() {
+                    let name = ($(this).data('name') || '').toString().toLowerCase();
+                    if (name.indexOf(q) > -1) {
+                        $(this).removeClass('d-none');
+                    } else {
+                        $(this).addClass('d-none');
+                    }
+                });
+            });
+
+            // Select Method Item
+            $(document).on('click', '.withdraw-method-item-btn', function() {
+                let mObj = $(this).data('method');
+                selectWithdrawMethod(mObj);
+                $('#withdrawMethodModal').modal('hide');
+            });
+
+            // Wallet Type Pills
+            $(document).on('click', '#withdrawWalletTypePillsContainer .wallet-type-card', function() {
+                $('#withdrawWalletTypePillsContainer .wallet-type-card').removeClass('active border-primary');
+                $(this).addClass('active border-primary');
+                $('#withdrawWalletTypeInput').val($(this).data('val'));
+            });
+
             // Auto-select first currency
             let defaultSym = "{{ @$currencies->first()->symbol ?? 'USDT' }}";
             let defaultName = "{{ @$currencies->first()->name ?? 'Tether' }}";
             selectWithdrawCurrency(defaultSym, defaultName);
 
-            $('select[name=method_code]').on('change', function() {
+            $('#withdrawMethodSelect').on('change', function() {
                 if (!$(this).val()) {
                     return false;
                 }
@@ -362,7 +485,7 @@
             $('#withdrawAmount').on('input', function() {
                 var amount = parseFloat($(this).val()) || 0;
                 $('.summary-amount').text(getAmount(amount));
-                $('select[name=method_code]').trigger('change');
+                $('#withdrawMethodSelect').trigger('change');
             });
             
             $(document).off('submit', '.withdraw-form');

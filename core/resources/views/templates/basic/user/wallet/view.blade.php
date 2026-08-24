@@ -352,19 +352,28 @@
                                     data-max="{{ getAmount($wallet->balance) }}">@lang('MAX')</span>
                             </div>
                         </div>
-                        <div class="form-group position-relative">
-                            <label class="form--label">@lang('To Wallet')</label>
-                            <select class="form--control form-select select2" name="to_wallet" required data-minimum-results-for-search="-1"
-                                data-width="100%">
-                                <option selected disabled>@lang('Select One')</option>
+                        <div class="form-group mb-3">
+                            <label class="form--label text-white fw-semibold mb-2">@lang('Destination Wallet')</label>
+                            <div class="row g-2" id="transferWalletPillsContainer">
                                 @foreach (gs('wallet_types') as $wallet)
                                     @if ($wallet->name != $walletType)
-                                        <option value="{{ $wallet->name }}">{{ __($wallet->title) }}</option>
+                                        <div class="col-6">
+                                            <div class="transfer-wallet-pill p-3 rounded-3 border border-dark bg--dark-three cursor-pointer d-flex align-items-center gap-2 {{ $loop->first ? 'active border--base' : '' }}" data-val="{{ $wallet->name }}" style="cursor: pointer; transition: all 0.2s ease;">
+                                                <div class="wallet-icon-box text--base fs-4">
+                                                    <i class="las la-wallet"></i>
+                                                </div>
+                                                <div>
+                                                    <strong class="text-white d-block text--small font-mono">{{ __($wallet->title) }}</strong>
+                                                    <small class="text-muted" style="font-size: 11px;">@lang('Internal Transfer')</small>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @endif
                                 @endforeach
-                            </select>
+                            </div>
+                            <input type="hidden" name="to_wallet" id="toWalletInput" value="{{ collect(gs('wallet_types'))->where('name', '!=', $walletType)->first()->name ?? '' }}" required>
                         </div>
-                        <button class="btn btn--base w-100" type="submit"> @lang('Submit') </button>
+                        <button class="btn btn--base w-100 py-3 fw-bold mt-3 shadow-sm" type="submit"> @lang('Confirm Transfer') </button>
                     </form>
                 @endif
             </div>
@@ -436,7 +445,12 @@
                 }
             });
 
-        
+            // Transfer Destination Wallet Pills
+            $(document).on('click', '#transferWalletPillsContainer .transfer-wallet-pill', function() {
+                $('#transferWalletPillsContainer .transfer-wallet-pill').removeClass('active border--base');
+                $(this).addClass('active border--base');
+                $('#toWalletInput').val($(this).data('val'));
+            });
         })(jQuery);
     </script>
 @endpush

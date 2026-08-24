@@ -440,13 +440,34 @@
                         <small class="text-muted">@lang('Term Duration'): <strong class="text-white font-mono" id="modalDurationText">30</strong> @lang('Days')</small>
                     </div>
 
-                    <!-- Wallet Selection with Custom Dark Styling -->
+                    <!-- Wallet Selection with Interactive Card Pills -->
                     <div class="form-group mb-3">
-                        <label class="form-label text-muted text--small text-uppercase">@lang('Funding Wallet Source')</label>
-                        <select name="wallet_type" class="form-control form-select custom-dark-select" id="stakingWalletSelect" required>
-                            <option value="spot" selected>Spot Wallet (${{ number_format($spotBalance, 2) }} USDT)</option>
-                            <option value="funding">Funding Wallet (${{ number_format($fundingBalance, 2) }} USDT)</option>
-                        </select>
+                        <label class="form-label text-muted text--small text-uppercase mb-2">@lang('Funding Wallet Source')</label>
+                        <div class="row g-2" id="stakingWalletTypePillsContainer">
+                            <div class="col-6">
+                                <div class="wallet-type-pill p-2 rounded-3 border border-dark bg--dark-three cursor-pointer d-flex align-items-center gap-2 active border--base" data-val="spot" style="cursor: pointer; transition: all 0.2s ease;">
+                                    <div class="wallet-icon-box text--base fs-4">
+                                        <i class="las la-chart-line"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-white d-block text--small font-mono">@lang('Spot Wallet')</strong>
+                                        <small class="text-muted font-mono" style="font-size: 11px;">${{ number_format($spotBalance, 2) }} USDT</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="wallet-type-pill p-2 rounded-3 border border-dark bg--dark-three cursor-pointer d-flex align-items-center gap-2" data-val="funding" style="cursor: pointer; transition: all 0.2s ease;">
+                                    <div class="wallet-icon-box text-muted fs-4">
+                                        <i class="las la-wallet"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-white d-block text--small font-mono">@lang('Funding Wallet')</strong>
+                                        <small class="text-muted font-mono" style="font-size: 11px;">${{ number_format($fundingBalance, 2) }} USDT</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="wallet_type" id="stakingWalletSelect" value="spot" required>
                     </div>
 
                     <!-- Capital Allocation Amount -->
@@ -773,6 +794,16 @@
             var target = $(this).data('target');
             $('.staking-content-section').addClass('d-none');
             $(target).removeClass('d-none');
+        });
+
+        // Staking Wallet Selection
+        $(document).on('click', '#stakingWalletTypePillsContainer .wallet-type-pill', function() {
+            $('#stakingWalletTypePillsContainer .wallet-type-pill').removeClass('active border--base');
+            $('#stakingWalletTypePillsContainer .wallet-type-pill .wallet-icon-box').addClass('text-muted').removeClass('text--base');
+            $(this).addClass('active border--base');
+            $(this).find('.wallet-icon-box').removeClass('text-muted').addClass('text--base');
+            $('#stakingWalletSelect').val($(this).data('val'));
+            if (window.playVinanceSound) window.playVinanceSound('click');
         });
     })(jQuery);
 </script>
