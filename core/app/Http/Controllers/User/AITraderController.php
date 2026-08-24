@@ -81,8 +81,11 @@ class AITraderController extends Controller
                 $randomPair = $pairs[array_rand($pairs)];
                 $entryPrice = self::getLiveCryptoPrice($randomPair);
 
-                $minTradePct = max(0.20, ($plan->daily_roi_min / 4.0));
-                $maxTradePct = max(0.55, ($plan->daily_roi_max / 3.0));
+                $targetFactor = $userBot->take_profit_target > 0 ? ($userBot->take_profit_target / 5.0) : 1.0;
+                $multiplier = max(0.8, min(2.5, 0.8 + ($targetFactor * 0.2)));
+
+                $minTradePct = max(0.20, ($plan->daily_roi_min / 4.0)) * $multiplier;
+                $maxTradePct = max(0.55, ($plan->daily_roi_max / 3.0)) * $multiplier;
                 $randomTradePct = round(mt_rand($minTradePct * 100, $maxTradePct * 100) / 100, 2);
 
                 $exitPrice = $entryPrice * (1 + ($randomTradePct / 100));
@@ -278,6 +281,8 @@ class AITraderController extends Controller
         $userBot->user_id = $user->id;
         $userBot->bot_plan_id = $plan->id;
         $userBot->allocated_amount = $request->amount;
+        $userBot->trailing_stop_loss = (float)($request->trailing_stop_loss ?? 2.0);
+        $userBot->take_profit_target = (float)($request->take_profit_target ?? 5.0);
         $userBot->current_profit = 0;
         $userBot->total_trades = 0;
         $userBot->status = 1;

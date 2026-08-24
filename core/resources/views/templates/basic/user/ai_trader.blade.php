@@ -869,17 +869,33 @@
             var stopLossPct = parseFloat($('#trailingStopRange').val()) || 2.0;
             var takeProfitPct = parseFloat($('#takeProfitRange').val()) || 5.0;
 
+            // Trailing stop loss dollar calculation
             if (capital > 0) {
                 var stopLossDollar = (capital * (stopLossPct / 100));
-                var takeProfitDollar = (capital * (takeProfitPct / 100));
-                $('#trailingStopValue').html(stopLossPct.toFixed(1) + '% <span class="text-white-50">(-$' + stopLossDollar.toFixed(2) + ')</span>');
-                $('#takeProfitValue').html(takeProfitPct.toFixed(1) + '% <span class="text--success">(+$' + takeProfitDollar.toFixed(2) + ')</span>');
+                $('#trailingStopValue').html(stopLossPct.toFixed(1) + '% <span class="badge bg-danger-soft text--danger ms-1">-$' + stopLossDollar.toFixed(2) + ' Max Risk</span>');
             } else {
                 $('#trailingStopValue').text(stopLossPct.toFixed(1) + '%');
-                $('#takeProfitValue').text(takeProfitPct.toFixed(1) + '%');
             }
 
-            calculateEstimatedProfit(capital);
+            // Take profit dollar calculation
+            if (capital > 0) {
+                var takeProfitDollar = (capital * (takeProfitPct / 100));
+                $('#takeProfitValue').html(takeProfitPct.toFixed(1) + '% <span class="badge bg-success-soft text--success ms-1">+$' + takeProfitDollar.toFixed(2) + ' Target</span>');
+            } else {
+                $('#takeProfitValue').html(takeProfitPct.toFixed(1) + '%');
+            }
+
+            // Est. Daily Return Calculation (Functionally modulated by Take-Profit Target slider)
+            var baseRoi = selectedRoiMin > 0 ? selectedRoiMin : 1.5;
+            var targetMultiplier = Math.max(0.8, Math.min(2.5, 0.8 + (takeProfitPct / 10.0)));
+            var effectiveDailyRoi = (baseRoi * targetMultiplier);
+
+            if (capital > 0) {
+                var dailyProfit = (capital * (effectiveDailyRoi / 100));
+                $('#estDailyProfit').html('+$' + dailyProfit.toFixed(2) + ' / day <span class="badge bg-success-soft text--success ms-1">(' + effectiveDailyRoi.toFixed(2) + '%)</span>');
+            } else {
+                $('#estDailyProfit').text('+$0.00');
+            }
         }
 
         $(document).on('input change touchmove pointermove', '#trailingStopRange, #takeProfitRange', function() {
@@ -959,36 +975,43 @@
             modal.modal('show');
         });
 
+        // Percentage Pills with accurate proportional scaling
         $(document).on('click', '.quick-pct-btn', function () {
             var pct = parseFloat($(this).data('pct'));
             var walletType = $('#walletTypeSelect').val();
             var balance = (walletType === 'spot') ? currentSpotBalance : currentFundingBalance;
             var calculatedAmount = 0;
 
-            if (balance > 0) {
-                calculatedAmount = (balance * (pct / 100));
-            } else {
-                var baseCap = selectedPlanMin > 0 ? selectedPlanMin : 100;
-                calculatedAmount = (baseCap * (pct / 100));
-            }
+            var min = selectedPlanMin > 0 ? selectedPlanMin : 100;
+            var max = selectedPlanMax > 0 ? selectedPlanMax : 5000;
 
-            if (selectedPlanMax && calculatedAmount > selectedPlanMax) {
-                calculatedAmount = selectedPlanMax;
+            if (balance >= min) {
+                var usableMax = Math.min(balance, max);
+                if (pct === 100) {
+                    calculatedAmount = usableMax;
+                } else if (pct === 25) {
+                    calculatedAmount = min + ((usableMax - min) * 0.25);
+                } else if (pct === 50) {
+                    calculatedAmount = min + ((usableMax - min) * 0.50);
+                } else if (pct === 75) {
+                    calculatedAmount = min + ((usableMax - min) * 0.75);
+                }
+            } else {
+                // If balance is 0 or demo, scale cleanly across plan limits
+                if (pct === 100) {
+                    calculatedAmount = max;
+                } else if (pct === 25) {
+                    calculatedAmount = min;
+                } else if (pct === 50) {
+                    calculatedAmount = min + ((max - min) * 0.50);
+                } else if (pct === 75) {
+                    calculatedAmount = min + ((max - min) * 0.75);
+                }
             }
 
             $('#deployAmountInput').val(calculatedAmount.toFixed(2));
             calculateRiskAndReward(calculatedAmount);
         });
-
-        function calculateEstimatedProfit(amount) {
-            var roi = selectedRoiMin > 0 ? selectedRoiMin : 1.5;
-            if (amount > 0) {
-                var dailyProfit = (amount * (roi / 100));
-                $('#estDailyProfit').text('+$' + dailyProfit.toFixed(2) + ' / day');
-            } else {
-                $('#estDailyProfit').text('+$0.00');
-            }
-        }
 
         // Equity Curve Canvas Line Chart Renderer
         var chartDataMap = {

@@ -228,6 +228,8 @@ Route::get('/clear', function () {
                 $table->unsignedBigInteger('user_id');
                 $table->unsignedBigInteger('bot_plan_id');
                 $table->decimal('allocated_amount', 28, 8)->default(0);
+                $table->decimal('trailing_stop_loss', 8, 2)->default(2.0);
+                $table->decimal('take_profit_target', 8, 2)->default(5.0);
                 $table->decimal('current_profit', 28, 8)->default(0);
                 $table->integer('total_trades')->default(0);
                 $table->tinyInteger('status')->default(1); // 1=active, 0=paused, 2=completed
@@ -235,6 +237,17 @@ Route::get('/clear', function () {
                 $table->timestamp('expires_at')->nullable();
                 $table->timestamps();
             });
+        } else {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('user_ai_bots', 'trailing_stop_loss')) {
+                \Illuminate\Support\Facades\Schema::table('user_ai_bots', function ($table) {
+                    $table->decimal('trailing_stop_loss', 8, 2)->default(2.0)->after('allocated_amount');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('user_ai_bots', 'take_profit_target')) {
+                \Illuminate\Support\Facades\Schema::table('user_ai_bots', function ($table) {
+                    $table->decimal('take_profit_target', 8, 2)->default(5.0)->after('trailing_stop_loss');
+                });
+            }
         }
 
         // 3. User AI Settings Table (User-Specific Overrides)
