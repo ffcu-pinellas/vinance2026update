@@ -10,7 +10,8 @@
     'valueType' => 1, //1=id,other=symbol
     'multiple' => false,
     'displayType' => 1,
-    'disabled' => false
+    'disabled' => false,
+    'gatewayType' => ''
 ])
 <select  name="{{ $name }}"  class="{{ $class }}" id="{{ $id }}" required @if($multiple) multiple @endif @disabled($disabled)>
     @if (!$multiple)
@@ -32,7 +33,8 @@
                         return {
                             search: params.term,
                             page: params.page,
-                            type:"{{ $type }}"
+                            type:"{{ $type }}",
+                            gateway_type: "{{ $gatewayType }}"
                         };
                     },
                     processResults: function (response, params) {

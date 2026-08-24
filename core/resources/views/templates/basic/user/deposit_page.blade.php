@@ -23,7 +23,7 @@
                         <input type="hidden" name="currency">
                         <div class="form-group position-relative" id="currency_list_wrapper">
                             <label class="form-label">@lang('Select Currency')</label>
-                            <x-currency-list :action="route('user.currency.all')" valueType="2" logCurrency="true" parent="currency_list_wrapper" class="form-control currency-list" />
+                            <x-currency-list :action="route('user.currency.all')" valueType="2" parent="currency_list_wrapper" class="form-control currency-list" gatewayType="deposit" />
                         </div>
                         <div class="form-group">
                             <label class="form-label">@lang('Amount')</label>

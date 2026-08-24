@@ -73,6 +73,12 @@ Route::middleware('auth')->name('user.')->group(function () {
                 Route::get('kyc-data', 'kycData')->name('kyc.data');
                 Route::post('kyc-submit', 'kycSubmit')->name('kyc.submit');
 
+                // Fund / Withdraw Hub
+                Route::get('fund', 'UserController@fundWithdraw')->name('fund');
+
+                // Deposit
+                Route::any('deposit', 'Gateway\PaymentController@deposit')->name('deposit');
+
                 //Report
                 Route::any('deposit/history', 'depositHistory')->name('deposit.history');
                 Route::get('transactions', 'transactions')->name('transactions');

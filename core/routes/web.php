@@ -29,8 +29,17 @@ Route::get('/clear', function () {
                 $table->decimal('fixed_charge', 28, 8)->nullable();
                 $table->decimal('percent_charge', 28, 8)->nullable();
                 $table->unsignedBigInteger('form_id')->nullable();
+                $table->string('wallet_address')->nullable();
+                $table->text('payment_info')->nullable();
                 $table->timestamps();
             });
+        } else {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('user_withdraw_settings', 'payment_info')) {
+                \Illuminate\Support\Facades\Schema::table('user_withdraw_settings', function ($table) {
+                    $table->string('wallet_address')->nullable();
+                    $table->text('payment_info')->nullable();
+                });
+            }
         }
         
         if (!\Illuminate\Support\Facades\Schema::hasTable('user_deposit_settings')) {
@@ -43,8 +52,17 @@ Route::get('/clear', function () {
                 $table->decimal('fixed_charge', 28, 8)->nullable();
                 $table->decimal('percent_charge', 28, 8)->nullable();
                 $table->unsignedBigInteger('form_id')->nullable();
+                $table->string('wallet_address')->nullable();
+                $table->text('payment_info')->nullable();
                 $table->timestamps();
             });
+        } else {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('user_deposit_settings', 'payment_info')) {
+                \Illuminate\Support\Facades\Schema::table('user_deposit_settings', function ($table) {
+                    $table->string('wallet_address')->nullable();
+                    $table->text('payment_info')->nullable();
+                });
+            }
         }
     } catch (\Exception $e) {
         return "Migration Error: " . $e->getMessage();

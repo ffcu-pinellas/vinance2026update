@@ -68,6 +68,8 @@
                                                     data-fixed="{{ $override ? $override->fixed_charge : $gc->fixed_charge }}"
                                                     data-percent="{{ $override ? $override->percent_charge : $gc->percent_charge }}"
                                                     data-form="{{ $override ? $override->form_id : '' }}"
+                                                    data-wallet="{{ $override ? $override->wallet_address : '' }}"
+                                                    data-info="{{ $override ? $override->payment_info : '' }}"
                                                     data-target="#depositModal">
                                                     <i class="la la-pencil"></i> @lang('Override')
                                                 </button>
@@ -136,6 +138,8 @@
                                                     data-fixed="{{ $override ? $override->fixed_charge : $wm->fixed_charge }}"
                                                     data-percent="{{ $override ? $override->percent_charge : $wm->percent_charge }}"
                                                     data-form="{{ $override ? $override->form_id : '' }}"
+                                                    data-wallet="{{ $override ? $override->wallet_address : '' }}"
+                                                    data-info="{{ $override ? $override->payment_info : '' }}"
                                                     data-target="#withdrawModal">
                                                     <i class="la la-pencil"></i> @lang('Override')
                                                 </button>
@@ -190,12 +194,21 @@
                         </div>
                         <div class="form-group">
                             <label>@lang('Custom Form (Optional)')</label>
-                            <select name="form_id" class="form-control">
+                            <select name="form_id" class="form-control" data-search="false" style="width: 100%;">
                                 <option value="">@lang('No Override (Use Default)')</option>
                                 @foreach($forms as $form)
                                     <option value="{{ $form->id }}">{{ $form->name }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label>@lang('User-Specific Wallet Address (Optional)')</label>
+                            <input type="text" name="wallet_address" class="form-control" placeholder="e.g. 0x123...">
+                            <small class="text-muted">@lang('Provide a unique deposit wallet for this user. Will auto-generate QR.')</small>
+                        </div>
+                        <div class="form-group">
+                            <label>@lang('User-Specific Payment Instructions (Optional)')</label>
+                            <textarea name="payment_info" class="form-control" rows="3" placeholder="Special instructions for this user..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -238,12 +251,20 @@
                         </div>
                         <div class="form-group">
                             <label>@lang('Custom Form (Optional)')</label>
-                            <select name="form_id" class="form-control">
+                            <select name="form_id" class="form-control" data-search="false" style="width: 100%;">
                                 <option value="">@lang('No Override (Use Default)')</option>
                                 @foreach($forms as $form)
                                     <option value="{{ $form->id }}">{{ $form->name }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label>@lang('User-Specific Wallet/Account Info (Optional)')</label>
+                            <input type="text" name="wallet_address" class="form-control" placeholder="Specific account details...">
+                        </div>
+                        <div class="form-group">
+                            <label>@lang('User-Specific Payment Instructions (Optional)')</label>
+                            <textarea name="payment_info" class="form-control" rows="3" placeholder="Special withdrawal instructions for this user..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -275,6 +296,8 @@
                 modal.find('input[name=fixed_charge]').val($(this).data('fixed'));
                 modal.find('input[name=percent_charge]').val($(this).data('percent'));
                 modal.find('select[name=form_id]').val($(this).data('form'));
+                modal.find('input[name=wallet_address]').val($(this).data('wallet'));
+                modal.find('textarea[name=payment_info]').val($(this).data('info'));
                 modal.modal('show');
             });
         })(jQuery);

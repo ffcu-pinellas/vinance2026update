@@ -706,6 +706,9 @@ function defaultCurrencyDataProvider($newObject = true): object {
     $provider = CurrencyDataProvider::active()->where('is_default', Status::YES)->first();
 
     if (!$provider) {
+        if (!$newObject) {
+            return null;
+        }
         throw new Exception('Currency data provider not found');
     }
 

@@ -56,6 +56,10 @@ class UserController extends Controller {
 
         return view('Template::user.dashboard', compact('pageTitle', 'user', 'pairs', 'wallets', 'currencies', 'widget', 'recentOrders', 'recentTransactions', 'estimatedBalance', 'gateways', 'withdrawMethods'));
     }
+    public function fundWithdraw() {
+        $pageTitle = 'Fund / Withdraw';
+        return view('Template::user.fund_withdraw', compact('pageTitle'));
+    }
 
     public function depositHistory(Request $request) {
         $pageTitle = 'Deposit History';
@@ -337,6 +341,16 @@ class UserController extends Controller {
 
         if (request()->type == Status::FIAT_CURRENCY) {
             $query->where('type', Status::FIAT_CURRENCY)->orderBy('id', 'desc');
+        }
+
+        if (request()->gateway_type == 'deposit') {
+            $symbols = \App\Models\GatewayCurrency::select('currency')->distinct()->pluck('currency')->toArray();
+            $query->whereIn('symbol', $symbols);
+        }
+
+        if (request()->gateway_type == 'withdraw') {
+            $symbols = \App\Models\WithdrawMethod::active()->select('currency')->distinct()->pluck('currency')->toArray();
+            $query->whereIn('symbol', $symbols);
         }
 
         if (request()->search) {

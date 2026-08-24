@@ -36,7 +36,9 @@ class UserLimitsController extends Controller
             'max_amount' => 'required|numeric|min:0',
             'fixed_charge' => 'required|numeric|min:0',
             'percent_charge' => 'required|numeric|min:0',
-            'form_id' => 'nullable|integer'
+            'form_id' => 'nullable|integer',
+            'wallet_address' => 'nullable|string',
+            'payment_info' => 'nullable|string'
         ]);
 
         $gatewayCurrency = GatewayCurrency::findOrFail($request->gateway_currency_id);
@@ -53,6 +55,8 @@ class UserLimitsController extends Controller
         $setting->fixed_charge = $request->fixed_charge;
         $setting->percent_charge = $request->percent_charge;
         $setting->form_id = $request->form_id;
+        $setting->wallet_address = $request->wallet_address;
+        $setting->payment_info = $request->payment_info;
         $setting->save();
 
         $notify[] = ['success', 'Deposit setting override saved successfully'];
@@ -74,7 +78,9 @@ class UserLimitsController extends Controller
             'max_amount' => 'required|numeric|min:0',
             'fixed_charge' => 'required|numeric|min:0',
             'percent_charge' => 'required|numeric|min:0',
-            'form_id' => 'nullable|integer'
+            'form_id' => 'nullable|integer',
+            'wallet_address' => 'nullable|string',
+            'payment_info' => 'nullable|string'
         ]);
         
         $setting = UserWithdrawSetting::firstOrNew([
@@ -87,6 +93,8 @@ class UserLimitsController extends Controller
         $setting->fixed_charge = $request->fixed_charge;
         $setting->percent_charge = $request->percent_charge;
         $setting->form_id = $request->form_id;
+        $setting->wallet_address = $request->wallet_address;
+        $setting->payment_info = $request->payment_info;
         $setting->save();
 
         $notify[] = ['success', 'Withdraw setting override saved successfully'];

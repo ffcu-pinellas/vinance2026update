@@ -13,16 +13,10 @@
                     <span class="text">@lang('Dashboard')</span>
                 </a>
             </li>
-            <li class="sidebar-menu-list__item ">
-                <a href="{{ route('user.deposit.index') }}" class="sidebar-menu-list__link {{ menuActive('user.deposit.*') }}">
+            <li class="sidebar-menu-list__item {{ menuActive('user.fund') }}">
+                <a href="{{ route('user.fund') }}" class="sidebar-menu-list__link">
                     <span class="icon"><i class="las la-wallet"></i></span>
-                    <span class="text">@lang('Deposit')</span>
-                </a>
-            </li>
-            <li class="sidebar-menu-list__item ">
-                <a href="{{ route('user.withdraw.index') }}" class="sidebar-menu-list__link {{ menuActive('user.withdraw.*') }}">
-                    <span class="icon"><i class="las la-money-check"></i></span>
-                    <span class="text">@lang('Withdraw')</span>
+                    <span class="text">@lang('Fund / Withdraw')</span>
                 </a>
             </li>
             <li class="sidebar-menu-list__item ">
