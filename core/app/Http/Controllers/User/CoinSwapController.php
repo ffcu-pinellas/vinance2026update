@@ -178,18 +178,17 @@ class CoinSwapController extends Controller
     public function calculate(Request $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'from_currency' => 'required|integer|exists:currencies,id',
-                'to_currency' => 'required|integer|exists:currencies,id|different:from_currency',
-                'amount' => 'required|numeric|gt:0',
-            ]);
+            $fromCurrency = Currency::find($request->from_currency);
+            $toCurrency = Currency::find($request->to_currency);
 
-            if ($validator->fails()) {
-                return response()->json(['error' => $validator->errors()->first()]);
+            if (!$fromCurrency || !$toCurrency) {
+                return response()->json(['error' => 'Invalid currency selection']);
             }
 
-            $fromCurrency = Currency::findOrFail($request->from_currency);
-            $toCurrency = Currency::findOrFail($request->to_currency);
+            $amount = (float)($request->amount ?? 1);
+            if ($amount <= 0) {
+                $amount = 1.0;
+            }
 
             $rate = $this->getLiveRate($fromCurrency->symbol, $toCurrency->symbol);
             if ($rate <= 0) {
@@ -206,27 +205,25 @@ class CoinSwapController extends Controller
                         $feePercentage = (float)$userSetting->custom_fee_percentage;
                     }
                 }
-            } catch (\Exception $e) {
-                // fallback to default fee
-            }
+            } catch (\Throwable $e) {}
 
-            $grossAmount = (float)$request->amount * $rate;
+            $grossAmount = $amount * $rate;
             $charge = $grossAmount * ($feePercentage / 100);
-            $finalAmount = $grossAmount - $charge;
+            $finalAmount = max(0, $grossAmount - $charge);
 
             return response()->json([
                 'success' => true,
                 'rate' => $rate,
-                'rate_display' => '1 ' . $fromCurrency->symbol . ' ≈ ' . number_format($rate, 6) . ' ' . $toCurrency->symbol,
+                'rate_display' => '1 ' . $fromCurrency->symbol . ' ≈ ' . ($rate >= 1 ? number_format($rate, 4) : number_format($rate, 8)) . ' ' . $toCurrency->symbol,
                 'charge' => number_format($charge, 6),
                 'fee_percentage' => $feePercentage,
-                'final_amount' => number_format($finalAmount, 6),
+                'final_amount' => $finalAmount >= 1 ? number_format($finalAmount, 4) : number_format($finalAmount, 8),
                 'raw_final_amount' => $finalAmount,
                 'to_symbol' => $toCurrency->symbol,
                 'from_symbol' => $fromCurrency->symbol
             ]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Calculate swap rate error: ' . $e->getMessage());
             return response()->json([
                 'success' => true,
@@ -234,7 +231,7 @@ class CoinSwapController extends Controller
                 'rate_display' => '1 ' . @$fromCurrency->symbol . ' ≈ 1.00 ' . @$toCurrency->symbol,
                 'charge' => '0.00',
                 'fee_percentage' => 0.10,
-                'final_amount' => number_format((float)$request->amount, 6),
+                'final_amount' => number_format((float)($request->amount ?? 1), 6),
                 'to_symbol' => @$toCurrency->symbol ?? '',
                 'from_symbol' => @$fromCurrency->symbol ?? ''
             ]);
@@ -257,68 +254,71 @@ class CoinSwapController extends Controller
     }
 
     /**
-     * Get live market rate with fast caching using Binance public market data
+     * Get live market rate with fast caching
      */
     private function getLiveRate($fromSymbol, $toSymbol)
     {
-        $fromSymbol = strtoupper($fromSymbol);
-        $toSymbol = strtoupper($toSymbol);
+        $fromSymbol = strtoupper(trim($fromSymbol));
+        $toSymbol = strtoupper(trim($toSymbol));
 
         if ($fromSymbol === $toSymbol) {
             return 1.0;
         }
 
-        return Cache::remember("swap_rate_{$fromSymbol}_{$toSymbol}", 10, function() use ($fromSymbol, $toSymbol) {
-            $fromUsd = $this->getUsdPrice($fromSymbol);
-            $toUsd = $this->getUsdPrice($toSymbol);
+        $fromUsd = $this->getUsdPrice($fromSymbol);
+        $toUsd = $this->getUsdPrice($toSymbol);
 
-            if ($fromUsd > 0 && $toUsd > 0) {
-                return $fromUsd / $toUsd;
-            }
+        if ($fromUsd > 0 && $toUsd > 0) {
+            return $fromUsd / $toUsd;
+        }
 
-            return 1.0;
-        });
+        return 1.0;
     }
 
     /**
-     * Fetch USD price for symbol from Binance or fallback
+     * Fetch USD price for symbol from Binance or resilient fallback
      */
     private function getUsdPrice($symbol)
     {
-        if (in_array($symbol, ['USDT', 'USD', 'USDC', 'BUSD', 'DAI'])) {
+        $symbol = strtoupper(trim($symbol));
+        if (in_array($symbol, ['USDT', 'USD', 'USDC', 'BUSD', 'DAI', 'FDUSD', 'TUSD'])) {
             return 1.0;
         }
 
-        try {
-            $res = Http::timeout(3)->get("https://api.binance.com/api/v3/ticker/price?symbol={$symbol}USDT");
-            if ($res->successful()) {
-                $data = $res->json();
-                if (isset($data['price'])) {
-                    return (float)$data['price'];
-                }
-            }
-        } catch (\Exception $e) {
-            Log::warning("Binance ticker fetch failed for {$symbol}USDT: " . $e->getMessage());
-        }
-
-        // Realistic Fallback prices if external network is down
         $fallbacks = [
             'BTC' => 77901.50,
             'ETH' => 2450.20,
             'SOL' => 145.80,
             'BNB' => 595.40,
-            'XRP' => 0.58,
-            'DOGE' => 0.11,
-            'ADA' => 0.38,
+            'XRP' => 0.584,
+            'DOGE' => 0.115,
+            'ADA' => 0.385,
             'AVAX' => 24.50,
             'LINK' => 11.20,
             'DOT' => 4.60,
             'LTC' => 68.40,
             'NEAR' => 4.80,
+            'SUI' => 1.95,
+            'TRX' => 0.165,
             'MATIC' => 0.42,
-            'TRX' => 0.16
+            'TON' => 5.20,
+            'SHIB' => 0.000018,
+            'PEPE' => 0.0000095,
+            'UNI' => 7.80,
+            'ATOM' => 4.50,
+            'BCH' => 345.00
         ];
 
-        return $fallbacks[$symbol] ?? 1.0;
+        return Cache::remember("usd_price_{$symbol}", 15, function() use ($symbol, $fallbacks) {
+            try {
+                $res = \App\Lib\CurlRequest::curlContent("https://api.binance.com/api/v3/ticker/price?symbol={$symbol}USDT");
+                $data = json_decode($res, true);
+                if (isset($data['price']) && (float)$data['price'] > 0) {
+                    return (float)$data['price'];
+                }
+            } catch (\Throwable $e) {}
+
+            return $fallbacks[$symbol] ?? 1.0;
+        });
     }
 }

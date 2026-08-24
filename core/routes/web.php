@@ -213,6 +213,12 @@ Route::get('/clear', function () {
                 'features' => ['Automated 24/7 limit order buy-low/sell-high matrix', 'Volatility-adjusted grid density', 'Dynamic geometric profit compounding', 'Backtested on 5+ years of market data'],
                 'trading_pairs' => ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'SOL/USDT', 'DOGE/USDT']
             ]);
+        } else {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('ai_bot_plans', 'is_copy_trader')) {
+                \Illuminate\Support\Facades\Schema::table('ai_bot_plans', function ($table) {
+                    $table->tinyInteger('is_copy_trader')->default(0);
+                });
+            }
         }
 
         // 2. User AI Bots Table

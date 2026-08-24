@@ -178,242 +178,62 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-primary-soft text--base fw-bold font-mono">JS</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">Jane Street Quant Arbitrage</span>
-                                        <small class="text-muted">Sub-millisecond Cross-DEX Arbitrage</small>
+                        @forelse($copyTradingBots as $bot)
+                            @php
+                                $botInitials = strtoupper(substr($bot->name, 0, 2));
+                                $avgRoi = round(($bot->daily_roi_min + $bot->daily_roi_max) / 2 * 30, 1);
+                                $palette = ['primary', 'success', 'info', 'warning', 'danger'];
+                                $badgeColor = $palette[$loop->index % count($palette)];
+                            @endphp
+                            <tr class="{{ $loop->iteration > 5 ? 'extended-bot-row d-none' : '' }}">
+                                <td class="ps-3 ps-sm-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="institution-avatar-badge bg-{{ $badgeColor }}-soft text--{{ $badgeColor == 'primary' ? 'base' : $badgeColor }} fw-bold font-mono">
+                                            {{ $bot->avatar_code ?? $botInitials }}
+                                        </div>
+                                        <div>
+                                            <span class="text-white fw-bold d-block">{{ __($bot->name) }}</span>
+                                            <small class="text-muted">{{ __($bot->tagline) }}</small>
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">ARBITRAGE</span></td>
-                            <td class="text-end font-mono text--success fw-bold">+142.8%</td>
-                            <td class="text-end font-mono text-white">94.2%</td>
-                            <td class="text-center"><span class="badge badge--success-soft rounded-pill px-2">Ultra-Low</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-success-soft text--success fw-bold font-mono">CT</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">Citadel High-Frequency Alpha</span>
-                                        <small class="text-muted">Order Flow Depth Liquidity Harvester</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">HIGH FREQUENCY</span></td>
-                            <td class="text-end font-mono text--success fw-bold">+218.4%</td>
-                            <td class="text-end font-mono text-white">91.8%</td>
-                            <td class="text-center"><span class="badge badge--warning-soft rounded-pill px-2">Moderate</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-info-soft text--info fw-bold font-mono">JC</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">Jump Crypto Delta Neutral</span>
-                                        <small class="text-muted">Funding Rate & Basis Hedging Engine</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">DELTA NEUTRAL</span></td>
-                            <td class="text-end font-mono text--success fw-bold">+89.6%</td>
-                            <td class="text-end font-mono text-white">98.1%</td>
-                            <td class="text-center"><span class="badge badge--success-soft rounded-pill px-2">Ultra-Low</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-warning-soft text--warning fw-bold font-mono">WM</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">Wintermute Market Maker</span>
-                                        <small class="text-muted">Automated Multi-Exchange Spread Capture</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">MARKET MAKING</span></td>
-                            <td class="text-end font-mono text--success fw-bold">+165.2%</td>
-                            <td class="text-end font-mono text-white">93.4%</td>
-                            <td class="text-center"><span class="badge badge--info-soft rounded-pill px-2">Low-Med</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-primary-soft text--base fw-bold font-mono">TS</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">Two Sigma Quant Momentum</span>
-                                        <small class="text-muted">Machine Learning Multi-Factor Trend</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">QUANT MOMENTUM</span></td>
-                            <td class="text-end font-mono text--success fw-bold live-return-val" data-base="312.5">+312.5%</td>
-                            <td class="text-end font-mono text-white">88.6%</td>
-                            <td class="text-center"><span class="badge badge--danger-soft rounded-pill px-2">High Alpha</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Extended Leaderboard Bots (Shown on See More) -->
-                        <tr class="extended-bot-row d-none">
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-danger-soft text--danger fw-bold font-mono">RT</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">Renaissance Medallion Algorithm</span>
-                                        <small class="text-muted">Non-Linear Pattern Recognition</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">NON-LINEAR HFT</span></td>
-                            <td class="text-end font-mono text--success fw-bold live-return-val" data-base="480.2">+480.2%</td>
-                            <td class="text-end font-mono text-white">96.4%</td>
-                            <td class="text-center"><span class="badge badge--danger-soft rounded-pill px-2">High Alpha</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr class="extended-bot-row d-none">
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-info-soft text--info fw-bold font-mono">DS</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">D.E. Shaw Statistical Dispersion</span>
-                                        <small class="text-muted">Mean-Reversion Volatility Arbitrage</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">STAT ARB</span></td>
-                            <td class="text-end font-mono text--success fw-bold live-return-val" data-base="195.4">+195.4%</td>
-                            <td class="text-end font-mono text-white">92.5%</td>
-                            <td class="text-center"><span class="badge badge--success-soft rounded-pill px-2">Low Risk</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr class="extended-bot-row d-none">
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-warning-soft text--warning fw-bold font-mono">P7</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">Point72 Macro Trend Following</span>
-                                        <small class="text-muted">Multi-Asset Macro Liquidity Momentum</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">MACRO TREND</span></td>
-                            <td class="text-end font-mono text--success fw-bold live-return-val" data-base="178.6">+178.6%</td>
-                            <td class="text-end font-mono text-white">90.2%</td>
-                            <td class="text-center"><span class="badge badge--warning-soft rounded-pill px-2">Moderate</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr class="extended-bot-row d-none">
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-primary-soft text--base fw-bold font-mono">ML</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">Millennium Low-Beta Hedging</span>
-                                        <small class="text-muted">Market Neutral Statistical Hedging</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">LOW-BETA HEDGE</span></td>
-                            <td class="text-end font-mono text--success fw-bold live-return-val" data-base="112.5">+112.5%</td>
-                            <td class="text-end font-mono text-white">95.8%</td>
-                            <td class="text-center"><span class="badge badge--success-soft rounded-pill px-2">Ultra-Low</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr class="extended-bot-row d-none">
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-success-soft text--success fw-bold font-mono">TR</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">Tower Research Ultra-HFT Liquidity</span>
-                                        <small class="text-muted">Sub-Microsecond Limit Order Execution</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">ULTRA HFT</span></td>
-                            <td class="text-end font-mono text--success fw-bold live-return-val" data-base="264.8">+264.8%</td>
-                            <td class="text-end font-mono text-white">93.1%</td>
-                            <td class="text-center"><span class="badge badge--info-soft rounded-pill px-2">Low-Med</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr class="extended-bot-row d-none">
-                            <td class="ps-3 ps-sm-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="institution-avatar-badge bg-warning-soft text--warning fw-bold font-mono">DR</div>
-                                    <div>
-                                        <span class="text-white fw-bold d-block">DRW Cumberland Crypto Basis</span>
-                                        <small class="text-muted">Perpetual Futures & Spot Basis Arbitrage</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="badge badge--dark text-uppercase font-mono">BASIS ARB</span></td>
-                            <td class="text-end font-mono text--success fw-bold live-return-val" data-base="138.2">+138.2%</td>
-                            <td class="text-end font-mono text-white">94.0%</td>
-                            <td class="text-center"><span class="badge badge--success-soft rounded-pill px-2">Ultra-Low</span></td>
-                            <td class="text-end pe-3 pe-sm-4">
-                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
-                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
-                                </button>
-                            </td>
-                        </tr>
+                                </td>
+                                <td><span class="badge badge--dark text-uppercase font-mono">{{ $bot->strategy_type }}</span></td>
+                                <td class="text-end font-mono text--success fw-bold live-return-val" data-base="{{ $avgRoi }}">+{{ $avgRoi }}%</td>
+                                <td class="text-end font-mono text-white">{{ $bot->win_rate }}%</td>
+                                <td class="text-center">
+                                    <span class="badge badge--{{ $bot->risk_level == 'low' ? 'success' : ($bot->risk_level == 'medium' ? 'warning' : 'danger') }}-soft rounded-pill px-2">
+                                        {{ ucfirst($bot->risk_level) }}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-3 pe-sm-4">
+                                    <button type="button" class="btn btn-sm btn--base rounded-pill px-3 deployBotBtn"
+                                        data-id="{{ $bot->id }}"
+                                        data-name="{{ $bot->name }}"
+                                        data-min="{{ $bot->min_investment }}"
+                                        data-max="{{ $bot->max_investment }}"
+                                        data-roi_min="{{ $bot->daily_roi_min }}"
+                                        data-roi_max="{{ $bot->daily_roi_max }}"
+                                        data-duration="{{ $bot->trade_duration_days }}">
+                                        <i class="las la-copy me-1"></i> @lang('Copy Strategy')
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">@lang('No copy trading bots available.')</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
             <!-- See More / Show Less Toggle Button -->
+            @if($copyTradingBots->count() > 5)
             <div class="card-footer bg-transparent border-top border-dark text-center py-3">
                 <button type="button" class="btn btn-sm btn-outline--light rounded-pill px-4" id="toggleExtendedBotsBtn">
-                    <i class="las la-angle-down me-1"></i> <span id="toggleExtendedBotsText">@lang('View All 11 Institutional Leaderboard Strategies')</span>
+                    <i class="las la-angle-down me-1"></i> <span id="toggleExtendedBotsText">@lang('View All') {{ $copyTradingBots->count() }} @lang('Institutional Strategies')</span>
                 </button>
             </div>
+            @endif
 
     <!-- Active Bots Section -->
     <div id="activeBotsSection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
@@ -1044,12 +864,27 @@
         var selectedPlanMax = 0;
         var selectedRoiMin = 0;
 
-        // Sliders live text update
-        $('#trailingStopRange').on('input', function() {
-            $('#trailingStopValue').text($(this).val() + '%');
-        });
-        $('#takeProfitRange').on('input', function() {
-            $('#takeProfitValue').text($(this).val() + '%');
+        // Sliders & Risk auto-calculation
+        function calculateRiskAndReward(capital) {
+            var stopLossPct = parseFloat($('#trailingStopRange').val()) || 2.0;
+            var takeProfitPct = parseFloat($('#takeProfitRange').val()) || 5.0;
+
+            if (capital > 0) {
+                var stopLossDollar = (capital * (stopLossPct / 100));
+                var takeProfitDollar = (capital * (takeProfitPct / 100));
+                $('#trailingStopValue').text(stopLossPct.toFixed(1) + '% (-$' + stopLossDollar.toFixed(2) + ')');
+                $('#takeProfitValue').text(takeProfitPct.toFixed(1) + '% (+$' + takeProfitDollar.toFixed(2) + ')');
+            } else {
+                $('#trailingStopValue').text(stopLossPct.toFixed(1) + '%');
+                $('#takeProfitValue').text(takeProfitPct.toFixed(1) + '%');
+            }
+
+            calculateEstimatedProfit(capital);
+        }
+
+        $('#trailingStopRange, #takeProfitRange').on('input', function() {
+            var capital = parseFloat($('#deployAmountInput').val()) || 0;
+            calculateRiskAndReward(capital);
         });
 
         // Toggle extended leaderboard bots
@@ -1061,7 +896,7 @@
                 $(this).find('i').removeClass('la-angle-down').addClass('la-angle-up');
             } else {
                 $('.extended-bot-row').addClass('d-none');
-                $('#toggleExtendedBotsText').text("@lang('View All 11 Institutional Leaderboard Strategies')");
+                $('#toggleExtendedBotsText').text("@lang('View All') {{ $copyTradingBots->count() }} @lang('Institutional Strategies')");
                 $(this).find('i').removeClass('la-angle-up').addClass('la-angle-down');
             }
         });
@@ -1076,18 +911,77 @@
             });
         }, 4500);
 
-        // Connect Copy Strategy Buttons to Bot Deployment
-        $('.openMarketplaceBtn').on('click', function() {
+        // Open Marketplace (Shows all options, never auto-selects)
+        $('.openMarketplaceBtn').on('click', function () {
             if ($(window).width() < 768) {
-                $('.mobile-ai-tab-btn[data-target="#aiPlansSection"]').click();
+                $('#marketplaceModal').modal('show');
+            } else {
+                if ($("#aiPlansSection").length) {
+                    $('html, body').animate({
+                        scrollTop: $("#aiPlansSection").offset().top - 80
+                    }, 400);
+                } else {
+                    $('#marketplaceModal').modal('show');
+                }
             }
-            if ($("#aiPlansSection").length) {
-                $('html, body').animate({
-                    scrollTop: $("#aiPlansSection").offset().top - 80
-                }, 400);
-            }
-            $('.deployBotBtn').first().click();
         });
+
+        // Launch configure modal from plan
+        $('.deployBotBtn, .selectAndDeployBtn').on('click', function () {
+            $('#marketplaceModal').modal('hide');
+            var modal = $('#deployBotModal');
+            var planId = $(this).data('id');
+            var name = $(this).data('name');
+            selectedPlanMin = parseFloat($(this).data('min')) || 50;
+            selectedPlanMax = parseFloat($(this).data('max')) || 100000;
+            selectedRoiMin = parseFloat($(this).data('roi_min')) || 1.5;
+            var roiMax = $(this).data('roi_max') || 3.0;
+            var duration = $(this).data('duration') || 30;
+
+            modal.find('#modalPlanId').val(planId);
+            modal.find('#modalBotName').text(name);
+            modal.find('#modalRoiText').text(selectedRoiMin + '% - ' + roiMax + '%');
+            modal.find('#modalDurationText').text(duration);
+            modal.find('#modalLimitsText').text('$' + selectedPlanMin.toLocaleString() + ' - $' + selectedPlanMax.toLocaleString());
+            modal.find('#deployAmountInput').val(selectedPlanMin);
+            
+            calculateRiskAndReward(selectedPlanMin);
+            modal.modal('show');
+        });
+
+        $('#deployAmountInput').on('input', function () {
+            var amount = parseFloat($(this).val()) || 0;
+            calculateRiskAndReward(amount);
+        });
+
+        $('.quick-pct-btn').on('click', function () {
+            var pct = parseFloat($(this).data('pct'));
+            var walletType = $('#walletTypeSelect').val();
+            var balance = (walletType === 'spot') ? currentSpotBalance : currentFundingBalance;
+            var calculatedAmount = 0;
+
+            if (balance > 0) {
+                calculatedAmount = (balance * (pct / 100));
+            } else {
+                calculatedAmount = selectedPlanMin > 0 ? (selectedPlanMin * (pct / 100)) : (100 * (pct / 100));
+            }
+
+            if (selectedPlanMax && calculatedAmount > selectedPlanMax) {
+                calculatedAmount = selectedPlanMax;
+            }
+
+            $('#deployAmountInput').val(calculatedAmount.toFixed(2));
+            calculateRiskAndReward(calculatedAmount);
+        });
+
+        function calculateEstimatedProfit(amount) {
+            if (amount > 0 && selectedRoiMin > 0) {
+                var dailyProfit = (amount * (selectedRoiMin / 100));
+                $('#estDailyProfit').text('+$' + dailyProfit.toFixed(2) + ' / day');
+            } else {
+                $('#estDailyProfit').text('+$0.00');
+            }
+        }
 
         // Equity Curve Canvas Line Chart Renderer
         var chartDataMap = {
@@ -1225,62 +1119,6 @@
         }
         setInterval(updateUptime, 1000);
         updateUptime();
-
-        // Open Marketplace Modal
-        $('.openMarketplaceBtn').on('click', function () {
-            $('#marketplaceModal').modal('show');
-        });
-
-        // Launch configure modal from plan
-        $('.deployBotBtn, .selectAndDeployBtn').on('click', function () {
-            $('#marketplaceModal').modal('hide');
-            var modal = $('#deployBotModal');
-            var planId = $(this).data('id');
-            var name = $(this).data('name');
-            selectedPlanMin = parseFloat($(this).data('min'));
-            selectedPlanMax = parseFloat($(this).data('max'));
-            selectedRoiMin = parseFloat($(this).data('roi_min'));
-            var roiMax = $(this).data('roi_max');
-            var duration = $(this).data('duration');
-
-            modal.find('#modalPlanId').val(planId);
-            modal.find('#modalBotName').text(name);
-            modal.find('#modalRoiText').text(selectedRoiMin + '% - ' + roiMax + '%');
-            modal.find('#modalDurationText').text(duration);
-            modal.find('#modalLimitsText').text('$' + selectedPlanMin.toLocaleString() + ' - $' + selectedPlanMax.toLocaleString());
-            modal.find('#deployAmountInput').val(selectedPlanMin);
-            
-            calculateEstimatedProfit(selectedPlanMin);
-            modal.modal('show');
-        });
-
-        $('#deployAmountInput').on('input', function () {
-            var amount = parseFloat($(this).val()) || 0;
-            calculateEstimatedProfit(amount);
-        });
-
-        $('.quick-pct-btn').on('click', function () {
-            var pct = parseFloat($(this).data('pct'));
-            var walletType = $('#walletTypeSelect').val();
-            var balance = (walletType === 'spot') ? currentSpotBalance : currentFundingBalance;
-            var calculatedAmount = (balance * (pct / 100));
-
-            if (selectedPlanMax && calculatedAmount > selectedPlanMax) {
-                calculatedAmount = selectedPlanMax;
-            }
-
-            $('#deployAmountInput').val(calculatedAmount.toFixed(2));
-            calculateEstimatedProfit(calculatedAmount);
-        });
-
-        function calculateEstimatedProfit(amount) {
-            if (amount > 0 && selectedRoiMin > 0) {
-                var dailyProfit = (amount * (selectedRoiMin / 100));
-                $('#estDailyProfit').text('+$' + dailyProfit.toFixed(2) + ' / day');
-            } else {
-                $('#estDailyProfit').text('+$0.00');
-            }
-        }
 
         // Mobile Tabs Switcher - Exclusive visibility on mobile screens
         function handleMobileTabs() {

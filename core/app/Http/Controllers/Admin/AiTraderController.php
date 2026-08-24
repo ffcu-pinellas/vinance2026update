@@ -86,6 +86,7 @@ class AiTraderController extends Controller
         $plan->risk_level = $request->risk_level;
         $plan->trade_duration_days = $request->trade_duration_days;
         $plan->rank = $request->rank ?? 0;
+        $plan->is_copy_trader = $request->is_copy_trader ? 1 : 0;
         $plan->features = $request->features ?? [];
         $plan->trading_pairs = $request->trading_pairs ?? ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
         $plan->save();

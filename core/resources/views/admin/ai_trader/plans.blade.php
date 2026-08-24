@@ -21,6 +21,7 @@
                                 <th>@lang('Daily ROI Range')</th>
                                 <th>@lang('Win Rate')</th>
                                 <th>@lang('Duration')</th>
+                                <th>@lang('Category')</th>
                                 <th>@lang('Status')</th>
                                 <th>@lang('Action')</th>
                             </tr>
@@ -50,6 +51,13 @@
                                         <span class="fw-bold">{{ $plan->trade_duration_days }} @lang('Days')</span>
                                     </td>
                                     <td>
+                                        @if($plan->is_copy_trader)
+                                            <span class="badge badge--info"><i class="las la-copy"></i> @lang('Copy Trader')</span>
+                                        @else
+                                            <span class="badge badge--primary">@lang('Standard Bot')</span>
+                                        @endif
+                                    </td>
+                                    <td>
                                         @if($plan->status == 1)
                                             <span class="badge badge--success">@lang('Active')</span>
                                         @else
@@ -71,6 +79,7 @@
                                                 data-risk="{{ $plan->risk_level }}"
                                                 data-duration="{{ $plan->trade_duration_days }}"
                                                 data-rank="{{ $plan->rank }}"
+                                                data-copy_trader="{{ $plan->is_copy_trader ? 1 : 0 }}"
                                                 data-features="{{ json_encode($plan->features) }}"
                                                 data-pairs="{{ json_encode($plan->trading_pairs) }}">
                                                 <i class="las la-pencil-alt"></i> @lang('Edit')
@@ -195,6 +204,15 @@
                                 <input type="number" name="rank" class="form-control" value="0">
                             </div>
                         </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <div class="form-check form-switch form-switch-success">
+                                    <input class="form-check-input" type="checkbox" name="is_copy_trader" value="1" id="isCopyTraderCheck">
+                                    <label class="form-check-label fw-bold" for="isCopyTraderCheck">@lang('Feature in Institutional Copy Trading Leaderboard')</label>
+                                    <small class="text-muted d-block">@lang('When checked, this strategy appears in the Institutional Copy Trading Leaderboard.')</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -218,6 +236,7 @@
             modal.find('#planModalTitle').text("@lang('Add AI Bot Strategy')");
             modal.find('form').attr('action', "{{ route('admin.ai.plans.save') }}");
             modal.find('form')[0].reset();
+            modal.find('input[name=is_copy_trader]').prop('checked', false);
             modal.modal('show');
         });
 
@@ -238,6 +257,7 @@
             modal.find('input[name=daily_roi_max]').val($(this).data('roi_max'));
             modal.find('input[name=win_rate]').val($(this).data('win_rate'));
             modal.find('input[name=rank]').val($(this).data('rank'));
+            modal.find('input[name=is_copy_trader]').prop('checked', $(this).data('copy_trader') == 1);
             
             modal.modal('show');
         });

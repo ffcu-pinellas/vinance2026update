@@ -375,12 +375,56 @@
         var swapUrl = "{{ route('user.coin.swap') }}";
         var currentRate = 0;
 
-        function updateSelectedBalances() {
-            var fromOpt = $('#fromCurrencySelect option:selected');
-            var toOpt = $('#toCurrencySelect option:selected');
+        var clientPrices = {
+            'BTC': 77901.50,
+            'ETH': 2450.20,
+            'SOL': 145.80,
+            'BNB': 595.40,
+            'XRP': 0.584,
+            'DOGE': 0.115,
+            'ADA': 0.385,
+            'AVAX': 24.50,
+            'LINK': 11.20,
+            'DOT': 4.60,
+            'LTC': 68.40,
+            'NEAR': 4.80,
+            'SUI': 1.95,
+            'TRX': 0.165,
+            'MATIC': 0.42,
+            'TON': 5.20,
+            'SHIB': 0.000018,
+            'PEPE': 0.0000095,
+            'UNI': 7.80,
+            'ATOM': 4.50,
+            'BCH': 345.00,
+            'USDT': 1.0,
+            'USD': 1.0,
+            'USDC': 1.0,
+            'BUSD': 1.0
+        };
 
-            var fromSymbol = fromOpt.attr('data-symbol') || fromOpt.text().trim() || 'USDT';
-            var toSymbol = toOpt.attr('data-symbol') || toOpt.text().trim() || 'BTC';
+        // Try to fetch latest Binance live prices in browser
+        fetch('https://api.binance.com/api/v3/ticker/price')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (Array.isArray(data)) {
+                    data.forEach(function(item) {
+                        if (item.symbol && item.symbol.endsWith('USDT')) {
+                            var sym = item.symbol.replace('USDT', '');
+                            clientPrices[sym] = parseFloat(item.price);
+                        }
+                    });
+                    calculateQuotation();
+                }
+            })
+            .catch(function() {});
+
+        function updateSelectedBalances() {
+            var fromOpt = $('#fromCurrencySelect').find(':selected');
+            var toOpt = $('#toCurrencySelect').find(':selected');
+
+            var fromSymbol = fromOpt.data('symbol') || fromOpt.attr('data-symbol') || fromOpt.text().trim() || 'BTC';
+            var toSymbol = toOpt.data('symbol') || toOpt.attr('data-symbol') || toOpt.text().trim() || 'USDT';
 
             var fromBal = parseFloat(fromOpt.attr('data-balance')) || 0;
             var toBal = parseFloat(toOpt.attr('data-balance')) || 0;
@@ -390,31 +434,53 @@
         }
 
         function calculateQuotation() {
+            var fromOpt = $('#fromCurrencySelect').find(':selected');
+            var toOpt = $('#toCurrencySelect').find(':selected');
+
             var fromId = $('#fromCurrencySelect').val();
             var toId = $('#toCurrencySelect').val();
-            var amount = parseFloat($('#swapAmountInput').val()) || 0;
 
             if (fromId === toId) {
                 // Auto switch To currency if same
                 $('#toCurrencySelect option').each(function() {
                     if ($(this).val() !== fromId) {
                         $('#toCurrencySelect').val($(this).val());
+                        toOpt = $(this);
+                        toId = $(this).val();
                         return false;
                     }
                 });
-                toId = $('#toCurrencySelect').val();
             }
+
+            var fromSymbol = fromOpt.data('symbol') || fromOpt.attr('data-symbol') || fromOpt.text().trim() || 'BTC';
+            var toSymbol = toOpt.data('symbol') || toOpt.attr('data-symbol') || toOpt.text().trim() || 'USDT';
 
             updateSelectedBalances();
 
-            if (amount <= 0) {
+            var fromPrice = clientPrices[fromSymbol] || 1.0;
+            var toPrice = clientPrices[toSymbol] || 1.0;
+            var estimatedRate = fromPrice / toPrice;
+
+            var amount = parseFloat($('#swapAmountInput').val()) || 0;
+            var feePct = 0.10;
+
+            // Instant Client Render (Zero Lag)
+            var rateStr = '1 ' + fromSymbol + ' ≈ ' + (estimatedRate >= 1 ? estimatedRate.toFixed(4) : estimatedRate.toFixed(8)) + ' ' + toSymbol;
+            $('#liveRateDisplay').text(rateStr);
+
+            if (amount > 0) {
+                var estReceive = amount * estimatedRate * (1 - (feePct / 100));
+                var estCharge = amount * estimatedRate * (feePct / 100);
+                $('#swapReceivePreview').val(estReceive >= 1 ? estReceive.toFixed(4) : estReceive.toFixed(8));
+                $('#finalReceiveDisplay').text((estReceive >= 1 ? estReceive.toFixed(4) : estReceive.toFixed(8)) + ' ' + toSymbol);
+                $('#liveFeeDisplay').text(estCharge.toFixed(4) + ' ' + toSymbol);
+            } else {
                 $('#swapReceivePreview').val('0.00');
-                $('#finalReceiveDisplay').text('0.00');
+                $('#finalReceiveDisplay').text('0.00 ' + toSymbol);
                 $('#liveFeeDisplay').text('$0.00');
             }
 
-            $('#liveRateDisplay').html('<span class="spinner-border spinner-border-sm text--base"></span>');
-
+            // Sync with backend calculation endpoint
             $.ajax({
                 url: calculateUrl,
                 type: 'POST',
@@ -433,17 +499,8 @@
                             $('#swapReceivePreview').val(res.final_amount);
                             $('#finalReceiveDisplay').text(res.final_amount + ' ' + res.to_symbol);
                             $('#liveFeeDisplay').text(res.charge + ' ' + res.to_symbol);
-                        } else {
-                            $('#swapReceivePreview').val('0.00');
-                            $('#finalReceiveDisplay').text('0.00 ' + res.to_symbol);
-                            $('#liveFeeDisplay').text('0.00 ' + res.to_symbol);
                         }
-                    } else {
-                        $('#liveRateDisplay').text("@lang('Rate Unavailable')");
                     }
-                },
-                error: function () {
-                    $('#liveRateDisplay').text("@lang('Rate Error')");
                 }
             });
         }
@@ -465,11 +522,11 @@
         // Quick Percentage buttons
         $('.quick-pct-btn').on('click', function () {
             var pct = parseFloat($(this).data('pct'));
-            var fromOpt = $('#fromCurrencySelect option:selected');
+            var fromOpt = $('#fromCurrencySelect').find(':selected');
             var balance = parseFloat(fromOpt.attr('data-balance')) || 0;
             var calcAmount = (balance * (pct / 100));
 
-            $('#swapAmountInput').val(calcAmount.toFixed(6));
+            $('#swapAmountInput').val(calcAmount > 0 ? (pct === 100 ? balance : calcAmount.toFixed(6)) : '0.00');
             calculateQuotation();
         });
 

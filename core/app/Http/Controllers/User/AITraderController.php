@@ -129,6 +129,46 @@ class AITraderController extends Controller
         // Bot plans
         $plans = AiBotPlan::active()->orderBy('rank')->get();
 
+        // Fetch Copy Trading Institutional Bots from database
+        try {
+            $copyTradingBots = AiBotPlan::active()->where('is_copy_trader', 1)->orderBy('rank')->get();
+            if ($copyTradingBots->count() == 0) {
+                $defaultCopyBots = [
+                    ['name' => 'Jane Street Quant Arbitrage', 'tagline' => 'Sub-millisecond Cross-DEX Arbitrage', 'strategy_type' => 'arbitrage', 'min_investment' => 100, 'max_investment' => 50000, 'daily_roi_min' => 1.80, 'daily_roi_max' => 3.60, 'win_rate' => 94.20, 'risk_level' => 'low', 'trade_duration_days' => 30, 'rank' => 1],
+                    ['name' => 'Citadel High-Frequency Alpha', 'tagline' => 'Order Flow Depth Liquidity Harvester', 'strategy_type' => 'scalping', 'min_investment' => 250, 'max_investment' => 100000, 'daily_roi_min' => 2.40, 'daily_roi_max' => 5.20, 'win_rate' => 91.80, 'risk_level' => 'medium', 'trade_duration_days' => 45, 'rank' => 2],
+                    ['name' => 'Jump Crypto Delta Neutral', 'tagline' => 'Funding Rate & Basis Hedging Engine', 'strategy_type' => 'arbitrage', 'min_investment' => 150, 'max_investment' => 75000, 'daily_roi_min' => 1.50, 'daily_roi_max' => 2.90, 'win_rate' => 98.10, 'risk_level' => 'low', 'trade_duration_days' => 30, 'rank' => 3],
+                    ['name' => 'Wintermute Market Maker', 'tagline' => 'Automated Multi-Exchange Spread Capture', 'strategy_type' => 'grid', 'min_investment' => 200, 'max_investment' => 80000, 'daily_roi_min' => 2.00, 'daily_roi_max' => 4.10, 'win_rate' => 93.40, 'risk_level' => 'medium', 'trade_duration_days' => 60, 'rank' => 4],
+                    ['name' => 'Two Sigma Quant Momentum', 'tagline' => 'Machine Learning Multi-Factor Trend', 'strategy_type' => 'trend', 'min_investment' => 500, 'max_investment' => 150000, 'daily_roi_min' => 3.10, 'daily_roi_max' => 6.80, 'win_rate' => 88.60, 'risk_level' => 'high', 'trade_duration_days' => 90, 'rank' => 5],
+                    ['name' => 'Renaissance Medallion Algorithm', 'tagline' => 'Non-Linear Pattern Recognition', 'strategy_type' => 'scalping', 'min_investment' => 1000, 'max_investment' => 250000, 'daily_roi_min' => 4.20, 'daily_roi_max' => 8.50, 'win_rate' => 96.40, 'risk_level' => 'high', 'trade_duration_days' => 90, 'rank' => 6],
+                    ['name' => 'D.E. Shaw Statistical Dispersion', 'tagline' => 'Mean-Reversion Volatility Arbitrage', 'strategy_type' => 'arbitrage', 'min_investment' => 300, 'max_investment' => 90000, 'daily_roi_min' => 2.20, 'daily_roi_max' => 4.50, 'win_rate' => 92.50, 'risk_level' => 'low', 'trade_duration_days' => 45, 'rank' => 7],
+                    ['name' => 'Point72 Macro Trend Following', 'tagline' => 'Multi-Asset Macro Liquidity Momentum', 'strategy_type' => 'trend', 'min_investment' => 250, 'max_investment' => 60000, 'daily_roi_min' => 2.10, 'daily_roi_max' => 4.30, 'win_rate' => 90.20, 'risk_level' => 'medium', 'trade_duration_days' => 60, 'rank' => 8],
+                    ['name' => 'Millennium Low-Beta Hedging', 'tagline' => 'Market Neutral Statistical Hedging', 'strategy_type' => 'grid', 'min_investment' => 150, 'max_investment' => 50000, 'daily_roi_min' => 1.40, 'daily_roi_max' => 2.80, 'win_rate' => 95.80, 'risk_level' => 'low', 'trade_duration_days' => 30, 'rank' => 9],
+                    ['name' => 'Tower Research Ultra-HFT Liquidity', 'tagline' => 'Sub-Microsecond Limit Order Execution', 'strategy_type' => 'scalping', 'min_investment' => 400, 'max_investment' => 120000, 'daily_roi_min' => 2.80, 'daily_roi_max' => 5.90, 'win_rate' => 93.10, 'risk_level' => 'medium', 'trade_duration_days' => 60, 'rank' => 10],
+                    ['name' => 'DRW Cumberland Crypto Basis', 'tagline' => 'Perpetual Futures & Spot Basis Arbitrage', 'strategy_type' => 'arbitrage', 'min_investment' => 200, 'max_investment' => 70000, 'daily_roi_min' => 1.70, 'daily_roi_max' => 3.40, 'win_rate' => 94.00, 'risk_level' => 'low', 'trade_duration_days' => 45, 'rank' => 11],
+                ];
+
+                foreach ($defaultCopyBots as $botData) {
+                    try {
+                        AiBotPlan::create(array_merge($botData, [
+                            'status' => 1,
+                            'is_copy_trader' => 1,
+                            'features' => ['Algorithmic Execution', 'Automated Risk Controls', 'Institutional Liquidity Routing'],
+                            'trading_pairs' => ['BTC/USDT', 'ETH/USDT', 'SOL/USDT']
+                        ]));
+                    } catch (\Throwable $e) {}
+                }
+
+                $copyTradingBots = AiBotPlan::active()->where('is_copy_trader', 1)->orderBy('rank')->get();
+            }
+
+            $retailPlans = AiBotPlan::active()->where('is_copy_trader', 0)->orderBy('rank')->get();
+            if ($retailPlans->count() > 0) {
+                $plans = $retailPlans;
+            }
+        } catch (\Throwable $e) {
+            $copyTradingBots = collect();
+        }
+
         // User's active & completed bots
         $userBots = UserAiBot::with('plan')->where('user_id', $user->id)->latest()->get();
         $activeBots = $userBots->where('status', 1);
@@ -162,6 +202,7 @@ class AITraderController extends Controller
             'spotBalance',
             'fundingBalance',
             'plans',
+            'copyTradingBots',
             'userBots',
             'activeBots',
             'totalAllocated',
