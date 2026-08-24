@@ -203,6 +203,11 @@ Route::middleware('admin')->group(function () {
         Route::post('reject', 'reject')->name('reject');
         Route::post('approve/{id}', 'approve')->name('approve');
     });
+    
+    Route::controller('UserLimitsController')->prefix('users/limits-settings')->name('users.limits.settings.')->group(function () {
+        Route::get('deposit/{userId}/{gatewayCurrencyId}', 'editDepositSetting')->name('deposit.edit');
+        Route::get('withdraw/{userId}/{withdrawMethodId}', 'editWithdrawSetting')->name('withdraw.edit');
+    });
 
     // WITHDRAW SYSTEM
     Route::name('withdraw.')->prefix('withdraw')->group(function () {

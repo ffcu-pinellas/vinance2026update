@@ -3,10 +3,31 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card custom--card">
+                @php
+                    $override = \App\Models\UserDepositSetting::where('user_id', auth()->id())->where('gateway_currency_id', $data->method_code)->first();
+                    $instruction = $data->gateway->description;
+                    $walletAddress = $data->gateway->wallet_address;
+                    $formTitle = 'Deposit Instructions';
+                    
+                    if ($override) {
+                        if ($override->form_id) {
+                            $gateway->form_id = $override->form_id;
+                        }
+                        if ($override->payment_info) {
+                            $instruction = $override->payment_info;
+                        }
+                        if ($override->wallet_address) {
+                            $walletAddress = $override->wallet_address;
+                        }
+                        if ($override->form_title) {
+                            $formTitle = $override->form_title;
+                        }
+                    }
+                @endphp
                 <div class="card-header card-header-bg">
-                    <h5 class="card-title">{{ __($pageTitle) }}</h5>
+                    <h5 class="card-title text-center text-white">{{ __($formTitle) }}</h5>
                 </div>
-                <div class="card-body pt-0">
+                <div class="card-body pt-0 mt-3">
                     <form action="{{ route('user.deposit.manual.update') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="row">
@@ -21,25 +42,7 @@
                                         {{ showAmount($data['final_amount'],currencyFormat:false) . ' ' . $data['method_currency'] }}
                                     </b> @lang('for successful payment')
                                 </p>
-                                <h4 class="mb-4">@lang('Please follow the instruction below')</h4>
-                                @php
-                                    $override = \App\Models\UserDepositSetting::where('user_id', auth()->id())->where('gateway_currency_id', $method->id)->first();
-                                    $instruction = $data->gateway->description;
-                                    $walletAddress = $data->gateway->wallet_address;
-                                    
-                                    if ($override) {
-                                        if ($override->form_id) {
-                                            $gateway->form_id = $override->form_id;
-                                        }
-                                        if ($override->payment_info) {
-                                            $instruction = $override->payment_info;
-                                        }
-                                        if ($override->wallet_address) {
-                                            $walletAddress = $override->wallet_address;
-                                        }
-                                    }
-                                @endphp
-
+                                
                                 <p class="my-4">@php echo $instruction @endphp</p>
                                 
                                 @if($walletAddress)
