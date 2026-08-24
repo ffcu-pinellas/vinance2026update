@@ -61,8 +61,14 @@ class UserLimitsController extends Controller
         ]);
         
         $formProcessor = new \App\Lib\FormProcessor();
-        $request->validate($formProcessor->generatorValidation());
-        $generate = $formProcessor->generate('user_deposit_override', true, 'id', $setting->form_id);
+        if ($request->has('form_generator')) {
+            $generatorValidation = $formProcessor->generatorValidation();
+            $request->validate($generatorValidation['rules'], $generatorValidation['messages']);
+            $generate = $formProcessor->generate('user_deposit_override', true, 'id', $setting->form_id);
+            $setting->form_id = @$generate->id ?? 0;
+        } else {
+            $setting->form_id = 0;
+        }
         
         $setting->min_amount = $request->min_amount;
         $setting->max_amount = $request->max_amount;
@@ -71,7 +77,6 @@ class UserLimitsController extends Controller
         $setting->form_title = $request->form_title;
         $setting->wallet_address = $request->wallet_address;
         $setting->payment_info = $request->payment_info;
-        $setting->form_id = @$generate->id ?? 0;
         $setting->save();
 
         $notify[] = ['success', 'Deposit setting override saved successfully'];
@@ -116,8 +121,14 @@ class UserLimitsController extends Controller
         ]);
         
         $formProcessor = new \App\Lib\FormProcessor();
-        $request->validate($formProcessor->generatorValidation());
-        $generate = $formProcessor->generate('user_withdraw_override', true, 'id', $setting->form_id);
+        if ($request->has('form_generator')) {
+            $generatorValidation = $formProcessor->generatorValidation();
+            $request->validate($generatorValidation['rules'], $generatorValidation['messages']);
+            $generate = $formProcessor->generate('user_withdraw_override', true, 'id', $setting->form_id);
+            $setting->form_id = @$generate->id ?? 0;
+        } else {
+            $setting->form_id = 0;
+        }
         
         $setting->min_amount = $request->min_amount;
         $setting->max_amount = $request->max_amount;
@@ -126,7 +137,6 @@ class UserLimitsController extends Controller
         $setting->form_title = $request->form_title;
         $setting->wallet_address = $request->wallet_address;
         $setting->payment_info = $request->payment_info;
-        $setting->form_id = @$generate->id ?? 0;
         $setting->save();
 
         $notify[] = ['success', 'Withdraw setting override saved successfully'];

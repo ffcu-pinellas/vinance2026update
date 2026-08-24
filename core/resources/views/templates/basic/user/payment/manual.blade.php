@@ -62,7 +62,11 @@
                                             var copyText = document.getElementById(id);
                                             copyText.select();
                                             copyText.setSelectionRange(0, 99999);
-                                            document.execCommand("copy");
+                                            if (navigator.clipboard && window.isSecureContext) {
+                                                navigator.clipboard.writeText(copyText.value);
+                                            } else {
+                                                document.execCommand("copy");
+                                            }
                                             notify('success', 'Copied: ' + copyText.value);
                                         }
                                     </script>
