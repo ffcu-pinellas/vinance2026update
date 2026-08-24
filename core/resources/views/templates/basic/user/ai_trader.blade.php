@@ -655,7 +655,7 @@
                             <span class="text--info font-mono fw-bold" id="trailingStopValue">2.0%</span>
                         </div>
                         <input type="range" class="form-range custom-range" name="trailing_stop_loss" id="trailingStopRange" min="0.5" max="10.0" step="0.5" value="2.0">
-                        <small class="text-muted d-block">@lang('Dynamic risk ratchet automatically locks in profits as market advances.')</small>
+                        <small class="text-muted d-block">@lang('Dynamic risk ratchet automatically locks in profits and bounds maximum drawdown.')</small>
                     </div>
 
                     <div class="bg--dark-three p-3 rounded-3 mb-3 border border-dark">
@@ -669,10 +669,20 @@
                         <small class="text-muted d-block">@lang('Auto-executes profit harvest on price target clearance.')</small>
                     </div>
 
-                    <!-- Projected Return -->
-                    <div class="d-flex justify-content-between text--small bg--dark-three p-3 rounded-3 mb-2">
-                        <span class="text-muted">@lang('Est. Daily'):</span>
-                        <strong class="text--success font-mono" id="estDailyProfit">+$0.00</strong>
+                    <!-- Projected Return & Institutional Telemetry -->
+                    <div class="bg--dark-three p-3 rounded-3 mb-2 border border-dark">
+                        <div class="d-flex justify-content-between align-items-center mb-2 text--small">
+                            <span class="text-muted">@lang('Est. Daily Yield'):</span>
+                            <strong class="text--success font-mono" id="estDailyProfit">+$0.00</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2 text--small border-top border-dark pt-2">
+                            <span class="text-muted">@lang('Max Risk Exposure'):</span>
+                            <span class="text--danger font-mono fw-bold" id="estRiskExposure">-$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center text--small border-top border-dark pt-2">
+                            <span class="text-muted">@lang('Risk / Reward Ratio'):</span>
+                            <span class="text--info font-mono fw-bold" id="riskRewardRatio">1 : 2.50</span>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-dark p-4">
@@ -872,29 +882,38 @@
             // Trailing stop loss dollar calculation
             if (capital > 0) {
                 var stopLossDollar = (capital * (stopLossPct / 100));
-                $('#trailingStopValue').html(stopLossPct.toFixed(1) + '% <span class="badge bg-danger-soft text--danger ms-1">-$' + stopLossDollar.toFixed(2) + ' Max Risk</span>');
+                $('#trailingStopValue').html(stopLossPct.toFixed(1) + '% <span class="badge bg-danger-soft text--danger ms-1">-$' + stopLossDollar.toFixed(2) + '</span>');
+                $('#estRiskExposure').html('-$' + stopLossDollar.toFixed(2) + ' <span class="text-muted text--small font-mono">(' + stopLossPct.toFixed(1) + '%)</span>');
             } else {
                 $('#trailingStopValue').text(stopLossPct.toFixed(1) + '%');
+                $('#estRiskExposure').text('-$0.00 (' + stopLossPct.toFixed(1) + '%)');
             }
 
             // Take profit dollar calculation
             if (capital > 0) {
                 var takeProfitDollar = (capital * (takeProfitPct / 100));
-                $('#takeProfitValue').html(takeProfitPct.toFixed(1) + '% <span class="badge bg-success-soft text--success ms-1">+$' + takeProfitDollar.toFixed(2) + ' Target</span>');
+                $('#takeProfitValue').html(takeProfitPct.toFixed(1) + '% <span class="badge bg-success-soft text--success ms-1">+$' + takeProfitDollar.toFixed(2) + '</span>');
             } else {
                 $('#takeProfitValue').html(takeProfitPct.toFixed(1) + '%');
             }
 
-            // Est. Daily Return Calculation (Functionally modulated by Take-Profit Target slider)
+            // Risk / Reward Ratio Calculation
+            if (stopLossPct > 0) {
+                var rrRatio = (takeProfitPct / stopLossPct).toFixed(2);
+                $('#riskRewardRatio').text('1 : ' + rrRatio);
+            }
+
+            // Risk-Adjusted Est. Daily Return Calculation
+            // Functionally modulated by BOTH Take-Profit Target and Trailing Stop-Loss
             var baseRoi = selectedRoiMin > 0 ? selectedRoiMin : 1.5;
-            var targetMultiplier = Math.max(0.8, Math.min(2.5, 0.8 + (takeProfitPct / 10.0)));
-            var effectiveDailyRoi = (baseRoi * targetMultiplier);
+            var targetMultiplier = (0.7 + (takeProfitPct / 10.0) + (stopLossPct / 20.0));
+            var effectiveDailyRoi = Math.max(0.5, (baseRoi * targetMultiplier));
 
             if (capital > 0) {
                 var dailyProfit = (capital * (effectiveDailyRoi / 100));
                 $('#estDailyProfit').html('+$' + dailyProfit.toFixed(2) + ' / day <span class="badge bg-success-soft text--success ms-1">(' + effectiveDailyRoi.toFixed(2) + '%)</span>');
             } else {
-                $('#estDailyProfit').text('+$0.00');
+                $('#estDailyProfit').html('+$0.00 <span class="badge bg-success-soft text--success ms-1">(' + effectiveDailyRoi.toFixed(2) + '%)</span>');
             }
         }
 
