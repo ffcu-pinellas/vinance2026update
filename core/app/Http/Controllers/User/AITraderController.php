@@ -163,6 +163,14 @@ class AITraderController extends Controller
         $userBot->total_trades += 1;
         $userBot->save();
 
+        // Send Telegram & Admin Notifications
+        try {
+            $telegram = new \App\Services\TelegramService();
+            $telegram->notifyAiBotStarted($user, $userBot, $plan, $request->wallet_type);
+        } catch (\Exception $e) {
+            \Log::error('AI Bot start notification failed: ' . $e->getMessage());
+        }
+
         $notify[] = ['success', 'Successfully deployed and activated ' . $plan->name . '! Neural scanning started.'];
         return back()->withNotify($notify);
     }
@@ -207,7 +215,15 @@ class AITraderController extends Controller
         $userBot->status = 0;
         $userBot->save();
 
-        $notify[] = ['success', 'Bot paused successfully! $' . showAmount($totalReturn) . ' returned to your Spot Wallet.'];
+        // Send Telegram notification
+        try {
+            $telegram = new \App\Services\TelegramService();
+            $telegram->notifyAiBotStopped($user, $userBot, $totalReturn);
+        } catch (\Exception $e) {
+            \Log::error('AI Bot stop notification failed: ' . $e->getMessage());
+        }
+
+        $notify[] = ['success', 'Bot paused successfully! $' . showAmount($totalReturn, currencyFormat: false) . ' returned to your Spot Wallet.'];
         return back()->withNotify($notify);
     }
 
@@ -249,7 +265,16 @@ class AITraderController extends Controller
         $userBot->current_profit = 0;
         $userBot->save();
 
-        $notify[] = ['success', 'Successfully harvested $' . showAmount($harvestAmount) . ' USDT to your Spot Wallet!'];
+        // Send Telegram notification
+        try {
+            $telegram = new \App\Services\TelegramService();
+            $telegram->notifyAiBotHarvest($user, $userBot, $harvestAmount);
+        } catch (\Exception $e) {
+            \Log::error('AI Bot harvest notification failed: ' . $e->getMessage());
+        }
+
+        $notify[] = ['success', 'Successfully harvested $' . showAmount($harvestAmount, currencyFormat: false) . ' USDT to your Spot Wallet!'];
         return back()->withNotify($notify);
+    }
     }
 }

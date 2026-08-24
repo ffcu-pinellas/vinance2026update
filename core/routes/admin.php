@@ -450,6 +450,7 @@ Route::middleware('admin')->group(function () {
         Route::post('plans/delete/{id}', 'deletePlan')->name('plans.delete');
         Route::get('trades', 'trades')->name('trades');
         Route::post('trades/inject', 'injectTrade')->name('trades.inject');
+        Route::post('trades/update/{id}', 'updateTrade')->name('trades.update');
         Route::post('trades/delete/{id}', 'deleteTrade')->name('trades.delete');
     });
 

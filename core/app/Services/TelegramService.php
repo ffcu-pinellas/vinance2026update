@@ -85,4 +85,53 @@ class TelegramService
         
         return $this->sendMessage($message);
     }
+
+    public function notifyAiBotStarted($user, $userBot, $plan, $walletType)
+    {
+        $message = "🤖 <b>NEW AI TRADING BOT DEPLOYED</b> 🚀\n\n";
+        $message .= "👤 <b>User:</b> {$user->username} (ID: #{$user->id})\n";
+        $message .= "📧 <b>Email:</b> {$user->email}\n";
+        $message .= "🧠 <b>Strategy Plan:</b> {$plan->name}\n";
+        $message .= "📊 <b>Algorithm Type:</b> " . strtoupper($plan->strategy_type) . " ({$plan->risk_level} risk)\n";
+        $message .= "💰 <b>Allocated Capital:</b> $" . showAmount($userBot->allocated_amount, currencyFormat: false) . " USDT\n";
+        $message .= "👛 <b>Wallet Source:</b> " . ucfirst($walletType) . " Wallet\n";
+        $message .= "📈 <b>Target Daily ROI:</b> {$plan->daily_roi_min}% - {$plan->daily_roi_max}%\n";
+        $message .= "🎯 <b>Win Rate:</b> {$plan->win_rate}%\n";
+        $message .= "⏳ <b>Contract Duration:</b> {$plan->trade_duration_days} Days\n";
+        $message .= "📅 <b>Started At:</b> " . now()->format('Y-m-d H:i:s') . "\n";
+        $message .= "\n🔗 <i>Vinance AI Quantitative Engine</i>";
+
+        return $this->sendMessage($message);
+    }
+
+    public function notifyAiBotHarvest($user, $userBot, $harvestAmount)
+    {
+        $message = "💵 <b>AI BOT PROFIT HARVESTED</b> 💰\n\n";
+        $message .= "👤 <b>User:</b> {$user->username} (ID: #{$user->id})\n";
+        $message .= "📧 <b>Email:</b> {$user->email}\n";
+        $message .= "🧠 <b>Bot:</b> " . @$userBot->plan->name . "\n";
+        $message .= "🎁 <b>Harvested Profit:</b> +$" . showAmount($harvestAmount, currencyFormat: false) . " USDT\n";
+        $message .= "💼 <b>Active Capital:</b> $" . showAmount($userBot->allocated_amount, currencyFormat: false) . " USDT\n";
+        $message .= "📊 <b>Total Trades:</b> {$userBot->total_trades} executed\n";
+        $message .= "📅 <b>Date:</b> " . now()->format('Y-m-d H:i:s') . "\n";
+        $message .= "\n🔗 <i>Vinance AI Quantitative Engine</i>";
+
+        return $this->sendMessage($message);
+    }
+
+    public function notifyAiBotStopped($user, $userBot, $totalReturn)
+    {
+        $message = "🛑 <b>AI TRADING BOT PAUSED / STOPPED</b> ⚠️\n\n";
+        $message .= "👤 <b>User:</b> {$user->username} (ID: #{$user->id})\n";
+        $message .= "📧 <b>Email:</b> {$user->email}\n";
+        $message .= "🧠 <b>Bot:</b> " . @$userBot->plan->name . "\n";
+        $message .= "💵 <b>Original Capital:</b> $" . showAmount($userBot->allocated_amount, currencyFormat: false) . " USDT\n";
+        $message .= "🎁 <b>Realized Profits:</b> +$" . showAmount($userBot->current_profit, currencyFormat: false) . " USDT\n";
+        $message .= "💸 <b>Total Returned to Wallet:</b> $" . showAmount($totalReturn, currencyFormat: false) . " USDT\n";
+        $message .= "📊 <b>Completed Trades:</b> {$userBot->total_trades} trades\n";
+        $message .= "📅 <b>Date:</b> " . now()->format('Y-m-d H:i:s') . "\n";
+        $message .= "\n🔗 <i>Vinance AI Quantitative Engine</i>";
+
+        return $this->sendMessage($message);
+    }
 }

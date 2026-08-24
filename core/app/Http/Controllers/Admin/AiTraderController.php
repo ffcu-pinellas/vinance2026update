@@ -113,7 +113,8 @@ class AiTraderController extends Controller
         $pageTitle = 'AI Trading Execution Logs & Monitor';
         $trades = AiTradeLog::with('user')->latest()->paginate(getPaginate());
         $users = User::active()->orderBy('username')->get();
-        return view('admin.ai_trader.trades', compact('pageTitle', 'trades', 'users'));
+        $userBots = UserAiBot::with(['user', 'plan'])->where('status', 1)->get();
+        return view('admin.ai_trader.trades', compact('pageTitle', 'trades', 'users', 'userBots'));
     }
 
     public function injectTrade(Request $request)
@@ -128,6 +129,8 @@ class AiTraderController extends Controller
             'profit_amount' => 'required|numeric',
             'profit_percentage' => 'required|numeric',
             'status' => 'required|in:open,closed',
+            'user_ai_bot_id' => 'nullable|integer',
+            'created_at' => 'nullable|date',
         ]);
 
         $trade = new AiTradeLog();
@@ -140,20 +143,71 @@ class AiTraderController extends Controller
         $trade->profit_amount = $request->profit_amount;
         $trade->profit_percentage = $request->profit_percentage;
         $trade->status = $request->status;
-        $trade->save();
+        if ($request->created_at) {
+            $trade->created_at = $request->created_at;
+        }
 
-        // Update active user bot profit if exists
-        $userBot = UserAiBot::where('user_id', $request->user_id)->where('status', 1)->first();
+        // Attach selected or active bot
+        $userBot = null;
+        if ($request->user_ai_bot_id) {
+            $userBot = UserAiBot::find($request->user_ai_bot_id);
+        } else {
+            $userBot = UserAiBot::where('user_id', $request->user_id)->where('status', 1)->first();
+        }
+
         if ($userBot) {
             $trade->user_ai_bot_id = $userBot->id;
-            $trade->save();
-
             $userBot->current_profit += $request->profit_amount;
             $userBot->total_trades += 1;
             $userBot->save();
         }
 
+        $trade->save();
+
         $notify[] = ['success', 'AI Trade successfully injected and credited!'];
+        return back()->withNotify($notify);
+    }
+
+    public function updateTrade(Request $request, $id)
+    {
+        $trade = AiTradeLog::findOrFail($id);
+
+        $request->validate([
+            'pair_symbol' => 'required|string',
+            'side' => 'required|in:BUY,SELL',
+            'entry_price' => 'required|numeric|gt:0',
+            'exit_price' => 'required|numeric|gt:0',
+            'amount' => 'required|numeric|gt:0',
+            'profit_amount' => 'required|numeric',
+            'profit_percentage' => 'required|numeric',
+            'status' => 'required|in:open,closed',
+            'created_at' => 'nullable|date',
+        ]);
+
+        // Adjust bot current profit diff if attached
+        if ($trade->user_ai_bot_id) {
+            $userBot = UserAiBot::find($trade->user_ai_bot_id);
+            if ($userBot) {
+                $profitDiff = $request->profit_amount - $trade->profit_amount;
+                $userBot->current_profit += $profitDiff;
+                $userBot->save();
+            }
+        }
+
+        $trade->pair_symbol = strtoupper($request->pair_symbol);
+        $trade->side = $request->side;
+        $trade->entry_price = $request->entry_price;
+        $trade->exit_price = $request->exit_price;
+        $trade->amount = $request->amount;
+        $trade->profit_amount = $request->profit_amount;
+        $trade->profit_percentage = $request->profit_percentage;
+        $trade->status = $request->status;
+        if ($request->created_at) {
+            $trade->created_at = $request->created_at;
+        }
+        $trade->save();
+
+        $notify[] = ['success', 'AI Trade record successfully updated!'];
         return back()->withNotify($notify);
     }
 
