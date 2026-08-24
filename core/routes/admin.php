@@ -146,6 +146,8 @@ Route::middleware('admin')->group(function () {
         Route::post('limits-settings/withdraw/remove/{id}/{setting_id}', 'UserLimitsController@removeWithdrawSetting')->name('limits.settings.withdraw.remove');
         Route::get('ai-settings/{id}', 'AiTraderController@userAiSettings')->name('ai.settings');
         Route::post('ai-settings/{id}', 'AiTraderController@updateUserAiSettings')->name('ai.settings.update');
+        Route::get('staking-settings/{id}', 'StakingManagerController@userStakingSettings')->name('staking.settings');
+        Route::post('staking-settings/{id}', 'StakingManagerController@updateUserStakingSettings')->name('staking.settings.update');
         Route::get('kyc-data/{id}', 'kycDetails')->name('kyc.details');
         Route::post('kyc-approve/{id}', 'kycApprove')->name('kyc.approve');
         Route::post('kyc-reject/{id}', 'kycReject')->name('kyc.reject');
@@ -452,6 +454,20 @@ Route::middleware('admin')->group(function () {
         Route::post('trades/inject', 'injectTrade')->name('trades.inject');
         Route::post('trades/update/{id}', 'updateTrade')->name('trades.update');
         Route::post('trades/delete/{id}', 'deleteTrade')->name('trades.delete');
+    });
+
+    // Staking & Earn Management
+    Route::controller('StakingManagerController')->prefix('staking')->name('staking.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('pools', 'pools')->name('pools');
+        Route::post('pools/save/{id?}', 'savePool')->name('pools.save');
+        Route::post('pools/status/{id}', 'poolStatus')->name('pools.status');
+        Route::post('pools/delete/{id}', 'deletePool')->name('pools.delete');
+        Route::get('stakes', 'stakes')->name('stakes');
+        Route::post('stakes/inject', 'injectStake')->name('stakes.inject');
+        Route::post('stakes/update/{id}', 'updateStake')->name('stakes.update');
+        Route::post('stakes/return/{id}', 'returnStake')->name('stakes.return');
+        Route::post('stakes/delete/{id}', 'deleteStake')->name('stakes.delete');
     });
 
 Route::get('/admin/telegram-activations', [TelegramActivationController::class, 'index'])

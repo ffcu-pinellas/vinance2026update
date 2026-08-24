@@ -134,4 +134,49 @@ class TelegramService
 
         return $this->sendMessage($message);
     }
+
+    public function notifyStakeCreated($user, $stake, $pool, $walletType = 'spot')
+    {
+        $message = "💎 <b>NEW STAKING VAULT POSITION OPENED</b> 🚀\n\n";
+        $message .= "👤 <b>User:</b> {$user->username} (ID: #{$user->id})\n";
+        $message .= "📧 <b>Email:</b> {$user->email}\n";
+        $message .= "🏦 <b>Vault Plan:</b> {$pool->name}\n";
+        $message .= "💰 <b>Principal Amount:</b> $" . showAmount($stake->principal_amount, currencyFormat: false) . " USDT\n";
+        $message .= "👛 <b>Wallet Source:</b> " . strtoupper($walletType) . " Wallet\n";
+        $message .= "📈 <b>APY Rate:</b> {$pool->apy_rate}% APY\n";
+        $message .= "🔒 <b>Duration:</b> " . ($pool->lock_period_days > 0 ? $pool->lock_period_days . ' Days' : 'Flexible') . "\n";
+        $message .= "📅 <b>Date:</b> " . now()->format('Y-m-d H:i:s') . "\n";
+        $message .= "\n🔗 <i>Vinance Institutional Earn & Staking Engine</i>";
+
+        return $this->sendMessage($message);
+    }
+
+    public function notifyStakeHarvest($user, $stake, $rewardAmount)
+    {
+        $message = "🌾 <b>STAKING REWARDS HARVESTED</b> 💵\n\n";
+        $message .= "👤 <b>User:</b> {$user->username} (ID: #{$user->id})\n";
+        $message .= "📧 <b>Email:</b> {$user->email}\n";
+        $message .= "🏦 <b>Vault:</b> " . @$stake->pool->name . "\n";
+        $message .= "💰 <b>Harvested Yield:</b> +$" . showAmount($rewardAmount, currencyFormat: false) . " USDT\n";
+        $message .= "💵 <b>Active Principal:</b> $" . showAmount($stake->principal_amount, currencyFormat: false) . " USDT\n";
+        $message .= "📅 <b>Date:</b> " . now()->format('Y-m-d H:i:s') . "\n";
+        $message .= "\n🔗 <i>Vinance Institutional Earn & Staking Engine</i>";
+
+        return $this->sendMessage($message);
+    }
+
+    public function notifyStakeUnstaked($user, $stake, $totalRefund)
+    {
+        $message = "🔓 <b>STAKING POSITION UNSTAKED / REDEEMED</b> 🏦\n\n";
+        $message .= "👤 <b>User:</b> {$user->username} (ID: #{$user->id})\n";
+        $message .= "📧 <b>Email:</b> {$user->email}\n";
+        $message .= "🏦 <b>Vault:</b> " . @$stake->pool->name . "\n";
+        $message .= "💵 <b>Principal Amount:</b> $" . showAmount($stake->principal_amount, currencyFormat: false) . " USDT\n";
+        $message .= "🎁 <b>Total Rewards Earned:</b> +$" . showAmount($stake->accumulated_rewards, currencyFormat: false) . " USDT\n";
+        $message .= "💸 <b>Total Returned to Wallet:</b> $" . showAmount($totalRefund, currencyFormat: false) . " USDT\n";
+        $message .= "📅 <b>Date:</b> " . now()->format('Y-m-d H:i:s') . "\n";
+        $message .= "\n🔗 <i>Vinance Institutional Earn & Staking Engine</i>";
+
+        return $this->sendMessage($message);
+    }
 }

@@ -90,6 +90,31 @@
                 }
             ]
         },
+        "manage_staking": {
+            "title": "Staking & Earn",
+            "icon": "las la-coins",
+            "menu_active": "admin.staking*",
+            "submenu": [
+                {
+                    "keyword": ["Staking", "Overview", "Dashboard", "Vaults", "Earn"],
+                    "title": "Overview",
+                    "route_name": "admin.staking.index",
+                    "menu_active": "admin.staking.index"
+                },
+                {
+                    "keyword": ["Staking Pools", "Yield Plans", "Vault Plans"],
+                    "title": "Staking Pools",
+                    "route_name": "admin.staking.pools",
+                    "menu_active": "admin.staking.pools"
+                },
+                {
+                    "keyword": ["User Stakes", "Active Stakes", "Inject Stake"],
+                    "title": "Stakes & Injector",
+                    "route_name": "admin.staking.stakes",
+                    "menu_active": "admin.staking.stakes"
+                }
+            ]
+        },
         "manage_p2p": {
             "title": "Manage P2P",
             "icon": "las la-users",

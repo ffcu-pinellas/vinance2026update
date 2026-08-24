@@ -1,66 +1,152 @@
 @extends('admin.layouts.app')
+
 @section('panel')
-<div class="row">
+<div class="row gy-4">
+    <!-- Total Staked -->
+    <div class="col-xxl-3 col-sm-6">
+        <div class="card bg--primary has-link overflow-hidden box--shadow2">
+            <a href="{{ route('admin.staking.stakes') }}" class="item-link"></a>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <i class="las la-wallet f-size--56 text-white"></i>
+                    </div>
+                    <div class="col-8 text-end">
+                        <span class="text-white text--small">@lang('Total Platform Staked')</span>
+                        <h2 class="text-white">${{ number_format($totalStaked, 2) }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Yield Distributed -->
+    <div class="col-xxl-3 col-sm-6">
+        <div class="card bg--success has-link overflow-hidden box--shadow2">
+            <a href="{{ route('admin.staking.stakes') }}" class="item-link"></a>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <i class="las la-hand-holding-usd f-size--56 text-white"></i>
+                    </div>
+                    <div class="col-8 text-end">
+                        <span class="text-white text--small">@lang('Total Yield Distributed')</span>
+                        <h2 class="text-white">+${{ number_format($totalRewards, 2) }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Stakes -->
+    <div class="col-xxl-3 col-sm-6">
+        <div class="card bg--warning has-link overflow-hidden box--shadow2">
+            <a href="{{ route('admin.staking.stakes') }}?status=active" class="item-link"></a>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <i class="las la-lock f-size--56 text-white"></i>
+                    </div>
+                    <div class="col-8 text-end">
+                        <span class="text-white text--small">@lang('Active Stake Positions')</span>
+                        <h2 class="text-white">{{ $activeStakesCount }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staking Pools -->
+    <div class="col-xxl-3 col-sm-6">
+        <div class="card bg--info has-link overflow-hidden box--shadow2">
+            <a href="{{ route('admin.staking.pools') }}" class="item-link"></a>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <i class="las la-cubes f-size--56 text-white"></i>
+                    </div>
+                    <div class="col-8 text-end">
+                        <span class="text-white text--small">@lang('Configured Pools')</span>
+                        <h2 class="text-white">{{ $totalPoolsCount }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Stakes Table -->
     <div class="col-lg-12">
         <div class="card b-radius--10">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">@lang('Recent Staking Positions')</h5>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('admin.staking.pools') }}" class="btn btn-sm btn--outline-primary">
+                        <i class="las la-cubes"></i> @lang('Manage Pools')
+                    </a>
+                    <a href="{{ route('admin.staking.stakes') }}" class="btn btn-sm btn--primary">
+                        <i class="las la-list"></i> @lang('View All Stakes & Inject')
+                    </a>
+                </div>
+            </div>
             <div class="card-body p-0">
-                <div class="table-responsive--md">
+                <div class="table-responsive--md table-responsive">
                     <table class="table table--light style--two">
                         <thead>
                             <tr>
-                                <th>@lang('Token')</th>
-                                <th>@lang('Min Amount')</th>
-                                <th>@lang('Max Amount')</th>
-                                <th>@lang('Penalty %')</th>
-                                <th>@lang('Compounds')</th>
+                                <th>@lang('User')</th>
+                                <th>@lang('Vault Pool')</th>
+                                <th>@lang('Principal')</th>
+                                <th>@lang('APY Rate')</th>
+                                <th>@lang('Accumulated Yield')</th>
+                                <th>@lang('Term')</th>
                                 <th>@lang('Status')</th>
                                 <th>@lang('Action')</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($tokens as $token)
-                            <tr>
-                                <td>
-                                    <span class="fw-bold">{{ $token->token_symbol }}</span>
-                                    <br>
-                                    <small>{{ $token->token_name }}</small>
-                                </td>
-                                <td>{{ showAmount($token->min_amount) }} {{ $general->cur_text }}</td>
-                                <td>{{ showAmount($token->max_amount) }} {{ $general->cur_text }}</td>
-                                <td>{{ $token->early_unstake_penalty_percentage }}%</td>
-                                <td>
-                                    @if($token->allows_compound)
-                                        <span class="badge badge--success">@lang('Enabled')</span>
-                                    @else
-                                        <span class="badge badge--danger">@lang('Disabled')</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($token->is_active)
-                                        <span class="badge badge--success">@lang('Active')</span>
-                                    @else
-                                        <span class="badge badge--danger">@lang('Inactive')</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline--primary editToken" 
-                                            data-token="{{ $token }}"
-                                            data-toggle="modal" 
-                                            data-target="#editTokenModal">
-                                        <i class="la la-pencil"></i> @lang('Edit')
-                                    </button>
-                                    <button class="btn btn-sm btn-outline--success addPool"
-                                            data-token="{{ $token->id }}"
-                                            data-toggle="modal"
-                                            data-target="#addPoolModal">
-                                        <i class="la la-plus"></i> @lang('Add Pool')
-                                    </button>
-                                </td>
-                            </tr>
+                            @forelse($recentStakes as $stake)
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold">{{ @$stake->user->fullname }}</span>
+                                        <br>
+                                        <span class="small">
+                                            <a href="{{ route('admin.users.detail', @$stake->user_id) }}"><span>@</span>{{ @$stake->user->username }}</a>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">{{ @$stake->pool->name ?? 'Staking Vault' }}</span>
+                                        <br>
+                                        <span class="badge badge--dark">{{ @$stake->pool->token_symbol ?? 'USDT' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">${{ number_format($stake->principal_amount, 2) }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge--info">{{ @$stake->pool->apy_rate ?? 12 }}% APY</span>
+                                    </td>
+                                    <td>
+                                        <span class="text--success fw-bold">+${{ number_format($stake->accumulated_rewards, 2) }}</span>
+                                    </td>
+                                    <td>
+                                        <span>{{ @$stake->pool->lock_period_days > 0 ? @$stake->pool->lock_period_days . ' Days' : 'Flexible' }}</span>
+                                    </td>
+                                    <td>
+                                        @if($stake->status == 'active')
+                                            <span class="badge badge--success">@lang('Active')</span>
+                                        @else
+                                            <span class="badge badge--dark">@lang('Completed')</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('admin.staking.stakes') }}?user_id={{ $stake->user_id }}" class="btn btn-sm btn--outline-primary">
+                                            <i class="la la-eye"></i> @lang('Details')
+                                        </a>
+                                    </td>
+                                </tr>
                             @empty
-                            <tr>
-                                <td class="text-muted text-center" colspan="100%">{{ __($emptyMessage) }}</td>
-                            </tr>
+                                <tr>
+                                    <td class="text-muted text-center" colspan="100%">@lang('No staking positions recorded yet')</td>
+                                </tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -69,151 +155,4 @@
         </div>
     </div>
 </div>
-
-{{-- Add New Token Modal --}}
-<div class="modal fade" id="addTokenModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">@lang('Add New Staking Token')</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
-            </div>
-            <form action="{{ route('admin.staking.token.store') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>@lang('Token Symbol')</label>
-                        <input type="text" class="form-control" name="token_symbol" required>
-                    </div>
-                    <div class="form-group">
-                        <label>@lang('Token Name')</label>
-                        <input type="text" class="form-control" name="token_name" required>
-                    </div>
-                    <div class="form-group">
-                        <label>@lang('Minimum Amount')</label>
-                        <div class="input-group">
-                            <input type="number" step="any" class="form-control" name="min_amount" required>
-                            <span class="input-group-text">{{ $general->cur_text }}</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>@lang('Maximum Amount')</label>
-                        <div class="input-group">
-                            <input type="number" step="any" class="form-control" name="max_amount" required>
-                            <span class="input-group-text">{{ $general->cur_text }}</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>@lang('Early Unstake Penalty')</label>
-                        <div class="input-group">
-                            <input type="number" step="any" class="form-control" name="early_unstake_penalty_percentage" required>
-                            <span class="input-group-text">%</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>@lang('Allow Compound')</label>
-                        <input type="checkbox" data-width="100%" data-size="large" data-onstyle="-success" data-offstyle="-danger" data-toggle="toggle" data-on="@lang('Enabled')" data-off="@lang('Disabled')" name="allows_compound">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn--dark" data-dismiss="modal">@lang('Close')</button>
-                    <button type="submit" class="btn btn--primary">@lang('Save')</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-{{-- Add New Pool Modal --}}
-<div class="modal fade" id="addPoolModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">@lang('Add New Staking Pool')</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
-            </div>
-            <form action="{{ route('admin.staking.pool.store') }}" method="POST">
-                @csrf
-                <input type="hidden" name="configuration_id">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>@lang('Pool Type')</label>
-                        <select class="form-control" name="type" required>
-                            <option value="flexible">@lang('Flexible')</option>
-                            <option value="locked">@lang('Locked')</option>
-                        </select>
-                    </div>
-                    <div class="form-group locked-period d-none">
-                        <label>@lang('Lock Period (Days)')</label>
-                        <input type="number" class="form-control" name="lock_period_days">
-                    </div>
-                    <div class="form-group">
-                        <label>@lang('APY Rate')</label>
-                        <div class="input-group">
-                            <input type="number" step="any" class="form-control" name="apy_rate" required>
-                            <span class="input-group-text">%</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn--dark" data-dismiss="modal">@lang('Close')</button>
-                    <button type="submit" class="btn btn--primary">@lang('Save')</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection
-
-@push('breadcrumb-plugins')
-<button class="btn btn-sm btn--primary box--shadow1 text--small addToken" data-toggle="modal" data-target="#addTokenModal">
-    <i class="fa fa-fw fa-plus"></i>@lang('Add New Token')
-</button>
-@endpush
-
-@push('script')
-<script>
-    (function($){
-        "use strict"
-        
-        $('.addToken').on('click', function() {
-            var modal = $('#addTokenModal');
-            modal.modal('show');
-        });
-
-        $('.editToken').on('click', function() {
-            var modal = $('#editTokenModal');
-            var token = $(this).data('token');
-            
-            modal.find('input[name=token_symbol]').val(token.token_symbol);
-            modal.find('input[name=token_name]').val(token.token_name);
-            modal.find('input[name=min_amount]').val(token.min_amount);
-            modal.find('input[name=max_amount]').val(token.max_amount);
-            modal.find('input[name=early_unstake_penalty_percentage]').val(token.early_unstake_penalty_percentage);
-            modal.find('input[name=allows_compound]').prop('checked', token.allows_compound);
-            
-            modal.modal('show');
-        });
-
-        $('.addPool').on('click', function() {
-            var modal = $('#addPoolModal');
-            var tokenId = $(this).data('token');
-            
-            modal.find('input[name=configuration_id]').val(tokenId);
-            modal.modal('show');
-        });
-
-        $('select[name=type]').on('change', function() {
-            if($(this).val() == 'locked') {
-                $('.locked-period').removeClass('d-none');
-            } else {
-                $('.locked-period').addClass('d-none');
-            }
-        });
-    })(jQuery);
-</script>
-@endpush

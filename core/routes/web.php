@@ -262,6 +262,151 @@ Route::get('/clear', function () {
                 $table->timestamps();
             });
         }
+
+        // 5. Staking Tables Schema & Default Pools
+        if (!\Illuminate\Support\Facades\Schema::hasTable('staking_pools')) {
+            \Illuminate\Support\Facades\Schema::create('staking_pools', function ($table) {
+                $table->id();
+                $table->unsignedBigInteger('configuration_id')->nullable();
+                $table->string('name');
+                $table->string('token_symbol')->default('USDT');
+                $table->string('type')->default('locked'); // flexible, locked
+                $table->integer('lock_period_days')->default(30);
+                $table->decimal('apy_rate', 8, 2)->default(12.00);
+                $table->decimal('min_amount', 28, 8)->default(100);
+                $table->decimal('max_amount', 28, 8)->default(100000);
+                $table->decimal('early_unstake_penalty_percentage', 8, 2)->default(0);
+                $table->string('badge_tag')->nullable();
+                $table->decimal('total_staked', 28, 8)->default(0);
+                $table->integer('total_stakers')->default(0);
+                $table->integer('rank')->default(0);
+                $table->tinyInteger('is_active')->default(1);
+                $table->timestamps();
+            });
+        } else {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('staking_pools', 'name')) {
+                \Illuminate\Support\Facades\Schema::table('staking_pools', function ($table) {
+                    $table->string('name')->nullable();
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('staking_pools', 'token_symbol')) {
+                \Illuminate\Support\Facades\Schema::table('staking_pools', function ($table) {
+                    $table->string('token_symbol')->default('USDT');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('staking_pools', 'min_amount')) {
+                \Illuminate\Support\Facades\Schema::table('staking_pools', function ($table) {
+                    $table->decimal('min_amount', 28, 8)->default(100);
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('staking_pools', 'max_amount')) {
+                \Illuminate\Support\Facades\Schema::table('staking_pools', function ($table) {
+                    $table->decimal('max_amount', 28, 8)->default(100000);
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('staking_pools', 'early_unstake_penalty_percentage')) {
+                \Illuminate\Support\Facades\Schema::table('staking_pools', function ($table) {
+                    $table->decimal('early_unstake_penalty_percentage', 8, 2)->default(0);
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('staking_pools', 'badge_tag')) {
+                \Illuminate\Support\Facades\Schema::table('staking_pools', function ($table) {
+                    $table->string('badge_tag')->nullable();
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('staking_pools', 'rank')) {
+                \Illuminate\Support\Facades\Schema::table('staking_pools', function ($table) {
+                    $table->integer('rank')->default(0);
+                });
+            }
+        }
+
+        if (!\Illuminate\Support\Facades\Schema::hasTable('stakes')) {
+            \Illuminate\Support\Facades\Schema::create('stakes', function ($table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->unsignedBigInteger('pool_id');
+                $table->decimal('principal_amount', 28, 8)->default(0);
+                $table->decimal('current_amount', 28, 8)->default(0);
+                $table->decimal('accumulated_rewards', 28, 8)->default(0);
+                $table->timestamp('start_time')->nullable();
+                $table->timestamp('end_time')->nullable();
+                $table->timestamp('last_compound_time')->nullable();
+                $table->boolean('is_compound')->default(false);
+                $table->string('status')->default('active'); // active, completed, unstaked
+                $table->timestamps();
+            });
+        }
+
+        if (!\Illuminate\Support\Facades\Schema::hasTable('user_staking_settings')) {
+            \Illuminate\Support\Facades\Schema::create('user_staking_settings', function ($table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id')->unique();
+                $table->decimal('custom_apy_boost', 8, 2)->nullable();
+                $table->boolean('force_lock_exemption')->default(false);
+                $table->text('custom_notes')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        // Seed Staking Pools if empty
+        if (\App\Models\StakingPool::count() == 0) {
+            \App\Models\StakingPool::create([
+                'name' => 'USDT Flexible High-Yield Earn',
+                'token_symbol' => 'USDT',
+                'type' => 'flexible',
+                'lock_period_days' => 0,
+                'apy_rate' => 8.50,
+                'min_amount' => 50,
+                'max_amount' => 100000,
+                'early_unstake_penalty_percentage' => 0,
+                'badge_tag' => 'FLEXIBLE',
+                'rank' => 1,
+                'is_active' => 1
+            ]);
+
+            \App\Models\StakingPool::create([
+                'name' => 'USDT 30-Day Guaranteed Vault',
+                'token_symbol' => 'USDT',
+                'type' => 'locked',
+                'lock_period_days' => 30,
+                'apy_rate' => 12.80,
+                'min_amount' => 100,
+                'max_amount' => 250000,
+                'early_unstake_penalty_percentage' => 1.50,
+                'badge_tag' => 'POPULAR',
+                'rank' => 2,
+                'is_active' => 1
+            ]);
+
+            \App\Models\StakingPool::create([
+                'name' => 'USDT 90-Day Alpha Maximizer',
+                'token_symbol' => 'USDT',
+                'type' => 'locked',
+                'lock_period_days' => 90,
+                'apy_rate' => 18.50,
+                'min_amount' => 250,
+                'max_amount' => 500000,
+                'early_unstake_penalty_percentage' => 2.50,
+                'badge_tag' => 'HIGH YIELD',
+                'rank' => 3,
+                'is_active' => 1
+            ]);
+
+            \App\Models\StakingPool::create([
+                'name' => 'USDT 180-Day Institutional VIP',
+                'token_symbol' => 'USDT',
+                'type' => 'locked',
+                'lock_period_days' => 180,
+                'apy_rate' => 24.20,
+                'min_amount' => 500,
+                'max_amount' => 1000000,
+                'early_unstake_penalty_percentage' => 3.00,
+                'badge_tag' => 'INSTITUTIONAL',
+                'rank' => 4,
+                'is_active' => 1
+            ]);
+        }
     } catch (\Exception $e) {
         return "Migration Error: " . $e->getMessage();
     }
@@ -309,6 +454,16 @@ Route::middleware(['auth'])->group(function() {
         Route::get('ai-settings', 'settings')->name('user.ai.settings');
         Route::post('ai-settings/save', 'saveSettings')->name('user.ai.settings.save');
     });
+
+    // Staking & Earn Routes
+    Route::controller(StakingController::class)->prefix('user/staking')->name('user.staking.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('stake', 'stake')->name('stake');
+        Route::post('harvest/{id}', 'harvest')->name('harvest');
+        Route::post('unstake/{id}', 'unstake')->name('unstake');
+    });
+    Route::get('staking', [StakingController::class, 'index'])->name('user.staking');
+    Route::get('user/staking', [StakingController::class, 'index'])->name('user.staking.index');
 });
 
 Route::namespace('P2P')->group(function () {
@@ -326,26 +481,10 @@ Route::middleware(['web', 'auth'])->group(function () {
     });
 });
 
-
-Route::middleware(['auth', 'checkProject'])->group(function () {
-    Route::prefix('user')->name('user.')->group(function () {
-        Route::controller('User\StakingController')->prefix('staking')->name('staking.')->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('store', 'store')->name('store');
-            Route::post('unstake', 'unstake')->name('unstake');
-            Route::post('compound', 'compound')->name('compound');
-        });
-    });
-});
-
 // Cron Routes
 Route::get('/cron/process-staking-rewards', [CronController::class, 'processStakingRewards'])
     ->name('cron.staking.rewards')
     ->middleware('signed');
-    
-    Route::middleware(['auth'])->group(function () {
-    Route::get('user/staking', [StakingController::class, 'index'])->name('user.staking.index');
-});
 
 Route::get('/js/staking.js', function() {
     return response()->file(resource_path('views/templates/basic/user/staking/js/staking.js'));

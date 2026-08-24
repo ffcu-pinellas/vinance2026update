@@ -1,936 +1,741 @@
-@extends($activeTemplate.'layouts.master')
+@extends($activeTemplate . 'layouts.master')
+
 @section('content')
-<div class="dashboard-section">
-    <div class="container">
-        <!-- Statistics Cards -->
-        <div class="row gy-4 mb-4">
-            <div class="col-xl-3 col-lg-4 col-sm-6">
-                <div class="dashboard-widget">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="widget-info">
-                            <h3 class="widget-title">@lang('Total Staked')</h3>
-                            <h4 class="widget-number">{{ showAmount($statistics['total_staked']) }} USDT</h4>
-                        </div>
-                        <div class="dashboard-widget__icon">
-                            <i class="fas fa-coins"></i>
-                        </div>
+<div class="staking-terminal-wrapper pb-5">
+    <!-- Top Action Row: Back Button & System Status -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ route('user.home') }}" class="btn btn-outline--light btn-sm rounded-pill px-3 py-1 text--small d-inline-flex align-items-center">
+            <i class="las la-arrow-left me-1"></i> <span>@lang('Dashboard')</span>
+        </a>
+        <span class="badge badge--success-soft rounded-pill px-3 py-1 text--small d-inline-flex align-items-center gap-1">
+            <span class="live-pulse-dot"></span> @lang('Institutional Vaults Online')
+        </span>
+    </div>
+
+    <!-- Main Header Card -->
+    <div class="staking-header-card bg--dark-two p-3 p-md-4 rounded-4 mb-3 border-0 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h3 class="text-white fw-bold mb-1 fs-4 d-flex align-items-center gap-2">
+                    <i class="las la-coins text--base"></i> @lang('Crypto Staking')
+                    @if($apyBoost > 0)
+                        <span class="badge badge--warning-soft rounded-pill text--small fw-normal px-2 py-1">
+                            <i class="las la-bolt"></i> +{{ $apyBoost }}% @lang('VIP APY Boost Active')
+                        </span>
+                    @endif
+                </h3>
+                <p class="text-muted text--small mb-0">@lang('Institutional liquidity pools & fixed-term high-yield earning vaults')</p>
+            </div>
+
+            <!-- Balances & Quick Action -->
+            <div class="d-flex align-items-center gap-2 w-100 w-md-auto justify-content-between justify-content-md-end flex-wrap">
+                <div class="user-wallet-pill bg--dark-three border border-dark rounded-pill px-3 py-2 d-flex align-items-center gap-2 text--small">
+                    <span class="text-muted"><i class="las la-wallet text--base"></i> Spot: <strong class="text-white font-mono">${{ number_format($spotBalance, 2) }}</strong></span>
+                    <span class="text-muted opacity-50">|</span>
+                    <span class="text-muted"><i class="las la-coins text--info"></i> Fund: <strong class="text-white font-mono">${{ number_format($fundingBalance, 2) }}</strong></span>
+                </div>
+
+                <button type="button" class="btn btn--base btn-sm rounded-pill px-3 py-2 text-nowrap openPoolsModalBtn">
+                    <i class="las la-plus-circle me-1"></i> @lang('Stake Crypto')
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile View Tab Switcher (Visible only on Mobile screens) -->
+    <div class="d-md-none mb-3">
+        <div class="staking-mobile-nav p-1 rounded-pill bg--dark-two d-flex shadow-sm">
+            <button type="button" class="btn btn-sm text-white flex-fill rounded-pill py-2 active mobile-staking-tab-btn" data-target="#activeStakesSection">
+                <i class="las la-lock me-1"></i> @lang('Active') ({{ $activeStakes->count() }})
+            </button>
+            <button type="button" class="btn btn-sm text-muted flex-fill rounded-pill py-2 mobile-staking-tab-btn" data-target="#stakingPoolsSection">
+                <i class="las la-cubes me-1"></i> @lang('Vaults')
+            </button>
+            <button type="button" class="btn btn-sm text-muted flex-fill rounded-pill py-2 mobile-staking-tab-btn" data-target="#stakeHistorySection">
+                <i class="las la-history me-1"></i> @lang('History')
+            </button>
+        </div>
+    </div>
+
+    <!-- KPI Metric Cards Grid -->
+    <div class="row g-3 mb-4">
+        <!-- Total Staked -->
+        <div class="col-xl-3 col-6">
+            <div class="staking-metric-card h-100 p-3 rounded-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted text--small text-uppercase fw-semibold">@lang('Total Staked')</span>
+                    <div class="staking-icon-badge bg-primary-soft text--base d-none d-sm-flex">
+                        <i class="las la-wallet"></i>
                     </div>
                 </div>
-            </div>
-            <div class="col-xl-3 col-lg-4 col-sm-6">
-                <div class="dashboard-widget">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="widget-info">
-                            <h3 class="widget-title">@lang('Total Earnings')</h3>
-                            <h4 class="widget-number">{{ showAmount($statistics['total_earnings']) }} USDT</h4>
-                        </div>
-                        <div class="dashboard-widget__icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-lg-4 col-sm-6">
-                <div class="dashboard-widget">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="widget-info">
-                            <h3 class="widget-title">@lang('Active Stakes')</h3>
-                            <h4 class="widget-number">{{ $statistics['active_stakes'] }}</h4>
-                        </div>
-                        <div class="dashboard-widget__icon">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-3 col-lg-4 col-sm-6">
-                <div class="dashboard-widget">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="widget-info">
-                            <h3 class="widget-title">@lang('Best APY')</h3>
-                            <h4 class="widget-number">{{ $statistics['highest_apy'] }}%</h4>
-                        </div>
-                        <div class="dashboard-widget__icon">
-                            <i class="fas fa-percentage"></i>
-                        </div>
-                    </div>
+                <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4 font-mono">${{ number_format($statistics['total_staked'], 2) }}</h3>
+                <div class="d-flex align-items-center justify-content-between text--small">
+                    <span class="text-muted">@lang('Spot Balance'): <strong class="text-white font-mono">${{ number_format($spotBalance, 2) }}</strong></span>
                 </div>
             </div>
         </div>
 
-        <!-- Available Staking Options -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="section-header d-flex align-items-center mb-3">
-                    <div class="crypto-icon">
-                        <img src="{{ asset('assets/images/currency/67d332468fda71741894214.jpeg') }}" alt="USDT" class="me-2">
+        <!-- Total Earnings -->
+        <div class="col-xl-3 col-6">
+            <div class="staking-metric-card h-100 p-3 rounded-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted text--small text-uppercase fw-semibold">@lang('Total Yield Earned')</span>
+                    <div class="staking-icon-badge bg-success-soft text--success d-none d-sm-flex">
+                        <i class="las la-chart-line"></i>
                     </div>
-                    <h4 class="section-title mb-0">@lang('Available Staking Options')</h4>
                 </div>
-            </div>
-            
-            <div class="col-12">
-                <div class="staking-pools-container">
-                    @forelse($stakingPools as $pool)
-                    <div class="staking-card">
-                        <div class="staking-card-header">
-                            <h5 class="pool-name">{{ $pool->name }}</h5>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge badge-type">{{ ucfirst($pool->type) }}</span>
-                                <span class="badge badge-apy">{{ $pool->apy_rate }}% APY</span>
-                            </div>
-                        </div>
-                        <div class="staking-info">
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <div class="info-label">@lang('Min. Stake')</div>
-                                    <div class="info-value">{{ showAmount($pool->configuration->min_amount) }} USDT</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="info-label">@lang('Max. Stake')</div>
-                                    <div class="info-value">{{ showAmount($pool->configuration->max_amount) }} USDT</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="info-label">@lang('Total Staked')</div>
-                                    <div class="info-value">{{ showAmount($pool->total_pool_staked) }} USDT</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="info-label">@lang('Stakers')</div>
-                                    <div class="info-value">{{ $pool->total_participants }}</div>
-                                </div>
-                                @if($pool->type == 'locked')
-                                <div class="info-item lock-period">
-                                    <div class="info-label">@lang('Lock Period')</div>
-                                    <div class="info-value">{{ $pool->lock_period_days }} @lang('Days')</div>
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                        <button class="btn btn-stake stake-btn" 
-                                data-pool="{{ $pool->id }}"
-                                data-min="{{ showAmount($pool->configuration->min_amount) }}"
-                                data-max="{{ showAmount($pool->configuration->max_amount) }}"
-                                data-bs-toggle="modal"
-                                data-bs-target="#stakeModal">
-                            @lang('Stake Now')
-                        </button>
-                    </div>
-                    @empty
-                    <div class="col-12">
-                        <div class="alert alert-warning">@lang('No staking pools available')</div>
-                    </div>
-                    @endforelse
+                <h3 class="text--success fw-bold mb-1 fs-5 fs-sm-4 font-mono">+${{ number_format($statistics['total_earnings'], 2) }}</h3>
+                <div class="d-flex align-items-center justify-content-between text--small">
+                    <span class="badge badge--success-soft rounded-pill px-2"><i class="las la-arrow-up"></i> @lang('Real-Time Yield')</span>
                 </div>
             </div>
         </div>
 
         <!-- Active Stakes -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card active-stakes-card">
-                    <div class="card-header">
-                        <h5 class="card-title">
-                            <i class="fas fa-chart-line me-2"></i>
-                            @lang('Your Active Stakes')
-                        </h5>
+        <div class="col-xl-3 col-6">
+            <div class="staking-metric-card h-100 p-3 rounded-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted text--small text-uppercase fw-semibold">@lang('Active Positions')</span>
+                    <div class="staking-icon-badge bg-warning-soft text--warning d-none d-sm-flex">
+                        <i class="las la-lock"></i>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="active-stakes-container">
-                            @forelse($activeStakes as $stake)
-                            <div class="active-stake-item">
-                                <div class="stake-info">
-                                    <div class="stake-pool">
-                                        <img src="{{ asset('assets/images/currency/67d332468fda71741894214.jpeg') }}" alt="USDT" class="currency-icon">
-                                        <div>
-                                            <span class="pool-name">{{ $stake->pool->name }}</span>
-                                            <span class="pool-type">{{ ucfirst($stake->pool->type) }}</span>
+                </div>
+                <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4 font-mono">{{ $activeStakes->count() }}</h3>
+                <div class="d-flex align-items-center text--small text-muted">
+                    <span class="live-pulse-dot me-1"></span> @lang('Earning 24/7')
+                </div>
+            </div>
+        </div>
+
+        <!-- Best APY -->
+        <div class="col-xl-3 col-6">
+            <div class="staking-metric-card h-100 p-3 rounded-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-muted text--small text-uppercase fw-semibold">@lang('Highest APY')</span>
+                    <div class="staking-icon-badge bg-info-soft text--info d-none d-sm-flex">
+                        <i class="las la-percentage"></i>
+                    </div>
+                </div>
+                <h3 class="text--base fw-bold mb-1 fs-5 fs-sm-4 font-mono">{{ number_format($statistics['best_apy'] + $apyBoost, 2) }}%</h3>
+                <div class="d-flex align-items-center text--small text-muted text-truncate">
+                    <i class="las la-shield-alt text--success me-1"></i> @lang('Principal Protected')
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Stakes Section -->
+    <div id="activeStakesSection" class="staking-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
+            <h5 class="text-white mb-0 d-flex align-items-center gap-2">
+                <i class="las la-lock text--base"></i> @lang('My Active Staking Positions')
+                <span class="badge badge--primary rounded-pill">{{ $activeStakes->count() }}</span>
+            </h5>
+            <button type="button" class="btn btn-sm btn-outline--base rounded-pill px-3 openPoolsModalBtn">
+                <i class="las la-plus"></i> @lang('Stake Crypto')
+            </button>
+        </div>
+        <div class="card-body p-3 p-sm-4">
+            @if($activeStakes->count() > 0)
+                <div class="row g-3">
+                    @foreach($activeStakes as $stake)
+                        @php
+                            $pool = $stake->pool;
+                            $effectiveApy = ($pool ? $pool->apy_rate : 0) + $apyBoost;
+                        @endphp
+                        <div class="col-lg-6 col-xxl-4">
+                            <div class="active-stake-card p-3 p-sm-4 rounded-4 position-relative overflow-hidden">
+                                <div class="active-stake-glow"></div>
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="text-white fw-bold mb-1">{{ @$pool->name ?? 'Custom Stake' }}</h5>
+                                        <div class="d-flex gap-2 align-items-center flex-wrap">
+                                            <span class="badge badge--dark text-uppercase text--small">{{ @$pool->token_symbol ?? 'USDT' }}</span>
+                                            <span class="badge badge--info-soft text--small font-mono">{{ $effectiveApy }}% APY</span>
+                                            <span class="text-muted text--small font-mono"><i class="las la-calendar"></i> {{ $stake->start_time->format('M d, Y') }}</span>
                                         </div>
                                     </div>
-                                    
-                                    <div class="stake-details">
-                                        <div class="stake-data">
-                                            <div class="data-label">@lang('Amount')</div>
-                                            <div class="data-value">{{ showAmount($stake->principal_amount) }} USDT</div>
-                                        </div>
-                                        <div class="stake-data">
-                                            <div class="data-label">@lang('APY')</div>
-                                            <div class="data-value">{{ $stake->pool->apy_rate }}%</div>
-                                        </div>
-                                        <div class="stake-data">
-                                            <div class="data-label">@lang('Start Date')</div>
-                                            <div class="data-value">{{ showDateTime($stake->start_time) }}</div>
-                                        </div>
-                                        <div class="stake-data">
-                                            <div class="data-label">@lang('Earned')</div>
-                                            <div class="data-value earned">{{ showAmount($stake->accumulated_rewards) }} USDT</div>
-                                        </div>
+                                    <span class="badge badge--success-soft rounded-pill px-3 py-1 d-flex align-items-center gap-1">
+                                        <span class="live-pulse-dot"></span> @lang('EARNING')
+                                    </span>
+                                </div>
+
+                                <div class="row g-2 mb-3 bg--dark-three p-3 rounded-3">
+                                    <div class="col-6">
+                                        <small class="text-muted text-uppercase d-block">@lang('Principal Staked')</small>
+                                        <strong class="text-white fs-6 font-mono">${{ number_format($stake->principal_amount, 2) }}</strong>
                                     </div>
-                                    
-                                    <div class="stake-actions">
-                                        @if($stake->pool->type != 'locked' || Carbon\Carbon::parse($stake->start_time)->addDays($stake->pool->lock_period_days)->isPast())
-                                        <button type="button" 
-                                                class="btn btn-action btn-unstake unstake-btn"
-                                                data-stake="{{ $stake->id }}"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#unstakeModal"
-                                                title="Unstake">
-                                            <i class="fas fa-unlock-alt"></i>
-                                            <span class="action-text">Unstake</span>
-                                        </button>
-                                        @endif
-                                        @if($stake->accumulated_rewards > 0)
-                                        <button type="button"
-                                                class="btn btn-action btn-compound compound-btn"
-                                                data-stake="{{ $stake->id }}"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#compoundModal"
-                                                title="Compound">
-                                            <i class="fas fa-sync"></i>
-                                            <span class="action-text">Compound</span>
-                                        </button>
-                                        @endif
+                                    <div class="col-6 text-end">
+                                        <small class="text-muted text-uppercase d-block">@lang('Accumulated Yield')</small>
+                                        <strong class="text--success fs-6 font-mono">+${{ number_format($stake->live_rewards ?? $stake->accumulated_rewards, 2) }}</strong>
+                                    </div>
+                                    <div class="col-6 mt-2">
+                                        <small class="text-muted text-uppercase d-block">@lang('Term Duration')</small>
+                                        <span class="text-white font-mono">{{ @$pool->lock_period_days > 0 ? @$pool->lock_period_days . ' Days' : 'Flexible' }}</span>
+                                    </div>
+                                    <div class="col-6 text-end mt-2">
+                                        <small class="text-muted text-uppercase d-block">@lang('Maturity Date')</small>
+                                        <span class="text-muted font-mono">{{ $stake->end_time ? $stake->end_time->format('M d, Y') : 'Anytime' }}</span>
                                     </div>
                                 </div>
-                            </div>
-                            @empty
-                            <div class="no-stakes">
-                                <div class="empty-state">
-                                    <i class="fas fa-search fa-3x mb-3"></i>
-                                    <p>@lang('No active stakes found')</p>
+
+                                <div class="d-flex gap-2">
+                                    @if(($stake->live_rewards ?? $stake->accumulated_rewards) > 0)
+                                        <form action="{{ route('user.staking.harvest', $stake->id) }}" method="POST" class="flex-grow-1">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn--success w-100 rounded-pill py-2">
+                                                <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest Yield') (${{ number_format($stake->live_rewards ?? $stake->accumulated_rewards, 2) }})
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <form action="{{ route('user.staking.unstake', $stake->id) }}" method="POST" class="flex-grow-1">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline--danger w-100 rounded-pill py-2 confirmationBtn" data-question="@lang('Redeem & unstake your principal + earned rewards back to your Spot Wallet?')">
+                                            <i class="las la-unlock me-1"></i> @lang('Unstake & Redeem')
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
-                            @endforelse
                         </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-5">
+                    <div class="empty-staking-icon mb-3">
+                        <i class="las la-coins"></i>
                     </div>
-                    @if($activeStakes->hasPages())
-                    <div class="card-footer">
-                        {{ $activeStakes->links() }}
+                    <h5 class="text-white mb-2">@lang('No Active Staking Positions')</h5>
+                    <p class="text-muted mb-4 mx-auto" style="max-width: 460px;">
+                        @lang('Deposit your crypto into high-yield staking vaults to earn guaranteed automated passive daily yields.')
+                    </p>
+                    <button type="button" class="btn btn--base rounded-pill px-4 py-2 openPoolsModalBtn">
+                        <i class="las la-rocket me-1"></i> @lang('Explore Staking Vaults')
+                    </button>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Staking Vaults Marketplace (Desktop Full Grid) -->
+    <div id="stakingPoolsSection" class="staking-content-section mb-5 pt-2">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="text-white fw-bold mb-1"><i class="las la-cubes text--base"></i> @lang('Available Staking Vaults')</h4>
+                <p class="text-muted text--small mb-0">@lang('Select a staking pool to lock assets and receive automated yield distributions')</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach($pools as $pool)
+                @php
+                    $poolEffectiveApy = $pool->apy_rate + $apyBoost;
+                @endphp
+                <div class="col-xl-3 col-md-6">
+                    <div class="pool-plan-card h-100 p-4 rounded-4 d-flex flex-column justify-content-between position-relative">
+                        @if($pool->badge_tag || $loop->first)
+                            <div class="popular-ribbon">{{ $pool->badge_tag ?? 'HOT' }}</div>
+                        @endif
+
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge badge--{{ $pool->type == 'flexible' ? 'info' : 'warning' }}-soft rounded-pill px-3 py-1 text-uppercase">
+                                    {{ $pool->type }}
+                                </span>
+                                <span class="text-muted text--small font-mono"><i class="las la-history"></i> {{ $pool->lock_period_days > 0 ? $pool->lock_period_days . ' Days' : 'Flexible' }}</span>
+                            </div>
+
+                            <h4 class="text-white fw-bold mb-1">{{ __($pool->name) }}</h4>
+                            <p class="text-muted text--small mb-3">{{ $pool->token_symbol }} Yield Vault</p>
+
+                            <!-- APY Box -->
+                            <div class="apy-highlight-box p-3 rounded-3 mb-3 text-center">
+                                <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Annual Percentage Yield')</span>
+                                <h3 class="text--base fw-bold mb-0 font-mono">{{ number_format($poolEffectiveApy, 2) }}% APY</h3>
+                                <small class="text-muted">@lang('Daily Rate'): <strong class="text--success font-mono">{{ number_format($poolEffectiveApy / 365, 4) }}%</strong></small>
+                            </div>
+
+                            <!-- Min / Max Limits -->
+                            <div class="d-flex justify-content-between text--small mb-3 bg--dark-three p-2 rounded-2">
+                                <span class="text-muted">@lang('Min'): <strong class="text-white font-mono">${{ number_format($pool->min_amount, 0) }}</strong></span>
+                                <span class="text-muted">@lang('Max'): <strong class="text-white font-mono">${{ number_format($pool->max_amount, 0) }}</strong></span>
+                            </div>
+
+                            <div class="d-flex justify-content-between text--small text-muted mb-3 px-1">
+                                <span>@lang('Total Staked'):</span>
+                                <strong class="text-white font-mono">${{ number_format($pool->total_staked, 2) }}</strong>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn--base w-100 rounded-pill py-2 fw-semibold stakeNowBtn"
+                            data-id="{{ $pool->id }}"
+                            data-name="{{ $pool->name }}"
+                            data-token="{{ $pool->token_symbol }}"
+                            data-apy="{{ $poolEffectiveApy }}"
+                            data-days="{{ $pool->lock_period_days }}"
+                            data-min="{{ $pool->min_amount }}"
+                            data-max="{{ $pool->max_amount }}"
+                            data-type="{{ $pool->type }}">
+                            <i class="las la-lock me-1"></i> @lang('Stake Now')
+                        </button>
                     </div>
-                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <!-- Stake History Table -->
+    <div id="stakeHistorySection" class="staking-content-section card bg--dark-two border-0 rounded-4 shadow-sm">
+        <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
+            <h5 class="text-white mb-0 d-flex align-items-center gap-2">
+                <i class="las la-history text--base"></i> @lang('Staking Position Records')
+            </h5>
+            <span class="text-muted text--small font-mono">{{ $stakeHistory->count() }} @lang('Total Records')</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0 custom-staking-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-3 ps-sm-4">@lang('Start Date')</th>
+                            <th>@lang('Vault Pool')</th>
+                            <th>@lang('Asset')</th>
+                            <th class="text-end">@lang('Principal')</th>
+                            <th class="text-end">@lang('APY Rate')</th>
+                            <th class="text-end">@lang('Total Yield')</th>
+                            <th class="text-center">@lang('Term')</th>
+                            <th class="text-center pe-3 pe-sm-4">@lang('Status')</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($stakeHistory as $stake)
+                            <tr>
+                                <td class="ps-3 ps-sm-4 text-nowrap font-mono">
+                                    <span class="text-white fw-medium">{{ $stake->start_time->format('M d, Y') }}</span>
+                                    <small class="text-muted d-block">{{ $stake->start_time->format('H:i:s') }}</small>
+                                </td>
+                                <td>
+                                    <span class="text-white fw-medium">{{ @$stake->pool->name ?? 'Staking Vault' }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge--dark px-2 py-1 fw-bold font-mono">{{ @$stake->pool->token_symbol ?? 'USDT' }}</span>
+                                </td>
+                                <td class="text-end fw-medium text-white font-mono">${{ number_format($stake->principal_amount, 2) }}</td>
+                                <td class="text-end fw-medium text--base font-mono">{{ @$stake->pool->apy_rate ?? 12.00 }}%</td>
+                                <td class="text-end font-mono">
+                                    <span class="text--success fw-bold">+${{ number_format($stake->accumulated_rewards, 2) }}</span>
+                                </td>
+                                <td class="text-center font-mono">
+                                    {{ @$stake->pool->lock_period_days > 0 ? @$stake->pool->lock_period_days . 'D' : 'Flex' }}
+                                </td>
+                                <td class="text-center pe-3 pe-sm-4">
+                                    @if($stake->status == 'active')
+                                        <span class="badge badge--success-soft rounded-pill px-3 py-1 font-mono">
+                                            <span class="live-pulse-dot me-1"></span> @lang('ACTIVE')
+                                        </span>
+                                    @else
+                                        <span class="badge badge--dark rounded-pill px-3 py-1 font-mono text-muted">
+                                            <i class="las la-check"></i> @lang('REDEEMED')
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-5">
+                                    <i class="las la-lock-open fs-2 mb-2 d-block"></i>
+                                    @lang('No staking records yet. Stake crypto in our yield vaults to begin earning.')
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Staking Pools Selection Modal (For Mobile Quick Launch) -->
+<div id="poolsMarketplaceModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content bg--dark-two border-0 rounded-4 text-white shadow-lg">
+            <div class="modal-header border-bottom border-dark py-3 px-4">
+                <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2">
+                    <i class="las la-cubes text--base"></i> @lang('Select Staking Vault')
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3 p-sm-4">
+                <div class="row g-3">
+                    @foreach($pools as $pool)
+                        @php $modalApy = $pool->apy_rate + $apyBoost; @endphp
+                        <div class="col-md-6">
+                            <div class="pool-plan-card h-100 p-3 rounded-4 d-flex flex-column justify-content-between position-relative">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge badge--{{ $pool->type == 'flexible' ? 'info' : 'warning' }}-soft rounded-pill px-3 py-1 text-uppercase">
+                                            {{ $pool->type }}
+                                        </span>
+                                        <span class="text-muted text--small font-mono">{{ $pool->lock_period_days > 0 ? $pool->lock_period_days . ' Days' : 'Flexible' }}</span>
+                                    </div>
+                                    <h5 class="text-white fw-bold mb-1">{{ __($pool->name) }}</h5>
+                                    
+                                    <div class="apy-highlight-box p-2 rounded-3 mb-2 text-center">
+                                        <span class="text--base fw-bold fs-6 font-mono">{{ number_format($modalApy, 2) }}% APY</span>
+                                        <small class="text-muted d-block font-mono">Daily: {{ number_format($modalApy / 365, 4) }}%</small>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between text--small mb-3 bg--dark-three p-2 rounded-2">
+                                        <span class="text-muted">Min: <strong class="text-white font-mono">${{ number_format($pool->min_amount, 0) }}</strong></span>
+                                        <span class="text-muted">Max: <strong class="text-white font-mono">${{ number_format($pool->max_amount, 0) }}</strong></span>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn--base btn-sm w-100 rounded-pill py-2 fw-semibold stakeNowBtn"
+                                    data-id="{{ $pool->id }}"
+                                    data-name="{{ $pool->name }}"
+                                    data-token="{{ $pool->token_symbol }}"
+                                    data-apy="{{ $modalApy }}"
+                                    data-days="{{ $pool->lock_period_days }}"
+                                    data-min="{{ $pool->min_amount }}"
+                                    data-max="{{ $pool->max_amount }}"
+                                    data-type="{{ $pool->type }}">
+                                    <i class="las la-lock me-1"></i> @lang('Select & Stake')
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@include($activeTemplate . 'user.staking.partials.stake_modal')
-@include($activeTemplate . 'user.staking.partials.unstake_modal')
-@include($activeTemplate . 'user.staking.partials.compound_modal')
+<!-- Stake Configuration Modal -->
+<div id="stakeModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content bg--dark-two border-0 rounded-4 text-white shadow-lg">
+            <div class="modal-header border-bottom border-dark py-3 px-4">
+                <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2">
+                    <i class="las la-lock text--base"></i> <span id="modalPoolName">@lang('Stake in Vault')</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('user.staking.stake') }}" method="POST" id="stakeForm">
+                @csrf
+                <input type="hidden" name="pool_id" id="modalPoolId">
+                <div class="modal-body p-4">
+                    <!-- Expected Return Summary -->
+                    <div class="bg--dark-three p-3 rounded-3 mb-4 text-center">
+                        <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Staking APY Return')</span>
+                        <h3 class="text--base fw-bold mb-0 font-mono" id="modalApyText">18.50% APY</h3>
+                        <small class="text-muted">@lang('Term Duration'): <strong class="text-white font-mono" id="modalDurationText">30</strong> @lang('Days')</small>
+                    </div>
 
+                    <!-- Wallet Selection with Custom Dark Styling -->
+                    <div class="form-group mb-3">
+                        <label class="form-label text-muted text--small text-uppercase">@lang('Funding Wallet Source')</label>
+                        <select name="wallet_type" class="form-control form-select custom-dark-select" id="stakingWalletSelect" required>
+                            <option value="spot" selected>Spot Wallet (${{ number_format($spotBalance, 2) }} USDT)</option>
+                            <option value="funding">Funding Wallet (${{ number_format($fundingBalance, 2) }} USDT)</option>
+                        </select>
+                    </div>
 
+                    <!-- Capital Allocation Amount -->
+                    <div class="form-group mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label text-muted text--small text-uppercase mb-0">@lang('Stake Amount ($)')</label>
+                            <span class="text-muted text--small">@lang('Limit'): <span id="modalLimitsText" class="text--base font-mono"></span></span>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg--dark-three text-white border-dark">$</span>
+                            <input type="number" step="any" name="amount" class="form-control bg--dark-three text-white border-dark fs-5 font-mono" id="stakeAmountInput" placeholder="0.00" required>
+                            <span class="input-group-text bg--dark-three text-white border-dark">USDT</span>
+                        </div>
+
+                        <!-- Quick Percentage Pills -->
+                        <div class="d-flex gap-2 mt-2">
+                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill quick-stake-pct-btn font-mono" data-pct="25">25%</button>
+                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill quick-stake-pct-btn font-mono" data-pct="50">50%</button>
+                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill quick-stake-pct-btn font-mono" data-pct="75">75%</button>
+                            <button type="button" class="btn btn-sm btn-outline--base flex-fill rounded-pill quick-stake-pct-btn font-mono" data-pct="100">MAX</button>
+                        </div>
+                    </div>
+
+                    <!-- Projected Returns Breakdown -->
+                    <div class="bg--dark-three p-3 rounded-3 mb-2">
+                        <div class="d-flex justify-content-between text--small mb-1">
+                            <span class="text-muted">@lang('Est. Daily Yield'):</span>
+                            <strong class="text--success font-mono" id="estDailyYield">+$0.00</strong>
+                        </div>
+                        <div class="d-flex justify-content-between text--small">
+                            <span class="text-muted">@lang('Est. Total Return'):</span>
+                            <strong class="text-white font-mono" id="estTotalYield">+$0.00</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-dark p-4">
+                    <button type="submit" class="btn btn--base w-100 rounded-pill py-3 fw-bold fs-6 shadow-sm">
+                        <i class="las la-lock me-1"></i> @lang('Confirm & Lock Stake')
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<x-confirmation-modal />
 @endsection
-
-
-@push('script')
-<script src="{{ route('staking.js') }}"></script>
-@endpush
-
 
 @push('style')
 <style>
-    /* Base Styles */
-    :root {
-        --primary-color: #00ff88;
-        --primary-color-rgb: 0, 255, 136;
-        --secondary-color: #6610f2;
-        --secondary-color-rgb: 102, 16, 242;
-        --dark-bg: #121212;
-        --card-bg: #1a1a1a;
-        --card-bg-hover: #222222;
-        --border-color: #2a2a2a;
-        --text-color: #fff;
-        --text-muted: #888;
-        --text-light: #aaa;
-        --success-color: #28a745;
-        --warning-color: #ffc107;
-        --danger-color: #dc3545;
-        --border-radius: 12px;
-        --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        --transition: all 0.3s ease;
+    .staking-terminal-wrapper {
+        color: #e2e8f0;
+        max-width: 100%;
+        overflow-x: clip;
     }
-
-    /* Dashboard Widgets */
-    .dashboard-widget {
-        background: linear-gradient(145deg, var(--card-bg), var(--card-bg-hover));
-        border-radius: var(--border-radius);
-        padding: 25px;
-        margin-bottom: 20px;
-        border: 1px solid var(--border-color);
-        box-shadow: var(--box-shadow);
-        transition: var(--transition);
-        overflow: hidden;
-        position: relative;
+    .font-mono {
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', Courier, monospace !important;
     }
-    
-    .dashboard-widget:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-        border-color: rgba(var(--primary-color-rgb), 0.3);
+    .bg--dark-two {
+        background: #0f172a !important;
     }
-    
-    .dashboard-widget::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    .bg--dark-three {
+        background: #1e293b !important;
     }
-
-    .dashboard-widget__icon {
-        width: 56px;
-        height: 56px;
-        background: rgba(var(--primary-color-rgb), 0.1);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        color: var(--primary-color);
-        box-shadow: 0 5px 15px rgba(var(--primary-color-rgb), 0.2);
+    .staking-mobile-nav {
+        border: 1px solid #334155;
     }
-
-    .widget-title {
-        font-size: 14px;
-        color: var(--text-muted);
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .widget-number {
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--text-color);
-        margin: 0;
-        line-height: 1.1;
-        letter-spacing: -0.5px;
-    }
-
-    /* Section Headers */
-    .section-header {
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-    }
-    
-    .section-title {
-        font-size: 20px;
+    .staking-mobile-nav .btn.active {
+        background: #3b82f6 !important;
+        color: #fff !important;
         font-weight: 600;
-        color: var(--text-color);
-        margin: 0;
     }
-    
-    .crypto-icon {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 15px;
-    }
-    
-    .crypto-icon img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
+    .live-pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #10b981;
         border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 8px #10b981;
+        animation: pulseAnimation 1.5s infinite;
     }
-
-    /* Staking Pools */
-    .staking-pools-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
+    @keyframes pulseAnimation {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
-    
-    .staking-card {
-        background: linear-gradient(145deg, var(--card-bg), var(--card-bg-hover));
-        border-radius: var(--border-radius);
-        padding: 25px;
-        height: 100%;
-        transition: var(--transition);
-        border: 1px solid var(--border-color);
-        box-shadow: var(--box-shadow);
-        display: flex;
-        flex-direction: column;
+    .staking-metric-card {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        transition: transform 0.2s ease, border-color 0.2s ease;
     }
-    
-    .staking-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-        border-color: rgba(var(--primary-color-rgb), 0.3);
-    }
-    
-    .staking-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid var(--border-color);
-    }
-    
-    .pool-name {
-        font-size: 18px;
-        font-weight: 600;
-        margin: 0;
-        color: var(--text-color);
-    }
-    
-    .badge {
-        padding: 8px 14px;
-        font-weight: 500;
-        font-size: 12px;
-        border-radius: 30px;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-    }
-    
-    .badge-type {
-        background: rgba(var(--secondary-color-rgb), 0.15);
-        color: var(--secondary-color);
-        border: 1px solid rgba(var(--secondary-color-rgb), 0.3);
-    }
-    
-    .badge-apy {
-        background: rgba(var(--primary-color-rgb), 0.15);
-        color: var(--primary-color);
-        border: 1px solid rgba(var(--primary-color-rgb), 0.3);
-    }
-    
-    .staking-info {
-        flex-grow: 1;
-        margin-bottom: 20px;
-    }
-    
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-    
-    .info-item {
-        background: rgba(255, 255, 255, 0.03);
-        padding: 15px;
-        border-radius: 10px;
-        transition: var(--transition);
-        border: 1px solid transparent;
-    }
-    
-    .info-item:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: var(--border-color);
-    }
-    
-    .lock-period {
-        grid-column: span 2;
-    }
-    
-    .info-label {
-        color: var(--text-muted);
-        font-size: 12px;
-        margin-bottom: 5px;
-        font-weight: 500;
-        text-transform: uppercase;
-    }
-    
-    .info-value {
-        color: var(--text-color);
-        font-size: 16px;
-        font-weight: 600;
-    }
-    
-    .btn-stake {
-        padding: 12px 20px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border-radius: 8px;
-        background: linear-gradient(135deg, rgba(var(--primary-color-rgb), 0.9), rgba(var(--primary-color-rgb), 0.7));
-        border: none;
-        color: #161616;
-        transition: var(--transition);
-        font-size: 15px;
-    }
-    
-    .btn-stake:hover {
-        background: linear-gradient(135deg, var(--primary-color), rgba(var(--primary-color-rgb), 0.9));
+    .staking-metric-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(var(--primary-color-rgb), 0.3);
+        border-color: #3b82f6;
     }
-
-    /* Active Stakes Card */
-    .active-stakes-card {
-        background: var(--card-bg);
-        border-radius: var(--border-radius);
-        border: 1px solid var(--border-color);
-        box-shadow: var(--box-shadow);
-        overflow: hidden;
-    }
-    
-    .active-stakes-card .card-header {
-        background: rgba(255, 255, 255, 0.03);
-        border-bottom: 1px solid var(--border-color);
-        padding: 20px 25px;
-    }
-    
-    .active-stakes-card .card-title {
-        font-size: 18px;
-        font-weight: 600;
-        margin: 0;
-        color: var(--text-color);
-        display: flex;
-        align-items: center;
-    }
-    
-    .active-stakes-card .card-title i {
-        color: var(--primary-color);
-    }
-    
-    .active-stakes-container {
-        padding: 0;
-    }
-    
-    .active-stake-item {
-        padding: 20px 25px;
-        border-bottom: 1px solid var(--border-color);
-        transition: var(--transition);
-    }
-    
-    .active-stake-item:last-child {
-        border-bottom: none;
-    }
-    
-    .active-stake-item:hover {
-        background: rgba(255, 255, 255, 0.02);
-    }
-    
-    .stake-info {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .stake-pool {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    
-    .currency-icon {
+    .staking-icon-badge {
         width: 36px;
         height: 36px;
-        border-radius: 50%;
-        object-fit: contain;
-    }
-    
-    .pool-name {
-        display: block;
-        font-weight: 600;
-        color: var(--text-color);
-        font-size: 16px;
-    }
-    
-    .pool-type {
-        display: block;
-        font-size: 13px;
-        color: var(--text-muted);
-        margin-top: 2px;
-    }
-    
-    .stake-details {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 15px;
-        margin: 10px 0;
-    }
-    
-    .stake-data {
-        background: rgba(255, 255, 255, 0.03);
-        padding: 10px 15px;
-        border-radius: 8px;
-        transition: var(--transition);
-    }
-    
-    .stake-data:hover {
-        background: rgba(255, 255, 255, 0.05);
-    }
-    
-    .data-label {
-        font-size: 12px;
-        color: var(--text-muted);
-        margin-bottom: 4px;
-    }
-    
-    .data-value {
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--text-color);
-    }
-    
-    .data-value.earned {
-        color: var(--primary-color);
-    }
-    
-    .stake-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-    }
-    
-    .btn-action {
-        padding: 10px 15px;
-        font-size: 14px;
-        font-weight: 500;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: var(--transition);
-    }
-    
-    .btn-unstake {
-        background: rgba(var(--danger-color), 0.15);
-        color: #ff4757;
-        border: 1px solid rgba(var(--danger-color), 0.3);
-    }
-    
-    .btn-unstake:hover {
-        background: rgba(var(--danger-color), 0.25);
-        color: #ff6b81;
-    }
-    
-    .btn-compound {
-        background: rgba(var(--success-color), 0.15);
-        color: #2ed573;
-        border: 1px solid rgba(var(--success-color), 0.3);
-    }
-    
-    .btn-compound:hover {
-        background: rgba(var(--success-color), 0.25);
-        color: #7bed9f;
-    }
-
-    /* Empty State */
-    .no-stakes {
-        padding: 50px 20px;
-        text-align: center;
-    }
-    
-    .empty-state {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-muted);
-        opacity: 0.7;
-    }
-
-    /* Modals */
-    .modal-content {
-        background: linear-gradient(145deg, var(--card-bg), var(--card-bg-hover));
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-    }
-    
-    .modal-header {
-        border-bottom: 1px solid var(--border-color);
-        padding: 20px 25px;
-    }
-    
-    .modal-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: var(--text-color);
-    }
-    
-    .modal-body {
-        padding: 25px;
-    }
-    
-    .modal-footer {
-        border-top: 1px solid var(--border-color);
-        padding: 20px 25px;
-    }
-    
-    .form-control {
-        background-color: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--border-color);
-        color: var(--text-color);
-        border-radius: 8px;
-        padding: 12px 15px;
-        transition: var(--transition);
-    }
-    
-    .form-control:focus {
-        background-color: rgba(255, 255, 255, 0.07);
-        border-color: rgba(var(--primary-color-rgb), 0.5);
-        box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.15);
-        color: var(--text-color);
-    }
-    
-    .input-group-text {
-        background-color: rgba(255, 255, 255, 0.03);
-        border-color: var(--border-color);
-        color: var(--text-muted);
-        border-radius: 0 8px 8px 0;
-    }
-
-    /* Responsive Styles */
-    @media (max-width: 992px) {
-        .staking-pools-container {
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        }
-        
-        .stake-details {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .dashboard-widget {
-            padding: 20px;
-        }
-        
-        .widget-number {
-            font-size: 24px;
-        }
-        
-        .dashboard-widget__icon {
-            width: 48px;
-            height: 48px;
-            font-size: 20px;
-        }
-        
-        .staking-card {
-            padding: 20px;
-        }
-        
-        .active-stake-item {
-            padding: 15px 20px;
-        }
-        
-        .stake-details {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .btn-action .action-text {
-            display: none;
-        }
-        
-        .btn-action {
-            padding: 10px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .btn-action i {
-            margin: 0;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .stake-details {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-        
-        .stake-data {
-            padding: 10px;
-        }
-        
-        .data-label {
-            font-size: 11px;
-        }
-        
-        .data-value {
-            font-size: 14px;
-        }
-        
-        .active-stake-item {
-            padding: 15px;
-        }
-        
-        .active-stakes-card .card-header {
-            padding: 15px;
-        }
-    }
-
-    /* Scrollbar Styling */
-    ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: var(--card-bg);
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: rgba(var(--primary-color-rgb), 0.3);
         border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
     }
+    .bg-primary-soft { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .bg-success-soft { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .bg-info-soft { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
+    .bg-warning-soft { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .badge--success-soft { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .badge--danger-soft { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .badge--warning-soft { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .badge--info-soft { background: rgba(6, 182, 212, 0.15); color: #06b6d4; }
     
-    ::-webkit-scrollbar-thumb:hover {
-        background: rgba(var(--primary-color-rgb), 0.5);
+    .active-stake-card {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid #334155;
+    }
+    .pool-plan-card {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .pool-plan-card:hover {
+        transform: translateY(-4px);
+        border-color: #3b82f6;
+        box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
+    }
+    .popular-ribbon {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: #3b82f6;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        letter-spacing: 0.5px;
+    }
+    .apy-highlight-box {
+        background: rgba(59, 130, 246, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    .empty-staking-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+    }
+    .custom-staking-table th {
+        background-color: #1e293b !important;
+        color: #94a3b8 !important;
+        font-size: 11px;
+        text-transform: uppercase;
+        border: none;
+    }
+    .custom-staking-table td {
+        border-bottom: 1px solid #1e293b !important;
+        padding: 10px 8px;
+        font-size: 13px;
     }
 
-    /* Pagination */
-    .pagination {
-        margin: 0;
-        justify-content: center;
+    /* Custom Dark Dropdown Styling */
+    .custom-dark-select,
+    select.custom-dark-select {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        border: 1px solid #475569 !important;
+        border-radius: 10px !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 1rem center !important;
+        background-size: 16px 12px !important;
     }
-    
-    .page-item .page-link {
-        background: rgba(255, 255, 255, 0.03);
-        border-color: var(--border-color);
-        color: var(--text-muted);
-        border-radius: 8px;
-        margin: 0 2px;
-        padding: 8px 14px;
-        transition: var(--transition);
+    .custom-dark-select:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
     }
-    
-    .page-item.active .page-link {
-        background: rgba(var(--primary-color-rgb), 0.2);
-        border-color: rgba(var(--primary-color-rgb), 0.3);
-        color: var(--primary-color);
+    .custom-dark-select option {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+        padding: 12px !important;
     }
-    
-    .page-item .page-link:hover {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--text-color);
-    }
-    
-    .card-footer {
-        background: rgba(255, 255, 255, 0.01);
-        border-top: 1px solid var(--border-color);
-        padding: 15px 20px;
+
+    /* Hide the topbar/sidebar hamburger menu button on mobile so back button is exclusively used */
+    @media (max-width: 1199px) {
+        .dashboard-body__bar,
+        .dashboard-sidebar-filter__button,
+        .dashboardBodyNav {
+            display: none !important;
+        }
     }
 </style>
 @endpush
 
 @push('script')
 <script>
-    (function($) {
+    (function ($) {
         "use strict";
-        
-        $('.stake-btn').on('click', function() {
+
+        var currentSpotBalance = parseFloat("{{ $spotBalance }}");
+        var currentFundingBalance = parseFloat("{{ $fundingBalance }}");
+        var selectedPoolMin = 0;
+        var selectedPoolMax = 0;
+        var selectedPoolApy = 0;
+        var selectedPoolDays = 0;
+
+        // Open Pools Marketplace Modal
+        $('.openPoolsModalBtn').on('click', function () {
+            $('#poolsMarketplaceModal').modal('show');
+        });
+
+        // Launch configure modal from pool card
+        $('.stakeNowBtn').on('click', function () {
+            $('#poolsMarketplaceModal').modal('hide');
             var modal = $('#stakeModal');
-            var pool = $(this).data('pool');
-            var min = $(this).data('min');
-            var max = $(this).data('max');
+            var poolId = $(this).data('id');
+            var name = $(this).data('name');
+            selectedPoolApy = parseFloat($(this).data('apy'));
+            selectedPoolDays = parseInt($(this).data('days')) || 30;
+            selectedPoolMin = parseFloat($(this).data('min')) || 0;
+            selectedPoolMax = parseFloat($(this).data('max')) || 0;
+            var type = $(this).data('type');
+
+            modal.find('#modalPoolId').val(poolId);
+            modal.find('#modalPoolName').text(name);
+            modal.find('#modalApyText').text(selectedPoolApy.toFixed(2) + '% APY');
+            modal.find('#modalDurationText').text(selectedPoolDays > 0 ? selectedPoolDays : 'Flexible');
+            modal.find('#modalLimitsText').text('$' + selectedPoolMin.toLocaleString() + ' - $' + selectedPoolMax.toLocaleString());
+            modal.find('#stakeAmountInput').val(selectedPoolMin > 0 ? selectedPoolMin : 100);
             
-            modal.find('input[name=pool_id]').val(pool);
-            modal.find('.min-amount').text(min);
-            modal.find('.max-amount').text(max);
-            modal.find('input[name=principal_amount]').attr('min', min);
-            modal.find('input[name=principal_amount]').attr('max', max);
+            calculateEstimatedYield(selectedPoolMin > 0 ? selectedPoolMin : 100);
+            modal.modal('show');
         });
 
-        $('.unstake-btn').on('click', function() {
-            var modal = $('#unstakeModal');
-            var stake = $(this).data('stake');
-            modal.find('input[name=stake_id]').val(stake);
+        $('#stakeAmountInput').on('input', function () {
+            var amount = parseFloat($(this).val()) || 0;
+            calculateEstimatedYield(amount);
         });
 
-        $('.compound-btn').on('click', function() {
-            var modal = $('#compoundModal');
-            var stake = $(this).data('stake');
-            modal.find('input[name=stake_id]').val(stake);
-        });
+        $('.quick-stake-pct-btn').on('click', function () {
+            var pct = parseFloat($(this).data('pct'));
+            var walletType = $('#stakingWalletSelect').val();
+            var balance = (walletType === 'spot') ? currentSpotBalance : currentFundingBalance;
+            var calculatedAmount = (balance * (pct / 100));
 
-        // Add animation to cards on hover
-        $('.dashboard-widget, .staking-card').hover(
-            function() {
-                $(this).addClass('active');
-            },
-            function() {
-                $(this).removeClass('active');
+            if (selectedPoolMax && calculatedAmount > selectedPoolMax) {
+                calculatedAmount = selectedPoolMax;
             }
-        );
-        
-        // Improve mobile interaction with touch events
-        if(window.innerWidth <= 768) {
-            $('.active-stake-item').on('touchstart', function() {
-                $(this).addClass('touch-active');
-            }).on('touchend', function() {
-                setTimeout(() => {
-                    $(this).removeClass('touch-active');
-                }, 300);
-            });
+
+            $('#stakeAmountInput').val(calculatedAmount.toFixed(2));
+            calculateEstimatedYield(calculatedAmount);
+        });
+
+        function calculateEstimatedYield(amount) {
+            if (amount > 0 && selectedPoolApy > 0) {
+                var dailyYield = (amount * (selectedPoolApy / 100) / 365);
+                var totalYield = dailyYield * (selectedPoolDays > 0 ? selectedPoolDays : 365);
+                $('#estDailyYield').text('+$' + dailyYield.toFixed(4) + ' / day');
+                $('#estTotalYield').text('+$' + totalYield.toFixed(2) + ' (' + (selectedPoolDays > 0 ? selectedPoolDays + ' Days' : '1 Year') + ')');
+            } else {
+                $('#estDailyYield').text('+$0.00');
+                $('#estTotalYield').text('+$0.00');
+            }
         }
-        
-        // Add smooth scroll for better user experience
-        $('a.nav-link, a.btn').on('click', function(e) {
-            if (this.hash !== '') {
-                e.preventDefault();
-                const hash = this.hash;
-                $('html, body').animate({
-                    scrollTop: $(hash).offset().top - 70
-                }, 800);
+
+        // Mobile Tabs Switcher - Exclusive visibility on mobile screens
+        function handleMobileStakingTabs() {
+            if ($(window).width() < 768) {
+                var activeTarget = $('.mobile-staking-tab-btn.active').data('target') || '#activeStakesSection';
+                $('.staking-content-section').addClass('d-none');
+                $(activeTarget).removeClass('d-none');
+            } else {
+                $('.staking-content-section').removeClass('d-none');
             }
-        });
-        
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        });
-        
-        // Add custom class to active cards
-        $('.staking-card').each(function() {
-            if ($(this).find('.badge-apy').text().replace('%', '') > 15) {
-                $(this).addClass('high-apy');
-            }
-        });
-        
-        // Enhanced mobile experience for active stakes
-        if (window.innerWidth <= 576) {
-            $('.active-stake-item').on('click', function() {
-                $(this).toggleClass('expanded');
-            });
         }
-        
-        // Animation for statistics
-        $('.widget-number').each(function() {
-            $(this).prop('Counter', 0).animate({
-                Counter: $(this).text().replace(/[^0-9.]/g, '')
-            }, {
-                duration: 2000,
-                easing: 'swing',
-                step: function(now) {
-                    // Only animate if it's a number
-                    if (!isNaN($(this).text().replace(/[^0-9.]/g, ''))) {
-                        let value = Math.ceil(now);
-                        let formatted = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                        
-                        // If original has decimal, keep it
-                        if ($(this).text().includes('.')) {
-                            const decimal = $(this).text().split('.')[1].replace(/[^0-9]/g, '');
-                            if (decimal) {
-                                formatted += '.' + decimal;
-                            }
-                        }
-                        
-                        // Add USDT or % if present in original
-                        if ($(this).text().includes('USDT')) {
-                            formatted += ' USDT';
-                        } else if ($(this).text().includes('%')) {
-                            formatted += '%';
-                        }
-                        
-                        $(this).text(formatted);
-                    }
-                }
-            });
+
+        handleMobileStakingTabs();
+        $(window).on('resize', handleMobileStakingTabs);
+
+        $('.mobile-staking-tab-btn').on('click', function() {
+            $('.mobile-staking-tab-btn').removeClass('active text-white').addClass('text-muted');
+            $(this).addClass('active text-white').removeClass('text-muted');
+
+            var target = $(this).data('target');
+            $('.staking-content-section').addClass('d-none');
+            $(target).removeClass('d-none');
         });
     })(jQuery);
 </script>

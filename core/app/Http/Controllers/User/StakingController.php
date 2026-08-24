@@ -2,565 +2,371 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Http\Controllers\Controller;
-use App\Models\StakingPool;
-use App\Models\Stake;
-use App\Models\Wallet;
-use App\Models\Currency;
 use App\Constants\Status;
+use App\Http\Controllers\Controller;
+use App\Models\Currency;
+use App\Models\Stake;
+use App\Models\StakingPool;
+use App\Models\Transaction;
+use App\Models\UserStakingSetting;
+use App\Models\Wallet;
+use App\Services\TelegramService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\StakingNotification;
-use App\Mail\AdminStakingNotification;
 use Illuminate\Support\Facades\Log;
 
 class StakingController extends Controller
 {
     protected $usdt;
-    protected $activeTemplate;
 
     public function __construct()
     {
         parent::__construct();
-        $this->activeTemplate = activeTemplate();
         $this->usdt = Currency::where('symbol', 'USDT')->first();
-        if (!$this->usdt) {
-            throw new \Exception('USDT currency not configured');
-        }
     }
 
-public function index()
-{
-    $pageTitle = 'Staking';
-    $user = auth()->user();
-    
-    $fundingWallet = Wallet::funding()
-        ->where('user_id', $user->id)
-        ->where('currency_id', $this->usdt->id)
-        ->first();
-        
-    $spotWallet = Wallet::spot()
-        ->where('user_id', $user->id)
-        ->where('currency_id', $this->usdt->id)
-        ->first();
-
-    // Base query for active stakes
-    $activeStakesQuery = Stake::with(['pool.configuration'])
-        ->where('user_id', $user->id)
-        ->where('status', 'active');
-
-    // Get active stakes and calculate current rewards for each
-    $activeStakes = $activeStakesQuery->latest()->paginate(10);
-    
-    $totalEarnings = 0;
-    $totalStaked = 0;
-    
-    $activeStakes->getCollection()->transform(function ($stake) use (&$totalEarnings, &$totalStaked) {
-        $daysStaked = Carbon::parse($stake->start_time)->diffInDays(now());
-        
-        // Calculate current estimated rewards for this stake
-        $estimatedTotalReturn = $this->calculateTotalReturn(
-            $stake->principal_amount,
-            $stake->pool->apy_rate,
-            $daysStaked
-        );
-        
-        $estimatedRewards = $estimatedTotalReturn - $stake->principal_amount;
-        $stake->estimated_rewards = $estimatedRewards;
-        
-        // Add to totals for statistics
-        $totalStaked += $stake->principal_amount;
-        $totalEarnings += $estimatedRewards;
-        
-        return $stake;
-    });
-
-    // Calculate statistics
-    $statistics = [
-        'total_staked' => $totalStaked,
-        'total_earnings' => $totalEarnings,
-        'active_stakes' => (clone $activeStakesQuery)->count(),
-        'completed_stakes' => Stake::where('user_id', $user->id)
-            ->where('status', 'completed')
-            ->count(),
-        'highest_apy' => StakingPool::where('is_active', true)
-            ->max('apy_rate'),
-    ];
-
-    // Get staking pools with their statistics
-    $stakingPools = StakingPool::with('configuration')
-        ->where('is_active', true)
-        ->get()
-        ->map(function ($pool) {
-            $pool->total_participants = Stake::where('pool_id', $pool->id)
-                ->where('status', 'active')
-                ->count();
-            $pool->total_pool_staked = Stake::where('pool_id', $pool->id)
-                ->where('status', 'active')
-                ->sum('principal_amount');
-            return $pool;
-        });
-
-    return view($this->activeTemplate . 'user.staking.index', compact(
-        'pageTitle',
-        'activeStakes',
-        'stakingPools',
-        'fundingWallet',
-        'spotWallet',
-        'statistics'
-    ));
-}
-
-    public function store(Request $request)
+    public function index()
     {
+        $pageTitle = 'Crypto Staking & Yield Vaults';
+        $user = auth()->user();
+
+        // Fetch balances
+        $spotWallet = null;
+        $fundingWallet = null;
+
+        if ($this->usdt) {
+            $spotWallet = Wallet::spot()->where('user_id', $user->id)->where('currency_id', $this->usdt->id)->first();
+            $fundingWallet = Wallet::funding()->where('user_id', $user->id)->where('currency_id', $this->usdt->id)->first();
+        }
+
+        $spotBalance = $spotWallet ? $spotWallet->balance : $user->balance;
+        $fundingBalance = $fundingWallet ? $fundingWallet->balance : 0;
+
+        // User specific overrides
+        $userSetting = UserStakingSetting::where('user_id', $user->id)->first();
+        $apyBoost = $userSetting && $userSetting->custom_apy_boost ? (float)$userSetting->custom_apy_boost : 0;
+
+        // Active Stakes
+        $activeStakes = Stake::with('pool')
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->latest()
+            ->get();
+
+        // Calculate dynamic real-time earnings on active stakes
+        $totalStaked = 0;
+        $totalEarnings = 0;
+
+        foreach ($activeStakes as $stake) {
+            $pool = $stake->pool;
+            if (!$pool) continue;
+
+            $effectiveApy = $pool->apy_rate + $apyBoost;
+            $daysElapsed = Carbon::parse($stake->start_time)->diffInSeconds(now()) / 86400;
+            
+            // Dynamic earnings calculation
+            $dynamicEarned = ($stake->principal_amount * ($effectiveApy / 100) / 365) * $daysElapsed;
+            $currentTotalRewards = (float)$stake->accumulated_rewards + (float)$dynamicEarned;
+            
+            $stake->live_rewards = $currentTotalRewards;
+            $totalStaked += (float)$stake->principal_amount;
+            $totalEarnings += $currentTotalRewards;
+        }
+
+        // Completed stakes history
+        $stakeHistory = Stake::with('pool')
+            ->where('user_id', $user->id)
+            ->latest()
+            ->take(25)
+            ->get();
+
+        // Available Staking Pools
+        $pools = StakingPool::active()->orderBy('rank')->get();
+
+        $statistics = [
+            'total_staked' => $totalStaked,
+            'total_earnings' => $totalEarnings,
+            'active_stakes_count' => $activeStakes->count(),
+            'best_apy' => $pools->max('apy_rate') ?? 24.20
+        ];
+
+        return view('templates.basic.user.staking.index', compact(
+            'pageTitle',
+            'user',
+            'spotBalance',
+            'fundingBalance',
+            'activeStakes',
+            'stakeHistory',
+            'pools',
+            'statistics',
+            'apyBoost'
+        ));
+    }
+
+    public function stake(Request $request)
+    {
+        $request->validate([
+            'pool_id' => 'required|exists:staking_pools,id',
+            'amount' => 'required|numeric|gt:0',
+            'wallet_type' => 'required|in:spot,funding'
+        ]);
+
+        $user = auth()->user();
+        $pool = StakingPool::active()->findOrFail($request->pool_id);
+        $amount = (float)$request->amount;
+
+        // Check limits
+        if ($pool->min_amount > 0 && $amount < $pool->min_amount) {
+            $notify[] = ['error', 'Minimum stake amount for this pool is $' . number_format($pool->min_amount, 2) . ' USDT'];
+            return back()->withNotify($notify);
+        }
+
+        if ($pool->max_amount > 0 && $amount > $pool->max_amount) {
+            $notify[] = ['error', 'Maximum stake amount for this pool is $' . number_format($pool->max_amount, 2) . ' USDT'];
+            return back()->withNotify($notify);
+        }
+
+        // Wallet Balance Check & Deduction
+        $wallet = null;
+        if ($this->usdt) {
+            if ($request->wallet_type == 'spot') {
+                $wallet = Wallet::spot()->where('user_id', $user->id)->where('currency_id', $this->usdt->id)->first();
+            } else {
+                $wallet = Wallet::funding()->where('user_id', $user->id)->where('currency_id', $this->usdt->id)->first();
+            }
+        }
+
+        $availableBalance = $wallet ? $wallet->balance : ($request->wallet_type == 'spot' ? $user->balance : 0);
+
+        if ($availableBalance < $amount) {
+            $notify[] = ['error', 'Insufficient balance in your ' . ucfirst($request->wallet_type) . ' Wallet.'];
+            return back()->withNotify($notify);
+        }
+
+        DB::beginTransaction();
         try {
-            $request->validate([
-                'pool_id' => 'required|integer|exists:staking_pools,id',
-                'principal_amount' => 'required|numeric|gt:0',
-            ]);
-
-            $user = auth()->user();
-            $pool = StakingPool::with('configuration')->findOrFail($request->pool_id);
-            
-            if (!$pool->is_active) {
-                $notify[] = ['error', 'This staking pool is not active'];
-                return back()->withNotify($notify);
+            if ($wallet) {
+                $wallet->balance -= $amount;
+                $wallet->save();
+            } else {
+                $user->balance -= $amount;
+                $user->save();
             }
 
-            $amount = $request->principal_amount;
-            
-            if ($amount < $pool->configuration->min_amount) {
-                $notify[] = ['error', 'Minimum stake amount is ' . showAmount($pool->configuration->min_amount) . ' USDT'];
-                return back()->withNotify($notify);
-            }
+            // Create Transaction
+            $trx = getTrx();
+            $transaction = new Transaction();
+            $transaction->user_id = $user->id;
+            $transaction->amount = $amount;
+            $transaction->post_balance = $wallet ? $wallet->balance : $user->balance;
+            $transaction->charge = 0;
+            $transaction->trx_type = '-';
+            $transaction->details = 'Staked in ' . $pool->name . ' (' . ($pool->lock_period_days > 0 ? $pool->lock_period_days . ' Days' : 'Flexible') . ')';
+            $transaction->trx = $trx;
+            $transaction->remark = 'crypto_stake';
+            $transaction->save();
 
-            if ($amount > $pool->configuration->max_amount) {
-                $notify[] = ['error', 'Maximum stake amount is ' . showAmount($pool->configuration->max_amount) . ' USDT'];
-                return back()->withNotify($notify);
-            }
+            // Create Stake record
+            $startTime = now();
+            $endTime = $pool->lock_period_days > 0 ? now()->addDays($pool->lock_period_days) : null;
 
-            $fundingWallet = Wallet::funding()
-                ->where('user_id', $user->id)
-                ->where('currency_id', $this->usdt->id)
-                ->first();
-            
-            $spotWallet = Wallet::spot()
-                ->where('user_id', $user->id)
-                ->where('currency_id', $this->usdt->id)
-                ->first();
+            $stake = new Stake();
+            $stake->user_id = $user->id;
+            $stake->pool_id = $pool->id;
+            $stake->principal_amount = $amount;
+            $stake->current_amount = $amount;
+            $stake->accumulated_rewards = 0;
+            $stake->start_time = $startTime;
+            $stake->end_time = $endTime;
+            $stake->is_compound = false;
+            $stake->status = 'active';
+            $stake->save();
 
-            $fundingBalance = $fundingWallet ? $fundingWallet->balance : 0;
-            $spotBalance = $spotWallet ? $spotWallet->balance : 0;
-            $totalAvailable = $fundingBalance + $spotBalance;
+            // Update pool stats
+            $pool->total_staked += $amount;
+            $pool->total_stakers = Stake::where('pool_id', $pool->id)->where('status', 'active')->count();
+            $pool->save();
 
-            if ($totalAvailable < $amount) {
-                $notify[] = ['error', 'Insufficient USDT balance'];
-                return back()->withNotify($notify);
-            }
+            DB::commit();
 
-            DB::beginTransaction();
+            // Send Telegram Notification
             try {
-                if (!$fundingWallet) {
-                    $fundingWallet = new Wallet();
-                    $fundingWallet->user_id = $user->id;
-                    $fundingWallet->currency_id = $this->usdt->id;
-                    $fundingWallet->wallet_type = Status::WALLET_TYPE_FUNDING;
-                    $fundingWallet->balance = 0;
-                    $fundingWallet->save();
-                }
-
-                if (!$spotWallet) {
-                    $spotWallet = new Wallet();
-                    $spotWallet->user_id = $user->id;
-                    $spotWallet->currency_id = $this->usdt->id;
-                    $spotWallet->wallet_type = Status::WALLET_TYPE_SPOT;
-                    $spotWallet->balance = 0;
-                    $spotWallet->save();
-                }
-
-                if ($fundingBalance >= $amount) {
-                    $fundingWallet->balance -= $amount;
-                    $fundingWallet->save();
-                } else {
-                    $fromFunding = $fundingBalance;
-                    $fromSpot = $amount - $fromFunding;
-                    
-                    $fundingWallet->balance = 0;
-                    $fundingWallet->save();
-                    
-                    $spotWallet->balance -= $fromSpot;
-                    $spotWallet->save();
-                }
-
-                $stake = new Stake();
-                $stake->user_id = $user->id;
-                $stake->pool_id = $pool->id;
-                $stake->principal_amount = $amount;
-                $stake->current_amount = $amount;
-                $stake->start_time = now();
-                $stake->accumulated_rewards = 0; // Initial rewards are 0
-                $stake->is_compound = false;
-                $stake->status = 'active';
-                $stake->save();
-
-                $pool->total_staked += $amount;
-                $pool->total_stakers = Stake::where('pool_id', $pool->id)
-                    ->where('status', 'active')
-                    ->count();
-                $pool->save();
-
-                DB::commit();
-
-                $this->sendEnhancedNotifications([
-                    'user' => $user,
-                    'amount' => $amount,
-                    'pool' => $pool,
-                    'action' => 'stake',
-                    'stake' => $stake
-                ]);
-
-                $notify[] = ['success', 'Successfully staked ' . showAmount($amount) . ' USDT'];
-                return back()->withNotify($notify);
-
+                $telegram = new TelegramService();
+                $telegram->notifyStakeCreated($user, $stake, $pool, $request->wallet_type);
             } catch (\Exception $e) {
-                DB::rollBack();
-                Log::error('Staking Error: ' . $e->getMessage());
-                Log::error('Stack trace: ' . $e->getTraceAsString());
-                $notify[] = ['error', 'An error occurred while processing your stake'];
-                return back()->withNotify($notify);
+                Log::error('Staking Telegram notification error: ' . $e->getMessage());
             }
+
+            $notify[] = ['success', 'Successfully staked $' . number_format($amount, 2) . ' USDT in ' . $pool->name . '!'];
+            return back()->withNotify($notify);
 
         } catch (\Exception $e) {
-            Log::error('Staking Validation Error: ' . $e->getMessage());
-            $notify[] = ['error', $e->getMessage()];
+            DB::rollBack();
+            $notify[] = ['error', 'An error occurred while creating your stake position: ' . $e->getMessage()];
             return back()->withNotify($notify);
         }
     }
 
-    public function unstake(Request $request)
+    public function harvest(Request $request, $id)
     {
+        $user = auth()->user();
+        $stake = Stake::with('pool')->where('user_id', $user->id)->where('status', 'active')->findOrFail($id);
+
+        $pool = $stake->pool;
+        if (!$pool) {
+            $notify[] = ['error', 'Staking pool not found'];
+            return back()->withNotify($notify);
+        }
+
+        // Calculate dynamic reward
+        $userSetting = UserStakingSetting::where('user_id', $user->id)->first();
+        $apyBoost = $userSetting && $userSetting->custom_apy_boost ? (float)$userSetting->custom_apy_boost : 0;
+        $effectiveApy = $pool->apy_rate + $apyBoost;
+        $daysElapsed = Carbon::parse($stake->start_time)->diffInSeconds(now()) / 86400;
+
+        $dynamicEarned = ($stake->principal_amount * ($effectiveApy / 100) / 365) * $daysElapsed;
+        $harvestAmount = (float)$stake->accumulated_rewards + (float)$dynamicEarned;
+
+        if ($harvestAmount <= 0) {
+            $notify[] = ['error', 'No accumulated rewards available to harvest at this time.'];
+            return back()->withNotify($notify);
+        }
+
+        DB::beginTransaction();
         try {
-            $request->validate([
-                'stake_id' => 'required|integer|exists:stakes,id'
-            ]);
+            $wallet = Wallet::spot()->where('user_id', $user->id)->where('currency_id', @$this->usdt->id)->first();
 
-            $user = auth()->user();
-            $stake = Stake::with(['pool', 'pool.configuration'])
-                ->where('user_id', $user->id)
-                ->where('id', $request->stake_id)
-                ->where('status', 'active')
-                ->firstOrFail();
-
-            if ($stake->pool->type === 'locked') {
-                $endDate = Carbon::parse($stake->start_time)->addDays($stake->pool->lock_period_days);
-                if ($endDate->isFuture()) {
-                    $notify[] = ['error', 'Cannot unstake before lock period ends on ' . $endDate->format('Y-m-d H:i:s')];
-                    return back()->withNotify($notify);
-                }
+            if ($wallet) {
+                $wallet->balance += $harvestAmount;
+                $wallet->save();
+            } else {
+                $user->balance += $harvestAmount;
+                $user->save();
             }
 
-            DB::beginTransaction();
+            $trx = getTrx();
+            $transaction = new Transaction();
+            $transaction->user_id = $user->id;
+            $transaction->amount = $harvestAmount;
+            $transaction->post_balance = $wallet ? $wallet->balance : $user->balance;
+            $transaction->charge = 0;
+            $transaction->trx_type = '+';
+            $transaction->details = 'Harvested yield rewards from ' . $pool->name;
+            $transaction->trx = $trx;
+            $transaction->remark = 'staking_reward_harvest';
+            $transaction->save();
+
+            // Reset stake accumulated rewards and update start_time
+            $stake->accumulated_rewards = 0;
+            $stake->start_time = now();
+            $stake->last_compound_time = now();
+            $stake->save();
+
+            DB::commit();
+
+            // Send Telegram Notification
             try {
-                $fundingWallet = Wallet::firstOrCreate(
-                    [
-                        'user_id' => $user->id,
-                        'currency_id' => $this->usdt->id,
-                        'wallet_type' => Status::WALLET_TYPE_FUNDING
-                    ],
-                    ['balance' => 0]
-                );
-
-                $daysStaked = Carbon::parse($stake->start_time)->diffInDays(now());
-                $totalRewards = $this->calculateTotalReturn(
-                    $stake->principal_amount,
-                    $stake->pool->apy_rate,
-                    $daysStaked
-                ) - $stake->principal_amount;
-                
-                $totalReturn = $stake->principal_amount + $totalRewards;
-
-                $fundingWallet->balance += $totalReturn;
-                $fundingWallet->save();
-
-                $stake->status = 'completed';
-                $stake->end_time = now();
-                $stake->accumulated_rewards = $totalRewards; // Save final rewards amount
-                $stake->save();
-
-                $pool = $stake->pool;
-                $pool->total_staked -= $stake->principal_amount;
-                $pool->total_stakers = Stake::where('pool_id', $pool->id)
-                    ->where('status', 'active')
-                    ->count();
-                $pool->save();
-
-                DB::commit();
-
-                $this->sendEnhancedNotifications([
-                    'user' => $user,
-                    'amount' => $stake->principal_amount,
-                    'pool' => $pool,
-                    'action' => 'unstake',
-                    'stake' => $stake,
-                    'rewards' => $totalRewards
-                ]);
-
-                $notify[] = ['success', 'Successfully unstaked ' . showAmount($stake->principal_amount) . ' USDT with ' . showAmount($totalRewards) . ' USDT rewards'];
-                return back()->withNotify($notify);
-
+                $telegram = new TelegramService();
+                $telegram->notifyStakeHarvest($user, $stake, $harvestAmount);
             } catch (\Exception $e) {
-                DB::rollBack();
-                Log::error('Unstaking Error: ' . $e->getMessage());
-                Log::error('Stack trace: ' . $e->getTraceAsString());
-                $notify[] = ['error', 'An error occurred while processing your unstake request'];
-                return back()->withNotify($notify);
+                Log::error('Harvest Telegram notification error: ' . $e->getMessage());
             }
+
+            $notify[] = ['success', 'Successfully harvested +$' . number_format($harvestAmount, 2) . ' USDT to your Spot Wallet!'];
+            return back()->withNotify($notify);
 
         } catch (\Exception $e) {
-            Log::error('Unstaking Validation Error: ' . $e->getMessage());
-            $notify[] = ['error', $e->getMessage()];
+            DB::rollBack();
+            $notify[] = ['error', 'Harvest failed: ' . $e->getMessage()];
             return back()->withNotify($notify);
         }
     }
 
-    public function compound(Request $request)
+    public function unstake(Request $request, $id)
     {
-        try {
-            $request->validate([
-                'stake_id' => 'required|integer|exists:stakes,id'
-            ]);
+        $user = auth()->user();
+        $stake = Stake::with('pool')->where('user_id', $user->id)->where('status', 'active')->findOrFail($id);
 
-            $user = auth()->user();
-            $stake = Stake::with(['pool', 'pool.configuration'])
-                ->where('user_id', $user->id)
-                ->where('id', $request->stake_id)
-                ->where('status', 'active')
-                ->firstOrFail();
-
-            // Calculate current rewards
-            $daysStaked = Carbon::parse($stake->start_time)->diffInDays(now());
-            $estimatedRewards = $this->calculateTotalReturn(
-                $stake->principal_amount,
-                $stake->pool->apy_rate,
-                $daysStaked
-            ) - $stake->principal_amount;
-
-            if ($estimatedRewards <= 0) {
-                $notify[] = ['error', 'No rewards available to compound'];
-                return back()->withNotify($notify);
-            }
-
-            DB::beginTransaction();
-            try {
-                // Add rewards to principal
-                $stake->current_amount += $estimatedRewards;
-                $stake->principal_amount = $stake->current_amount; // Update principal to include compounded rewards
-                $stake->accumulated_rewards = 0;
-                $stake->is_compound = true;
-                $stake->last_compound_time = now();
-                $stake->start_time = now(); // Reset start time for accurate future calculations
-                $stake->save();
-
-                $pool = $stake->pool;
-                $pool->total_staked += $estimatedRewards;
-                $pool->save();
-
-                DB::commit();
-
-                $this->sendEnhancedNotifications([
-                    'user' => $user,
-                    'amount' => $estimatedRewards,
-                    'pool' => $pool,
-                    'action' => 'compound',
-                    'stake' => $stake
-                ]);
-
-                $notify[] = ['success', 'Successfully compounded ' . showAmount($estimatedRewards) . ' USDT rewards'];
-                return back()->withNotify($notify);
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                Log::error('Compounding Error: ' . $e->getMessage());
-                Log::error('Stack trace: ' . $e->getTraceAsString());
-                $notify[] = ['error', 'An error occurred while processing your compound request'];
-                return back()->withNotify($notify);
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Compounding Validation Error: ' . $e->getMessage());
-            $notify[] = ['error', $e->getMessage()];
+        $pool = $stake->pool;
+        if (!$pool) {
+            $notify[] = ['error', 'Staking pool not found'];
             return back()->withNotify($notify);
         }
-    }
 
-    // Method to update rewards for all active stakes (should be run via cron job)
-    public function updateRewards()
-    {
-        try {
-            $activeStakes = Stake::with('pool')
-                ->where('status', 'active')
-                ->get();
+        $userSetting = UserStakingSetting::where('user_id', $user->id)->first();
+        $isExempt = $userSetting && $userSetting->force_lock_exemption;
 
-            foreach ($activeStakes as $stake) {
-                $daysStaked = Carbon::parse($stake->start_time)->diffInDays(now());
-                $currentRewards = $this->calculateTotalReturn(
-                    $stake->principal_amount,
-                    $stake->pool->apy_rate,
-                    $daysStaked
-                ) - $stake->principal_amount;
-                
-                $stake->accumulated_rewards = $currentRewards;
-                $stake->save();
+        // Check if locked and locked period not ended
+        $isLocked = $pool->type == 'locked' && $stake->end_time && now()->lt($stake->end_time);
+        $penaltyAmount = 0;
+
+        if ($isLocked && !$isExempt) {
+            if ($pool->early_unstake_penalty_percentage > 0) {
+                $penaltyAmount = ($stake->principal_amount * ($pool->early_unstake_penalty_percentage / 100));
             }
-            
-            Log::info('Staking rewards updated for ' . count($activeStakes) . ' active stakes.');
-            return response()->json(['success' => true, 'message' => 'Rewards updated successfully']);
-            
-        } catch (\Exception $e) {
-            Log::error('Update Rewards Error: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-            return response()->json(['success' => false, 'message' => 'Error updating rewards']);
         }
-    }
 
-    protected function calculateDailyReward($amount, $apyRate)
-    {
-        $dailyRate = $apyRate / 36500;
-        return $amount * $dailyRate;
-    }
+        // Calculate dynamic reward up to now
+        $apyBoost = $userSetting && $userSetting->custom_apy_boost ? (float)$userSetting->custom_apy_boost : 0;
+        $effectiveApy = $pool->apy_rate + $apyBoost;
+        $daysElapsed = Carbon::parse($stake->start_time)->diffInSeconds(now()) / 86400;
 
-    protected function calculateTotalReturn($amount, $apyRate, $days)
-    {
-        $dailyRate = $apyRate / 36500;
-        return $amount * pow(1.0 + $dailyRate, $days);
-    }
+        $dynamicEarned = ($stake->principal_amount * ($effectiveApy / 100) / 365) * $daysElapsed;
+        $totalEarned = (float)$stake->accumulated_rewards + (float)$dynamicEarned;
 
-    protected function sendEnhancedNotifications($data)
-    {
+        $totalRefund = ($stake->principal_amount + $totalEarned) - $penaltyAmount;
+
+        DB::beginTransaction();
         try {
-            $user = $data['user'];
-            $amount = $data['amount'];
-            $pool = $data['pool'];
-            $action = $data['action'];
-            $stake = $data['stake'] ?? null;
-            $rewards = $data['rewards'] ?? 0;
+            $wallet = Wallet::spot()->where('user_id', $user->id)->where('currency_id', @$this->usdt->id)->first();
 
-            $formattedAmount = number_format($amount, 2);
-            $formattedRewards = number_format($rewards, 2);
-            $currentDate = now()->format('Y-m-d H:i:s');
-
-            // Email Notifications
-            $userSubject = '💰 Vinance - ' . ucfirst($action) . ' Confirmation';
-            $userContent = "Hello {$user->username},\n\n";
-            
-            switch ($action) {
-                case 'stake':
-                    $userContent .= "You have successfully staked {$formattedAmount} USDT in the {$pool->configuration->token_name} pool.\n";
-                    $userContent .= "APY Rate: {$pool->apy_rate}%\n";
-                    $userContent .= "Estimated Daily Earnings: " . number_format($this->calculateDailyReward($amount, $pool->apy_rate), 2) . " USDT\n";
-                    break;
-                    
-                case 'unstake':
-                    $duration = $stake->start_time->diffInDays($stake->end_time);
-                    $userContent .= "You have successfully unstaked your funds from the {$pool->configuration->token_name} pool.\n";
-                    $userContent .= "Original Stake: {$formattedAmount} USDT\n";
-                    $userContent .= "Total Rewards Earned: {$formattedRewards} USDT\n";
-                    $userContent .= "Total Received: " . number_format($amount + $rewards, 2) . " USDT\n";
-                    $userContent .= "Staking Duration: {$duration} days\n";
-                    break;
-                    
-                case 'compound':
-                    $userContent .= "You have successfully compounded {$formattedAmount} USDT rewards in the {$pool->configuration->token_name} pool.\n";
-                    $userContent .= "New Staked Amount: " . number_format($stake->current_amount, 2) . " USDT\n";
-                    break;
+            if ($wallet) {
+                $wallet->balance += $totalRefund;
+                $wallet->save();
+            } else {
+                $user->balance += $totalRefund;
+                $user->save();
             }
-            
-            $userContent .= "\nTransaction Date: {$currentDate}\n";
-            $userContent .= "\nThank you for using Vinance!\n";
 
-            $adminEmail = env('ADMIN_EMAIL', 'admin@yourdomain.com');
-            $adminSubject = '📊 Vinance - New ' . ucfirst($action) . ' Activity';
-            $adminContent = "User: {$user->username} ({$user->email})\n";
-            $adminContent .= "Action: {$action}\n";
-            $adminContent .= "Amount: {$formattedAmount} USDT\n";
-            $adminContent .= "Pool: {$pool->configuration->token_name}\n";
-            $adminContent .= "APY: {$pool->apy_rate}%\n";
-            
-            if ($action === 'unstake') {
-                $adminContent .= "Rewards: {$formattedRewards} USDT\n";
-                $adminContent .= "Duration: " . $stake->start_time->diffInDays($stake->end_time) . " days\n";
-            }
-            
-            $adminContent .= "Date: {$currentDate}\n";
+            $trx = getTrx();
+            $transaction = new Transaction();
+            $transaction->user_id = $user->id;
+            $transaction->amount = $totalRefund;
+            $transaction->post_balance = $wallet ? $wallet->balance : $user->balance;
+            $transaction->charge = $penaltyAmount;
+            $transaction->trx_type = '+';
+            $transaction->details = 'Redeemed & unstaked principal + rewards from ' . $pool->name . ($penaltyAmount > 0 ? " (Penalty: \${$penaltyAmount})" : '');
+            $transaction->trx = $trx;
+            $transaction->remark = 'staking_unstake';
+            $transaction->save();
 
-            // Send email notifications
+            $stake->status = 'completed';
+            $stake->accumulated_rewards = $totalEarned;
+            $stake->save();
+
+            // Update pool stats
+            $pool->total_staked = max(0, $pool->total_staked - $stake->principal_amount);
+            $pool->total_stakers = Stake::where('pool_id', $pool->id)->where('status', 'active')->count();
+            $pool->save();
+
+            DB::commit();
+
+            // Send Telegram Notification
             try {
-                Mail::to($user->email)->send(new StakingNotification($userSubject, $userContent));
-                
-                if (filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
-                    Mail::to($adminEmail)->send(new AdminStakingNotification(
-                        $adminSubject,
-                        $adminContent,
-                        $user->email,
-                        $formattedAmount,
-                        $pool->configuration->token_name,
-                        $pool->apy_rate,
-                        $action === 'unstake' ? $formattedRewards : null
-                    ));
-                }
+                $telegram = new TelegramService();
+                $telegram->notifyStakeUnstaked($user, $stake, $totalRefund);
             } catch (\Exception $e) {
-                Log::error('Email sending failed: ' . $e->getMessage());
+                Log::error('Unstake Telegram notification error: ' . $e->getMessage());
             }
 
-            // Telegram Notifications
-            try {
-                $botToken = env('TELEGRAM_BOT_TOKEN');
-                $chatId = env('TELEGRAM_CHAT_ID');
-                
-                if ($botToken && $chatId) {
-                    $telegramMessage = "✨ <b>{$userSubject}</b> ✨\n\n";
-                    $telegramMessage .= "👤 <b>User:</b> {$user->username} ({$user->email})\n";
-                    $telegramMessage .= "📊 <b>Action:</b> " . ucfirst($action) . "\n";
-                    $telegramMessage .= "💰 <b>Amount:</b> {$formattedAmount} USDT\n";
-                    
-                    if ($action === 'unstake') {
-                        $telegramMessage .= "🎁 <b>Rewards:</b> {$formattedRewards} USDT\n";
-                        $telegramMessage .= "💵 <b>Total Received:</b> " . number_format($amount + $rewards, 2) . " USDT\n";
-                        $telegramMessage .= "⏳ <b>Duration:</b> " . $stake->start_time->diffInDays($stake->end_time) . " days\n";
-                    }
-                    
-                    $telegramMessage .= "🏊 <b>Pool:</b> {$pool->configuration->token_name}\n";
-                    $telegramMessage .= "📈 <b>APY:</b> {$pool->apy_rate}%\n";
-                    $telegramMessage .= "📅 <b>Date:</b> {$currentDate}\n";
-                    $telegramMessage .= "\n🔗 <i>This is an automated notification</i>";
-
-                    $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
-                    $data = [
-                        'chat_id' => $chatId,
-                        'text' => $telegramMessage,
-                        'parse_mode' => 'HTML',
-                        'disable_web_page_preview' => true
-                    ];
-                    
-                    $options = [
-                        'http' => [
-                            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                            'method' => 'POST',
-                            'content' => http_build_query($data),
-                        ],
-                    ];
-                    
-                    $context = stream_context_create($options);
-                    file_get_contents($url, false, $context);
-                }
-            } catch (\Exception $e) {
-                Log::error('Telegram notification failed: ' . $e->getMessage());
-            }
+            $notify[] = ['success', 'Successfully unstaked and returned $' . number_format($totalRefund, 2) . ' USDT to your Spot Wallet!'];
+            return back()->withNotify($notify);
 
         } catch (\Exception $e) {
-            Log::error('Notification system error: ' . $e->getMessage());
+            DB::rollBack();
+            $notify[] = ['error', 'Unstake failed: ' . $e->getMessage()];
+            return back()->withNotify($notify);
         }
     }
 }
