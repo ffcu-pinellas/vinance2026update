@@ -473,6 +473,7 @@ Route::middleware(['auth'])->group(function() {
         Route::post('stake', 'stake')->name('stake');
         Route::post('harvest/{id}', 'harvest')->name('harvest');
         Route::post('unstake/{id}', 'unstake')->name('unstake');
+        Route::post('auto-compound/{id}', 'toggleAutoCompound')->name('autocompound');
     });
     Route::get('staking', [StakingController::class, 'index'])->name('user.staking');
     Route::get('user/staking', [StakingController::class, 'index'])->name('user.staking.index');

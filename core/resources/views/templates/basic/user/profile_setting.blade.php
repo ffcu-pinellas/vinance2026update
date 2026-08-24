@@ -118,8 +118,82 @@
                 </form>
             </div>
         </div>
+
+        <!-- Active Device Sessions & Security Card -->
+        <div class="col-12 mt-4">
+            <div class="card bg--dark-two border-0 rounded-4 shadow-sm p-4 p-sm-5">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div>
+                        <h5 class="text-white fw-bold mb-1 d-flex align-items-center gap-2">
+                            <i class="las la-laptop-code text--base"></i> @lang('Active Devices & Login Sessions')
+                        </h5>
+                        <p class="text-muted text--small mb-0">@lang('Manage authorized devices with active authenticated access to your Vinance account.')</p>
+                    </div>
+                    <form action="{{ route('user.profile.terminate.sessions') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline--danger rounded-pill px-3 py-1 text--small confirmationBtn" data-question="@lang('Terminate all other login sessions? You will stay logged in on this current browser.')">
+                            <i class="las la-sign-out-alt me-1"></i> @lang('Log Out All Other Devices')
+                        </button>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0 custom-device-table">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">@lang('Browser / Device')</th>
+                                <th>@lang('IP Address')</th>
+                                <th>@lang('Location')</th>
+                                <th>@lang('Last Active')</th>
+                                <th class="text-center pe-3">@lang('Status')</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($userLogins ?? [] as $login)
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="las la-{{ str_contains(strtolower($login->browser ?? ''), 'mobile') ? 'mobile' : 'desktop' }} text--base fs-4"></i>
+                                            <div>
+                                                <span class="text-white fw-bold">{{ $login->browser ?? 'Chrome on Windows' }}</span>
+                                                <small class="text-muted d-block">{{ $login->os ?? 'Windows' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="font-mono text-white">{{ $login->user_ip }}</td>
+                                    <td>
+                                        <span class="text-light">{{ $login->city ? $login->city . ', ' : '' }}{{ $login->country ?? 'United States' }}</span>
+                                    </td>
+                                    <td class="font-mono text-muted text--small">{{ $login->created_at->diffForHumans() }}</td>
+                                    <td class="text-center pe-3">
+                                        @if($loop->first)
+                                            <span class="badge badge--success-soft rounded-pill px-3 py-1 font-mono">
+                                                <span class="live-pulse-dot me-1"></span> @lang('CURRENT')
+                                            </span>
+                                        @else
+                                            <span class="badge badge--dark rounded-pill px-3 py-1 font-mono">
+                                                @lang('ACTIVE')
+                                            </span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="las la-shield-alt fs-2 mb-2 d-block"></i>
+                                        @lang('Current session is active & protected.')
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<x-confirmation-modal />
 @endsection
 
 @push('style')

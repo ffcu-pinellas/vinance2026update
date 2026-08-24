@@ -177,6 +177,13 @@
                                         <small class="text-muted text-uppercase d-block">@lang('Maturity Date')</small>
                                         <span class="text-muted font-mono">{{ $stake->end_time ? $stake->end_time->format('M d, Y') : 'Anytime' }}</span>
                                     </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3 bg--dark-three px-3 py-2 rounded-3 border border-dark">
+                                    <span class="text--small text-muted d-flex align-items-center gap-1">
+                                        <i class="las la-sync text--info"></i> @lang('Auto-Compound (Restake Daily)')
+                                    </span>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input autocompound-toggle" type="checkbox" role="switch" data-id="{{ $stake->id }}" {{ $stake->is_compound ? 'checked' : '' }} style="cursor: pointer;">
+                                    </div>
                                 </div>
 
                                 <div class="d-flex gap-2">
@@ -714,6 +721,34 @@
                 $('#estTotalYield').text('+$0.00');
             }
         }
+
+        // Auto-Compound AJAX Toggle
+        $('.autocompound-toggle').on('change', function() {
+            var stakeId = $(this).data('id');
+            var isChecked = $(this).is(':checked');
+            var that = $(this);
+
+            $.ajax({
+                url: "{{ url('user/staking/auto-compound') }}/" + stakeId,
+                type: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function(res) {
+                    if (res.success) {
+                        notify('success', res.message);
+                        if (window.playVinanceSound) window.playVinanceSound('harvest');
+                    } else {
+                        that.prop('checked', !isChecked);
+                        notify('error', 'Unable to toggle auto-compound.');
+                    }
+                },
+                error: function() {
+                    that.prop('checked', !isChecked);
+                    notify('error', 'Network connection error.');
+                }
+            });
+        });
 
         // Mobile Tabs Switcher - Exclusive visibility on mobile screens
         function handleMobileStakingTabs() {

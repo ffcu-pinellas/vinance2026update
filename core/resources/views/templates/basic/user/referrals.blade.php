@@ -143,11 +143,80 @@
                             <h6 class="text-white mb-0 fw-bold">Level {{ $tier->level }} Rebate</h6>
                         </div>
                         <h4 class="text--success fw-bold mb-0 font-mono">{{ $tier->percent }}%</h4>
+    <!-- REFERRAL REWARD MILESTONE BADGES & PROGRESSION -->
+    <div class="card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom border-dark py-3 px-3 px-sm-4">
+            <h5 class="text-white mb-0 d-flex align-items-center gap-2">
+                <i class="las la-award text--warning"></i> @lang('Affiliate Milestone Rewards & Badges')
+            </h5>
+        </div>
+        <div class="card-body p-3 p-sm-4">
+            <div class="row g-3">
+                <!-- Milestone 1 -->
+                <div class="col-md-4">
+                    <div class="bg--dark-three p-3 rounded-4 border {{ $totalDirect >= 5 ? 'border-warning' : 'border-dark' }} h-100 position-relative">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge {{ $totalDirect >= 5 ? 'badge--warning' : 'badge--dark' }} rounded-pill px-3 py-1 font-mono">
+                                🥉 BRONZE
+                            </span>
+                            @if($totalDirect >= 5)
+                                <span class="badge badge--success-soft rounded-pill px-2"><i class="las la-check"></i> UNLOCKED</span>
+                            @else
+                                <span class="text-muted text--small font-mono">{{ $totalDirect }}/5</span>
+                            @endif
+                        </div>
+                        <h6 class="text-white fw-bold mb-1">5 Direct Referees</h6>
+                        <p class="text-muted text--small mb-2">+1.0% Lifetime Commission Booster</p>
+                        <div class="progress bg-dark" style="height: 6px;">
+                            <div class="progress-bar bg--warning" style="width: {{ min(100, ($totalDirect / 5) * 100) }}%;"></div>
+                        </div>
                     </div>
                 </div>
-            @endforeach
+
+                <!-- Milestone 2 -->
+                <div class="col-md-4">
+                    <div class="bg--dark-three p-3 rounded-4 border {{ $totalDirect >= 25 ? 'border-info' : 'border-dark' }} h-100 position-relative">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge {{ $totalDirect >= 25 ? 'badge--info' : 'badge--dark' }} rounded-pill px-3 py-1 font-mono">
+                                🥈 SILVER ELITE
+                            </span>
+                            @if($totalDirect >= 25)
+                                <span class="badge badge--success-soft rounded-pill px-2"><i class="las la-check"></i> UNLOCKED</span>
+                            @else
+                                <span class="text-muted text--small font-mono">{{ $totalDirect }}/25</span>
+                            @endif
+                        </div>
+                        <h6 class="text-white fw-bold mb-1">25 Direct Referees</h6>
+                        <p class="text-muted text--small mb-2">+2.5% Booster & Telegram Alerts</p>
+                        <div class="progress bg-dark" style="height: 6px;">
+                            <div class="progress-bar bg--info" style="width: {{ min(100, ($totalDirect / 25) * 100) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Milestone 3 -->
+                <div class="col-md-4">
+                    <div class="bg--dark-three p-3 rounded-4 border {{ $totalDirect >= 100 ? 'border-success' : 'border-dark' }} h-100 position-relative">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge {{ $totalDirect >= 100 ? 'badge--success' : 'badge--dark' }} rounded-pill px-3 py-1 font-mono">
+                                🥇 GOLD PARTNER
+                            </span>
+                            @if($totalDirect >= 100)
+                                <span class="badge badge--success-soft rounded-pill px-2"><i class="las la-check"></i> UNLOCKED</span>
+                            @else
+                                <span class="text-muted text--small font-mono">{{ $totalDirect }}/100</span>
+                            @endif
+                        </div>
+                        <h6 class="text-white fw-bold mb-1">100 Direct Referees</h6>
+                        <p class="text-muted text--small mb-2">+5.0% Booster & VIP Manager</p>
+                        <div class="progress bg-dark" style="height: 6px;">
+                            <div class="progress-bar bg--success" style="width: {{ min(100, ($totalDirect / 100) * 100) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    @endif
+    </div>
 
     <div class="row g-4">
         <!-- Direct Referees List -->

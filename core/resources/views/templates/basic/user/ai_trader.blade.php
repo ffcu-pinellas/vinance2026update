@@ -119,6 +119,171 @@
         </div>
     </div>
 
+    <!-- CUMULATIVE ROI & EQUITY CURVE ANALYTICS (Interactive Canvas Chart) -->
+    <div class="card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4 flex-wrap gap-2">
+            <div>
+                <h5 class="text-white mb-0 d-flex align-items-center gap-2">
+                    <i class="las la-chart-area text--base"></i> @lang('Bot Performance & Cumulative Equity Curve')
+                </h5>
+                <small class="text-muted">@lang('Simulated high-frequency algorithmic yield projection & historical returns')</small>
+            </div>
+            <div class="d-flex gap-1 bg--dark-three p-1 rounded-pill border border-dark">
+                <button type="button" class="btn btn-sm text-white rounded-pill px-3 py-1 chart-range-btn active" data-range="7d">7D</button>
+                <button type="button" class="btn btn-sm text-muted rounded-pill px-3 py-1 chart-range-btn" data-range="30d">30D</button>
+                <button type="button" class="btn btn-sm text-muted rounded-pill px-3 py-1 chart-range-btn" data-range="all">ALL</button>
+            </div>
+        </div>
+        <div class="card-body p-3 p-sm-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <span class="text-muted text--small text-uppercase">@lang('Cumulative Alpha Generated')</span>
+                    <h3 class="text--success fw-bold font-mono mb-0" id="chartCumulativeReturn">+142.85%</h3>
+                </div>
+                <div class="text-end">
+                    <span class="text-muted text--small text-uppercase">@lang('Sharpe Ratio')</span>
+                    <h4 class="text-white fw-bold font-mono mb-0">3.48 <small class="text--success fs-6">(Institutional Grade)</small></h4>
+                </div>
+            </div>
+            <div class="chart-canvas-container position-relative" style="height: 220px; width: 100%;">
+                <canvas id="aiEquityChart" style="width: 100%; height: 100%;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- INSTITUTIONAL COPY TRADING LEADERBOARD -->
+    <div class="card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
+            <div>
+                <h5 class="text-white mb-0 d-flex align-items-center gap-2">
+                    <i class="las la-trophy text--warning"></i> @lang('Institutional Copy Trading Leaderboard')
+                </h5>
+                <small class="text-muted">@lang('1-Click copy verified institutional algorithmic strategies calibrated for maximum alpha')</small>
+            </div>
+            <span class="badge badge--success-soft rounded-pill px-3 py-1 font-mono">
+                <span class="live-pulse-dot me-1"></span> 5 Top Performers
+            </span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0 custom-trades-table">
+                    <thead>
+                        <tr>
+                            <th class="ps-3 ps-sm-4">@lang('Strategy & Profile')</th>
+                            <th>@lang('Type')</th>
+                            <th class="text-end">@lang('30D Return')</th>
+                            <th class="text-end">@lang('Win Rate')</th>
+                            <th class="text-center">@lang('Risk Level')</th>
+                            <th class="text-end pe-3 pe-sm-4">@lang('Action')</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-3 ps-sm-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="institution-avatar-badge bg-primary-soft text--base fw-bold font-mono">JS</div>
+                                    <div>
+                                        <span class="text-white fw-bold d-block">Jane Street Quant Arbitrage</span>
+                                        <small class="text-muted">Sub-millisecond Cross-DEX Arbitrage</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge--dark text-uppercase font-mono">ARBITRAGE</span></td>
+                            <td class="text-end font-mono text--success fw-bold">+142.8%</td>
+                            <td class="text-end font-mono text-white">94.2%</td>
+                            <td class="text-center"><span class="badge badge--success-soft rounded-pill px-2">Ultra-Low</span></td>
+                            <td class="text-end pe-3 pe-sm-4">
+                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
+                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3 ps-sm-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="institution-avatar-badge bg-success-soft text--success fw-bold font-mono">CT</div>
+                                    <div>
+                                        <span class="text-white fw-bold d-block">Citadel High-Frequency Alpha</span>
+                                        <small class="text-muted">Order Flow Depth Liquidity Harvester</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge--dark text-uppercase font-mono">HIGH FREQUENCY</span></td>
+                            <td class="text-end font-mono text--success fw-bold">+218.4%</td>
+                            <td class="text-end font-mono text-white">91.8%</td>
+                            <td class="text-center"><span class="badge badge--warning-soft rounded-pill px-2">Moderate</span></td>
+                            <td class="text-end pe-3 pe-sm-4">
+                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
+                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3 ps-sm-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="institution-avatar-badge bg-info-soft text--info fw-bold font-mono">JC</div>
+                                    <div>
+                                        <span class="text-white fw-bold d-block">Jump Crypto Delta Neutral</span>
+                                        <small class="text-muted">Funding Rate & Basis Hedging Engine</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge--dark text-uppercase font-mono">DELTA NEUTRAL</span></td>
+                            <td class="text-end font-mono text--success fw-bold">+89.6%</td>
+                            <td class="text-end font-mono text-white">98.1%</td>
+                            <td class="text-center"><span class="badge badge--success-soft rounded-pill px-2">Ultra-Low</span></td>
+                            <td class="text-end pe-3 pe-sm-4">
+                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
+                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3 ps-sm-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="institution-avatar-badge bg-warning-soft text--warning fw-bold font-mono">WM</div>
+                                    <div>
+                                        <span class="text-white fw-bold d-block">Wintermute Market Maker</span>
+                                        <small class="text-muted">Automated Multi-Exchange Spread Capture</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge--dark text-uppercase font-mono">MARKET MAKING</span></td>
+                            <td class="text-end font-mono text--success fw-bold">+165.2%</td>
+                            <td class="text-end font-mono text-white">93.4%</td>
+                            <td class="text-center"><span class="badge badge--info-soft rounded-pill px-2">Low-Med</span></td>
+                            <td class="text-end pe-3 pe-sm-4">
+                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
+                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3 ps-sm-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="institution-avatar-badge bg-primary-soft text--base fw-bold font-mono">TS</div>
+                                    <div>
+                                        <span class="text-white fw-bold d-block">Two Sigma Quant Momentum</span>
+                                        <small class="text-muted">Machine Learning Multi-Factor Trend</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge--dark text-uppercase font-mono">QUANT MOMENTUM</span></td>
+                            <td class="text-end font-mono text--success fw-bold">+312.5%</td>
+                            <td class="text-end font-mono text-white">88.6%</td>
+                            <td class="text-center"><span class="badge badge--danger-soft rounded-pill px-2">High Alpha</span></td>
+                            <td class="text-end pe-3 pe-sm-4">
+                                <button type="button" class="btn btn-sm btn--base rounded-pill px-3 openMarketplaceBtn">
+                                    <i class="las la-copy me-1"></i> @lang('Copy Strategy')
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Active Bots Section -->
     <div id="activeBotsSection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
         <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
@@ -530,6 +695,29 @@
                         </div>
                     </div>
 
+                    <!-- Dynamic Institutional Risk Controls (Sliders) -->
+                    <div class="bg--dark-three p-3 rounded-3 mb-3 border border-dark">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-white text--small fw-bold d-flex align-items-center gap-1">
+                                <i class="las la-shield-alt text--info"></i> @lang('Trailing Stop-Loss')
+                            </span>
+                            <span class="text--info font-mono fw-bold" id="trailingStopValue">2.0%</span>
+                        </div>
+                        <input type="range" class="form-range custom-range" name="trailing_stop_loss" id="trailingStopRange" min="0.5" max="10.0" step="0.5" value="2.0">
+                        <small class="text-muted d-block">@lang('Dynamic risk ratchet automatically locks in profits as market advances.')</small>
+                    </div>
+
+                    <div class="bg--dark-three p-3 rounded-3 mb-3 border border-dark">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-white text--small fw-bold d-flex align-items-center gap-1">
+                                <i class="las la-crosshairs text--success"></i> @lang('Take-Profit Target')
+                            </span>
+                            <span class="text--success font-mono fw-bold" id="takeProfitValue">5.0%</span>
+                        </div>
+                        <input type="range" class="form-range custom-range" name="take_profit_target" id="takeProfitRange" min="1.5" max="25.0" step="0.5" value="5.0">
+                        <small class="text-muted d-block">@lang('Auto-executes profit harvest on price target clearance.')</small>
+                    </div>
+
                     <!-- Projected Return -->
                     <div class="d-flex justify-content-between text--small bg--dark-three p-3 rounded-3 mb-2">
                         <span class="text-muted">@lang('Est. Daily'):</span>
@@ -724,6 +912,132 @@
         var selectedPlanMin = 0;
         var selectedPlanMax = 0;
         var selectedRoiMin = 0;
+
+        // Sliders live text update
+        $('#trailingStopRange').on('input', function() {
+            $('#trailingStopValue').text($(this).val() + '%');
+        });
+        $('#takeProfitRange').on('input', function() {
+            $('#takeProfitValue').text($(this).val() + '%');
+        });
+
+        // Equity Curve Canvas Line Chart Renderer
+        var chartDataMap = {
+            '7d': {
+                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                data: [100, 104.8, 109.5, 115.2, 122.4, 131.0, 142.85],
+                total: '+42.85%'
+            },
+            '30d': {
+                labels: ['W1', 'W2', 'W3', 'W4'],
+                data: [100, 128.4, 168.2, 242.85],
+                total: '+142.85%'
+            },
+            'all': {
+                labels: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'],
+                data: [100, 185.0, 290.4, 420.8, 580.2, 792.5],
+                total: '+692.50%'
+            }
+        };
+
+        function drawEquityChart(rangeKey) {
+            var canvas = document.getElementById('aiEquityChart');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var dpr = window.devicePixelRatio || 1;
+            var rect = canvas.getBoundingClientRect();
+            if (rect.width <= 0) return;
+
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            var w = rect.width;
+            var h = rect.height;
+            var dataObj = chartDataMap[rangeKey] || chartDataMap['7d'];
+            var points = dataObj.data;
+            var minVal = Math.min.apply(null, points) * 0.95;
+            var maxVal = Math.max.apply(null, points) * 1.05;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Background subtle grid lines
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            for (var i = 1; i <= 4; i++) {
+                var y = (h / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+
+            var coords = [];
+            var stepX = w / (points.length - 1);
+            for (var i = 0; i < points.length; i++) {
+                var x = i * stepX;
+                var normalizedY = (points[i] - minVal) / (maxVal - minVal);
+                var y = h - (normalizedY * (h - 40)) - 20;
+                coords.push({ x: x, y: y });
+            }
+
+            // Draw Area Gradient Fill
+            var grad = ctx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, 'rgba(59, 130, 246, 0.45)');
+            grad.addColorStop(0.7, 'rgba(16, 185, 129, 0.15)');
+            grad.addColorStop(1, 'rgba(15, 23, 42, 0.0)');
+
+            ctx.beginPath();
+            ctx.moveTo(coords[0].x, coords[0].y);
+            for (var i = 1; i < coords.length; i++) {
+                var xc = (coords[i].x + coords[i - 1].x) / 2;
+                var yc = (coords[i].y + coords[i - 1].y) / 2;
+                ctx.quadraticCurveTo(coords[i - 1].x, coords[i - 1].y, xc, yc);
+            }
+            ctx.lineTo(coords[coords.length - 1].x, coords[coords.length - 1].y);
+            ctx.lineTo(w, h);
+            ctx.lineTo(0, h);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Draw Smooth Line
+            ctx.beginPath();
+            ctx.moveTo(coords[0].x, coords[0].y);
+            for (var i = 1; i < coords.length; i++) {
+                var xc = (coords[i].x + coords[i - 1].x) / 2;
+                var yc = (coords[i].y + coords[i - 1].y) / 2;
+                ctx.quadraticCurveTo(coords[i - 1].x, coords[i - 1].y, xc, yc);
+            }
+            ctx.lineTo(coords[coords.length - 1].x, coords[coords.length - 1].y);
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Draw End Point Pulse
+            var last = coords[coords.length - 1];
+            ctx.beginPath();
+            ctx.arc(last.x, last.y, 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#10b981';
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        setTimeout(function() { drawEquityChart('7d'); }, 200);
+        $(window).on('resize', function() {
+            var active = $('.chart-range-btn.active').data('range') || '7d';
+            drawEquityChart(active);
+        });
+
+        $('.chart-range-btn').on('click', function() {
+            $('.chart-range-btn').removeClass('active text-white').addClass('text-muted');
+            $(this).addClass('active text-white').removeClass('text-muted');
+            var range = $(this).data('range');
+            $('#chartCumulativeReturn').text(chartDataMap[range].total);
+            drawEquityChart(range);
+        });
 
         // Dynamic Running Bot Uptime Clock
         function updateUptime() {

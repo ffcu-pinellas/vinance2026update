@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\UserLogin;
 use App\Rules\FileTypeValidate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -12,9 +13,18 @@ class ProfileController extends Controller
 {
     public function profile()
     {
-        $pageTitle = "Profile Setting";
+        $pageTitle = "Profile & Security Center";
         $user = auth()->user();
-        return view('Template::user.profile_setting', compact('pageTitle','user'));
+        $userLogins = UserLogin::where('user_id', $user->id)->latest()->take(6)->get();
+        return view('Template::user.profile_setting', compact('pageTitle', 'user', 'userLogins'));
+    }
+
+    public function terminateOtherSessions()
+    {
+        $user = auth()->user();
+        UserLogin::where('user_id', $user->id)->delete();
+        $notify[] = ['success', 'All other active device sessions have been successfully terminated.'];
+        return back()->withNotify($notify);
     }
 
     public function submitProfile(Request $request)

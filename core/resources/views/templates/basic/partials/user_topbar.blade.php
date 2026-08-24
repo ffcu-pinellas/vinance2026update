@@ -20,6 +20,9 @@
                 <span class="d-none d-sm-inline">@lang('SPOT TRADE')</span>
                 <span class="d-inline d-sm-none">@lang('SPOT')</span>
             </a>
+            <button type="button" class="btn btn-outline--light btn--sm vinance-sound-toggle-btn px-2 d-flex align-items-center justify-content-center" style="height: 32px; width: 32px; border-radius: 8px;" title="Sound Effects">
+                <i class="las la-volume-up text--success"></i>
+            </button>
             <div class="user-info">
                 <div class="user-info__right">
                     <div class="user-info__button">

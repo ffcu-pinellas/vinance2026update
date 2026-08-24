@@ -283,6 +283,23 @@ class StakingController extends Controller
         }
     }
 
+    public function toggleAutoCompound(Request $request, $id)
+    {
+        $user = auth()->user();
+        $stake = Stake::where('user_id', $user->id)->findOrFail($id);
+
+        $stake->is_compound = !$stake->is_compound;
+        $stake->save();
+
+        return response()->json([
+            'success' => true,
+            'is_compound' => (bool)$stake->is_compound,
+            'message' => $stake->is_compound 
+                ? 'Auto-Compound enabled! Daily rewards will automatically reinvest into your principal.' 
+                : 'Auto-Compound disabled. Rewards will accrue for manual harvest.'
+        ]);
+    }
+
     public function unstake(Request $request, $id)
     {
         $user = auth()->user();

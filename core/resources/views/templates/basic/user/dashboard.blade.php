@@ -78,6 +78,22 @@
                         </div>
                     </div>
                 @endif
+
+                <!-- LIVE INSTITUTIONAL PLATFORM ACTIVITY TICKER -->
+                <div class="col-12">
+                    <div class="platform-activity-ticker bg--dark-two p-2 px-3 rounded-pill border border-dark d-flex align-items-center justify-content-between shadow-sm overflow-hidden" style="background: #0f172a; border-color: #1e293b !important;">
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <span class="badge badge--success-soft rounded-pill px-2 py-1 text--small font-mono d-flex align-items-center gap-1" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                                <span class="live-pulse-dot" style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; display: inline-block;"></span> LIVE
+                            </span>
+                        </div>
+                        <div class="ticker-text-wrapper flex-grow-1 mx-3 overflow-hidden text-truncate font-mono text--small text-muted" id="livePlatformTicker" style="font-size: 12px;">
+                            <span class="text--base fw-bold">Trader user***82</span> swapped 2.50 ETH to 7,750.20 USDT via Instant Convert
+                        </div>
+                        <span class="text-muted text--small d-none d-sm-inline flex-shrink-0" style="font-size: 11px;"><i class="las la-shield-alt text--success"></i> Network Feed</span>
+                    </div>
+                </div>
+
                 <div class="col-12">
                     <div class="dashboard-card-wrapper">
                         <div class="row gy-4 mb-3 justify-content-center">
@@ -678,4 +694,31 @@
 
 @push('topContent')
     <h4 class="mb-4">{{ __($pageTitle) }}</h4>
+@endpush
+
+@push('script')
+<script>
+    (function ($) {
+        "use strict";
+        var liveActivities = [
+            '<span class="text--base fw-bold">Trader user***82</span> swapped 2.50 ETH to 7,750.20 USDT via Instant Convert',
+            '<span class="text--success fw-bold">Trader alex***19</span> harvested +$342.50 USDT profit from AI High-Frequency Bot',
+            '<span class="text--warning fw-bold">Trader vip***77</span> staked $25,000 USDT in 180-Day Institutional VIP Vault',
+            '<span class="text--info fw-bold">Trader quant***04</span> earned +$118.40 USDT lifetime referral commission',
+            '<span class="text--base fw-bold">Trader mark***61</span> activated Jane Street Quant Arbitrage Bot ($5,000 USDT)',
+            '<span class="text--success fw-bold">Trader crypto***92</span> swapped 0.85 BTC to 66,215.80 USDT (0-Slippage)'
+        ];
+
+        var activityIndex = 0;
+        setInterval(function() {
+            activityIndex = (activityIndex + 1) % liveActivities.length;
+            var ticker = $('#livePlatformTicker');
+            if (ticker.length) {
+                ticker.fadeOut(250, function() {
+                    ticker.html(liveActivities[activityIndex]).fadeIn(250);
+                });
+            }
+        }, 4500);
+    })(jQuery);
+</script>
 @endpush
