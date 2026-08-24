@@ -872,8 +872,8 @@
             if (capital > 0) {
                 var stopLossDollar = (capital * (stopLossPct / 100));
                 var takeProfitDollar = (capital * (takeProfitPct / 100));
-                $('#trailingStopValue').text(stopLossPct.toFixed(1) + '% (-$' + stopLossDollar.toFixed(2) + ')');
-                $('#takeProfitValue').text(takeProfitPct.toFixed(1) + '% (+$' + takeProfitDollar.toFixed(2) + ')');
+                $('#trailingStopValue').html(stopLossPct.toFixed(1) + '% <span class="text-white-50">(-$' + stopLossDollar.toFixed(2) + ')</span>');
+                $('#takeProfitValue').html(takeProfitPct.toFixed(1) + '% <span class="text--success">(+$' + takeProfitDollar.toFixed(2) + ')</span>');
             } else {
                 $('#trailingStopValue').text(stopLossPct.toFixed(1) + '%');
                 $('#takeProfitValue').text(takeProfitPct.toFixed(1) + '%');
@@ -882,13 +882,23 @@
             calculateEstimatedProfit(capital);
         }
 
-        $('#trailingStopRange, #takeProfitRange').on('input', function() {
+        $(document).on('input change touchmove pointermove', '#trailingStopRange, #takeProfitRange', function() {
             var capital = parseFloat($('#deployAmountInput').val()) || 0;
             calculateRiskAndReward(capital);
         });
 
+        $(document).on('input change keyup blur paste', '#deployAmountInput', function () {
+            var amount = parseFloat($(this).val()) || 0;
+            calculateRiskAndReward(amount);
+        });
+
+        $(document).on('change', '#walletTypeSelect', function () {
+            var amount = parseFloat($('#deployAmountInput').val()) || 0;
+            calculateRiskAndReward(amount);
+        });
+
         // Toggle extended leaderboard bots
-        $('#toggleExtendedBotsBtn').on('click', function() {
+        $(document).on('click', '#toggleExtendedBotsBtn', function() {
             var isExpanded = $('.extended-bot-row').first().hasClass('d-none');
             if (isExpanded) {
                 $('.extended-bot-row').removeClass('d-none');
@@ -912,13 +922,13 @@
         }, 4500);
 
         // Open Marketplace (Shows all options, never auto-selects)
-        $('.openMarketplaceBtn').on('click', function () {
+        $(document).on('click', '.openMarketplaceBtn', function () {
             if ($(window).width() < 768) {
                 $('#marketplaceModal').modal('show');
             } else {
-                if ($("#aiPlansSection").length) {
+                if ($("#desktopMarketplace").length) {
                     $('html, body').animate({
-                        scrollTop: $("#aiPlansSection").offset().top - 80
+                        scrollTop: $("#desktopMarketplace").offset().top - 80
                     }, 400);
                 } else {
                     $('#marketplaceModal').modal('show');
@@ -927,7 +937,7 @@
         });
 
         // Launch configure modal from plan
-        $('.deployBotBtn, .selectAndDeployBtn').on('click', function () {
+        $(document).on('click', '.deployBotBtn, .selectAndDeployBtn', function () {
             $('#marketplaceModal').modal('hide');
             var modal = $('#deployBotModal');
             var planId = $(this).data('id');
@@ -949,12 +959,7 @@
             modal.modal('show');
         });
 
-        $('#deployAmountInput').on('input', function () {
-            var amount = parseFloat($(this).val()) || 0;
-            calculateRiskAndReward(amount);
-        });
-
-        $('.quick-pct-btn').on('click', function () {
+        $(document).on('click', '.quick-pct-btn', function () {
             var pct = parseFloat($(this).data('pct'));
             var walletType = $('#walletTypeSelect').val();
             var balance = (walletType === 'spot') ? currentSpotBalance : currentFundingBalance;
@@ -963,7 +968,8 @@
             if (balance > 0) {
                 calculatedAmount = (balance * (pct / 100));
             } else {
-                calculatedAmount = selectedPlanMin > 0 ? (selectedPlanMin * (pct / 100)) : (100 * (pct / 100));
+                var baseCap = selectedPlanMin > 0 ? selectedPlanMin : 100;
+                calculatedAmount = (baseCap * (pct / 100));
             }
 
             if (selectedPlanMax && calculatedAmount > selectedPlanMax) {
@@ -975,8 +981,9 @@
         });
 
         function calculateEstimatedProfit(amount) {
-            if (amount > 0 && selectedRoiMin > 0) {
-                var dailyProfit = (amount * (selectedRoiMin / 100));
+            var roi = selectedRoiMin > 0 ? selectedRoiMin : 1.5;
+            if (amount > 0) {
+                var dailyProfit = (amount * (roi / 100));
                 $('#estDailyProfit').text('+$' + dailyProfit.toFixed(2) + ' / day');
             } else {
                 $('#estDailyProfit').text('+$0.00');
