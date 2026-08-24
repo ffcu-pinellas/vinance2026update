@@ -34,9 +34,20 @@
                                 <span class="step-badge">1</span>
                                 <label class="form-label text-white fw-semibold mb-0">@lang('Select Currency')</label>
                             </div>
-                            <div class="position-relative" id="withdraw_currency_list_wrapper">
-                                <x-currency-list :action="route('user.currency.all')" id="withdraw_currency_list" parent="withdraw_currency_list_wrapper" valueType="2" logCurrency="true" class="form-control currency-list" gatewayType="withdraw" />
-                            </div>
+                            <!-- Searchable Coin Selector Trigger -->
+                            <button type="button" class="btn btn-outline--light d-flex align-items-center justify-content-between gap-2 rounded-3 px-3 py-3 w-100 bg--dark-three border border-dark" id="openWithdrawCoinBtn">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="coin-avatar-circle bg--dark-two text--base fw-bold rounded-circle d-flex align-items-center justify-content-center border border-dark" style="width: 32px; height: 32px; font-size: 11px;" id="withdrawCoinBadge">
+                                        {{ @$currencies->first()->symbol ?? 'USDT' }}
+                                    </div>
+                                    <div class="text-start">
+                                        <span class="coin-symbol-label fw-bold font-mono text-white fs-6 d-block" id="withdrawCoinSymbolText">{{ @$currencies->first()->symbol ?? 'Select Currency' }}</span>
+                                        <small class="text-muted" id="withdrawCoinNameText">{{ @$currencies->first()->name ?? 'Tap to browse' }}</small>
+                                    </div>
+                                </div>
+                                <i class="las la-angle-down text-muted fs-5"></i>
+                            </button>
+                            <input type="hidden" name="currency" id="withdrawCurrencyInput" value="{{ @$currencies->first()->symbol ?? 'USDT' }}" required>
                         </div>
 
                         <!-- Step 2: Amount -->
@@ -154,6 +165,53 @@
                 </div>
             </div>
         </div>
+    <!-- Instant Searchable Withdraw Coin Selection Modal -->
+    <div class="modal fade" id="withdrawCoinModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg--dark-two border border-dark rounded-4 shadow-lg">
+                <div class="modal-header border-bottom border-dark p-3 px-4">
+                    <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2">
+                        <i class="las la-coins text--base"></i> @lang('Select Withdraw Asset')
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3 px-4">
+                    <!-- Instant Search Input -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg--dark-three border-dark text-muted"><i class="las la-search fs-5"></i></span>
+                        <input type="text" class="form-control bg--dark-three text-white border-dark font-mono shadow-none" id="withdrawCoinSearchInput" placeholder="@lang('Type coin symbol or name (e.g. BTC, ETH, USDT)...')" autocomplete="off">
+                    </div>
+
+                    <!-- Fast Coin List -->
+                    <div class="coin-search-list-wrapper overflow-auto pe-1" style="max-height: 360px;">
+                        <div class="list-group list-group-flush" id="withdrawCoinSearchList">
+                            @if(isset($currencies) && count($currencies))
+                                @foreach($currencies as $currency)
+                                    <button type="button" class="list-group-item list-group-item-action bg-transparent text-white border-dark d-flex justify-content-between align-items-center py-2 px-2 rounded-3 withdraw-coin-item-btn mb-1" 
+                                        data-symbol="{{ $currency->symbol }}" 
+                                        data-name="{{ $currency->name }}" 
+                                        data-balance="{{ $currency->user_balance }}">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="coin-avatar-circle bg--dark-three text--base fw-bold rounded-circle d-flex align-items-center justify-content-center border border-dark" style="width: 36px; height: 36px; font-size: 12px;">
+                                                {{ substr($currency->symbol, 0, 3) }}
+                                            </div>
+                                            <div class="text-start">
+                                                <div class="fw-bold font-mono text-white fs-6">{{ $currency->symbol }}</div>
+                                                <small class="text-muted">{{ $currency->name }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end font-mono">
+                                            <span class="text-white d-block text--small">{{ number_format($currency->user_balance, 4) }}</span>
+                                            <small class="text-muted" style="font-size: 11px;">@lang('Available')</small>
+                                        </div>
+                                    </button>
+                                @endforeach
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
@@ -187,15 +245,12 @@
     border-color: rgba(56, 97, 251, 0.4);
     color: #3861FB;
 }
-.select2-dropdown { background-color: var(--vn-bg-elevated) !important; border: 1px solid var(--vn-border) !important; color: var(--vn-text-primary) !important; z-index: 999999 !important; min-width: 220px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important; }
-.select2-results__options { max-height: 400px !important; min-height: 250px !important; overflow-y: auto !important; padding: 0 !important; margin: 0 !important; display: block !important; }
-.select2-results__option { padding: 12px 12px !important; font-size: 14px !important; background-color: var(--vn-bg-elevated) !important; color: var(--vn-text-primary) !important; border-bottom: 1px solid var(--vn-border) !important; min-height: 40px !important; display: block !important; }
-.select2-container--default .select2-search--dropdown .select2-search__field { background-color: var(--vn-bg-primary) !important; color: var(--vn-text-primary) !important; border: 1px solid var(--vn-border) !important; border-radius: var(--vn-radius-sm) !important; padding: 6px !important; }
-.select2-container--default .select2-results__option[aria-selected=true] { background-color: var(--vn-bg-card) !important; color: var(--vn-text-primary) !important; }
-.select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: var(--vn-bg-primary) !important; color: var(--vn-text-primary) !important; }
-.select2-container--default .select2-selection--single { background-color: var(--vn-bg-elevated) !important; border: 1px solid var(--vn-border) !important; height: 45px !important; border-radius: var(--vn-radius-md) !important; display: flex !important; align-items: center !important; }
-.select2-container--default .select2-selection--single .select2-selection__rendered { color: var(--vn-text-primary) !important; line-height: 45px !important; padding-left: 12px !important; }
-.select2-container--default .select2-selection--single .select2-selection__arrow { height: 45px !important; }
+.bg--dark-two { background: #0f172a !important; }
+.bg--dark-three { background: #1e293b !important; }
+.withdraw-coin-item-btn:hover {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    border-color: #3b82f6 !important;
+}
 </style>
 @endpush
 
@@ -214,14 +269,14 @@
         }
 
         (function($) {
-            $('.currency-list').on('change', function() {
-                let currency = $(this).val();
-                $('input[name=currency]').val(currency);
-                $('.withdraw-currency-symbol').text(currency || 'USD');
+            function selectWithdrawCurrency(currencySymbol, currencyName) {
+                $('#withdrawCurrencyInput').val(currencySymbol);
+                $('#withdrawCoinBadge').text(currencySymbol.substring(0, 3));
+                $('#withdrawCoinSymbolText').text(currencySymbol);
+                $('#withdrawCoinNameText').text(currencyName || currencySymbol);
+                $('.withdraw-currency-symbol').text(currencySymbol || 'USD');
                 
-                if(!currency) return;
-
-                let currencyMethods = methods.filter(ele => ele.currency == currency);
+                let currencyMethods = methods.filter(ele => ele.currency == currencySymbol);
 
                 if (currencyMethods && currencyMethods.length) {
                     let methodsOption = "<option selected disabled> @lang('Select Withdraw Method')</option>";
@@ -241,7 +296,44 @@
                     $(".empty-gateway").removeClass('d-none');
                     $("#method-selection").addClass('d-none');
                 }
+            }
+
+            // Open Modal
+            $('#openWithdrawCoinBtn').on('click', function() {
+                $('#withdrawCoinSearchInput').val('');
+                $('#withdrawCoinSearchList .withdraw-coin-item-btn').removeClass('d-none');
+                $('#withdrawCoinModal').modal('show');
+                setTimeout(function() {
+                    $('#withdrawCoinSearchInput').focus();
+                }, 300);
             });
+
+            // Instant Search-as-you-type
+            $('#withdrawCoinSearchInput').on('input keyup', function() {
+                let q = $(this).val().toLowerCase().trim();
+                $('#withdrawCoinSearchList .withdraw-coin-item-btn').each(function() {
+                    let sym = $(this).data('symbol').toString().toLowerCase();
+                    let name = ($(this).data('name') || '').toString().toLowerCase();
+                    if (sym.indexOf(q) > -1 || name.indexOf(q) > -1) {
+                        $(this).removeClass('d-none');
+                    } else {
+                        $(this).addClass('d-none');
+                    }
+                });
+            });
+
+            // Select Coin
+            $(document).on('click', '.withdraw-coin-item-btn', function() {
+                let sym = $(this).data('symbol');
+                let name = $(this).data('name');
+                selectWithdrawCurrency(sym, name);
+                $('#withdrawCoinModal').modal('hide');
+            });
+
+            // Auto-select first currency
+            let defaultSym = "{{ @$currencies->first()->symbol ?? 'USDT' }}";
+            let defaultName = "{{ @$currencies->first()->name ?? 'Tether' }}";
+            selectWithdrawCurrency(defaultSym, defaultName);
 
             $('select[name=method_code]').on('change', function() {
                 if (!$(this).val()) {
@@ -276,12 +368,4 @@
             $(document).off('submit', '.withdraw-form');
         })(jQuery);
     </script>
-@endpush
-
-@push('style-lib')
-    <link rel="stylesheet" href="{{ asset('assets/global/css/select2.min.css') }}">
-@endpush
-
-@push('script-lib')
-    <script src="{{ asset('assets/global/js/select2.min.js') }}"></script>
 @endpush

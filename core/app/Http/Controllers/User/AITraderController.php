@@ -119,6 +119,26 @@ class AITraderController extends Controller
 
     public function index()
     {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('user_ai_bots')) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('user_ai_bots', 'auto_compound')) {
+                    \Illuminate\Support\Facades\Schema::table('user_ai_bots', function ($table) {
+                        $table->tinyInteger('auto_compound')->default(0)->after('current_profit');
+                    });
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('user_ai_bots', 'trailing_stop_loss')) {
+                    \Illuminate\Support\Facades\Schema::table('user_ai_bots', function ($table) {
+                        $table->decimal('trailing_stop_loss', 8, 2)->default(2.0)->after('allocated_amount');
+                    });
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('user_ai_bots', 'take_profit_target')) {
+                    \Illuminate\Support\Facades\Schema::table('user_ai_bots', function ($table) {
+                        $table->decimal('take_profit_target', 8, 2)->default(5.0)->after('trailing_stop_loss');
+                    });
+                }
+            }
+        } catch (\Throwable $e) {}
+
         $pageTitle = 'Vinance AI Quantitative Terminal';
         $user = auth()->user();
 
@@ -498,24 +518,45 @@ class AITraderController extends Controller
 
     public function toggleAutoCompound(Request $request, $id)
     {
-        $user = auth()->user();
-        $userBot = UserAiBot::where('user_id', $user->id)->findOrFail($id);
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('user_ai_bots')) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('user_ai_bots', 'auto_compound')) {
+                    \Illuminate\Support\Facades\Schema::table('user_ai_bots', function ($table) {
+                        $table->tinyInteger('auto_compound')->default(0)->after('current_profit');
+                    });
+                }
+            }
+        } catch (\Throwable $e) {}
 
-        $userBot->auto_compound = $userBot->auto_compound ? 0 : 1;
-        $userBot->save();
+        try {
+            $user = auth()->user();
+            $userBot = UserAiBot::with('plan')->where('user_id', $user->id)->findOrFail($id);
 
-        $statusText = $userBot->auto_compound ? 'enabled' : 'disabled';
-        $message = 'Auto-Compound (Daily Profit Reinvestment) has been ' . $statusText . ' for ' . @$userBot->plan->name . '.';
+            $userBot->auto_compound = $userBot->auto_compound ? 0 : 1;
+            $userBot->save();
 
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'auto_compound' => $userBot->auto_compound,
-                'message' => $message
-            ]);
+            $statusText = $userBot->auto_compound ? 'enabled' : 'disabled';
+            $message = 'Auto-Compound (Daily Profit Reinvestment) has been ' . $statusText . ' for ' . @$userBot->plan->name . '.';
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'auto_compound' => $userBot->auto_compound,
+                    'message' => $message
+                ]);
+            }
+
+            $notify[] = ['success', $message];
+            return back()->withNotify($notify);
+        } catch (\Throwable $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 200);
+            }
+            $notify[] = ['error', $e->getMessage()];
+            return back()->withNotify($notify);
         }
-
-        $notify[] = ['success', $message];
-        return back()->withNotify($notify);
     }
 }

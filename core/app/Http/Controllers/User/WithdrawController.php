@@ -18,7 +18,16 @@ class WithdrawController extends Controller
     public function withdrawMoney()
     {
         $pageTitle = 'Withdraw Money';
-        return view('Template::user.withdraw_page', compact('pageTitle'));
+        $user = auth()->user();
+        $currencies = Currency::active()->get();
+        if ($user) {
+            $wallets = Wallet::where('user_id', $user->id)->get()->keyBy('currency_id');
+            foreach ($currencies as $currency) {
+                $wallet = $wallets->get($currency->id);
+                $currency->user_balance = $wallet ? (float)$wallet->balance : 0;
+            }
+        }
+        return view('Template::user.withdraw_page', compact('pageTitle', 'currencies'));
     }
 
     public function withdrawStore(Request $request)

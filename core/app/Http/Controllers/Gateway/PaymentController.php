@@ -19,7 +19,16 @@ class PaymentController extends Controller
     public function deposit()
     {
         $pageTitle = 'Deposit Money';
-        return view('Template::user.deposit_page', compact('pageTitle'));
+        $user = auth()->user();
+        $currencies = Currency::active()->get();
+        if ($user) {
+            $wallets = Wallet::where('user_id', $user->id)->get()->keyBy('currency_id');
+            foreach ($currencies as $currency) {
+                $wallet = $wallets->get($currency->id);
+                $currency->user_balance = $wallet ? (float)$wallet->balance : 0;
+            }
+        }
+        return view('Template::user.deposit_page', compact('pageTitle', 'currencies'));
     }
 
     public function depositInsert(Request $request)
