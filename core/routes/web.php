@@ -76,7 +76,6 @@ Route::get('/clear', function () {
                 });
             }
         }
-        }
     } catch (\Exception $e) {
         return "Migration Error: " . $e->getMessage();
     }
