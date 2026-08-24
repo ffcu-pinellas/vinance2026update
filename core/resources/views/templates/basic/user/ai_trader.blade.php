@@ -2,40 +2,37 @@
 
 @section('content')
 <div class="ai-terminal-wrapper pb-5">
-    <!-- Header with Back Button and Engine Status -->
-    <div class="ai-header-card bg--dark-two p-3 p-sm-4 rounded-4 mb-4 border-0 shadow-sm">
-        <div class="row g-3 align-items-center">
-            <!-- Left Column: Back Button & Title -->
-            <div class="col-xl-7 col-12">
-                <div class="d-flex align-items-center gap-2 gap-sm-3">
-                    <a href="{{ route('user.home') }}" class="btn btn-outline--light btn-sm rounded-pill px-3 py-2 text-nowrap d-inline-flex align-items-center flex-shrink-0">
-                        <i class="las la-arrow-left me-1"></i> <span>@lang('Dashboard')</span>
-                    </a>
-                    <div class="flex-grow-1 min-w-0">
-                        <h3 class="ai-main-title mb-1 text-white fw-bold d-flex flex-wrap align-items-center gap-2">
-                            <i class="las la-robot text--base"></i> <span>Vinance AI Quantitative Terminal</span>
-                            <span class="badge badge--success-soft rounded-pill text--small fw-normal px-2 py-1 text-nowrap">
-                                <span class="live-pulse-dot"></span> @lang('Neural Engine Online')
-                            </span>
-                        </h3>
-                        <p class="text-muted text--small mb-0 text-truncate">@lang('Autonomous high-frequency multi-asset quantitative trading & order routing')</p>
-                    </div>
-                </div>
+    <!-- Top Action Row: Back Button & System Status -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ route('user.home') }}" class="btn btn-outline--light btn-sm rounded-pill px-3 py-1 text--small d-inline-flex align-items-center">
+            <i class="las la-arrow-left me-1"></i> <span>@lang('Dashboard')</span>
+        </a>
+        <span class="badge badge--success-soft rounded-pill px-3 py-1 text--small d-inline-flex align-items-center gap-1">
+            <span class="live-pulse-dot"></span> @lang('AI Engine Online')
+        </span>
+    </div>
+
+    <!-- Main Header Card -->
+    <div class="ai-header-card bg--dark-two p-3 p-md-4 rounded-4 mb-3 border-0 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h3 class="text-white fw-bold mb-1 fs-4 d-flex align-items-center gap-2">
+                    <i class="las la-robot text--base"></i> @lang('AI Auto-Trader')
+                </h3>
+                <p class="text-muted text--small mb-0">@lang('Automated 24/7 high-frequency quant algorithmic trading')</p>
             </div>
 
-            <!-- Right Column: Wallet Balances & Deploy Bot Button -->
-            <div class="col-xl-5 col-12">
-                <div class="d-flex align-items-center justify-content-start justify-content-xl-end gap-2 flex-wrap">
-                    <div class="user-wallet-pill bg--dark-three border border-dark rounded-pill px-3 py-2 d-flex align-items-center gap-2 text--small">
-                        <span class="text-muted"><i class="las la-wallet text--base"></i> Spot: <strong class="text-white font-mono">${{ number_format($spotBalance, 2) }}</strong></span>
-                        <span class="text-muted opacity-50">|</span>
-                        <span class="text-muted"><i class="las la-coins text--info"></i> Funding: <strong class="text-white font-mono">${{ number_format($fundingBalance, 2) }}</strong></span>
-                    </div>
-
-                    <button type="button" class="btn btn--base btn-sm rounded-pill px-3 py-2 text-nowrap openMarketplaceBtn flex-shrink-0">
-                        <i class="las la-plus-circle me-1"></i> @lang('Deploy Bot')
-                    </button>
+            <!-- Balances & Deploy Action -->
+            <div class="d-flex align-items-center gap-2 w-100 w-md-auto justify-content-between justify-content-md-end flex-wrap">
+                <div class="user-wallet-pill bg--dark-three border border-dark rounded-pill px-3 py-2 d-flex align-items-center gap-2 text--small">
+                    <span class="text-muted"><i class="las la-wallet text--base"></i> Spot: <strong class="text-white font-mono">${{ number_format($spotBalance, 2) }}</strong></span>
+                    <span class="text-muted opacity-50">|</span>
+                    <span class="text-muted"><i class="las la-coins text--info"></i> Fund: <strong class="text-white font-mono">${{ number_format($fundingBalance, 2) }}</strong></span>
                 </div>
+
+                <button type="button" class="btn btn--base btn-sm rounded-pill px-3 py-2 text-nowrap openMarketplaceBtn">
+                    <i class="las la-plus-circle me-1"></i> @lang('Deploy Bot')
+                </button>
             </div>
         </div>
     </div>
@@ -57,34 +54,34 @@
 
     <!-- KPI Metric Cards Grid -->
     <div class="row g-3 mb-4">
-        <!-- Total AI Capital -->
+        <!-- Active Capital -->
         <div class="col-xl-3 col-6">
             <div class="ai-metric-card h-100 p-3 rounded-4">
                 <div class="d-flex justify-content-between align-items-start mb-2">
-                    <span class="text-muted text--small text-uppercase fw-semibold">@lang('Active Bot Capital')</span>
+                    <span class="text-muted text--small text-uppercase fw-semibold">@lang('Active Capital')</span>
                     <div class="ai-icon-badge bg-primary-soft text--base d-none d-sm-flex">
                         <i class="las la-coins"></i>
                     </div>
                 </div>
-                <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4 font-mono">${{ showAmount($totalAllocated, currencyFormat: false) }}</h3>
+                <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4 font-mono">${{ number_format($totalAllocated, 2) }}</h3>
                 <div class="d-flex align-items-center justify-content-between text--small">
-                    <span class="text-muted">@lang('Spot Balance'): <strong class="text-white font-mono">${{ number_format($spotBalance, 2) }}</strong></span>
+                    <span class="text-muted">@lang('Spot'): <strong class="text-white font-mono">${{ number_format($spotBalance, 2) }}</strong></span>
                 </div>
             </div>
         </div>
 
-        <!-- Total AI Profit -->
+        <!-- Realized Profit -->
         <div class="col-xl-3 col-6">
             <div class="ai-metric-card h-100 p-3 rounded-4">
                 <div class="d-flex justify-content-between align-items-start mb-2">
-                    <span class="text-muted text--small text-uppercase fw-semibold">@lang('Realized Profit')</span>
+                    <span class="text-muted text--small text-uppercase fw-semibold">@lang('Total Profit')</span>
                     <div class="ai-icon-badge bg-success-soft text--success d-none d-sm-flex">
                         <i class="las la-chart-line"></i>
                     </div>
                 </div>
-                <h3 class="text--success fw-bold mb-1 fs-5 fs-sm-4 font-mono">+${{ showAmount($totalProfit, currencyFormat: false) }}</h3>
+                <h3 class="text--success fw-bold mb-1 fs-5 fs-sm-4 font-mono">+${{ number_format($totalProfit, 2) }}</h3>
                 <div class="d-flex align-items-center justify-content-between text--small">
-                    <span class="badge badge--success-soft rounded-pill px-2"><i class="las la-arrow-up"></i> @lang('Net Alpha Return')</span>
+                    <span class="badge badge--success-soft rounded-pill px-2"><i class="las la-arrow-up"></i> @lang('Net Return')</span>
                 </div>
             </div>
         </div>
@@ -100,7 +97,7 @@
                 </div>
                 <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4 font-mono">{{ number_format($winRate, 1) }}%</h3>
                 <div class="d-flex align-items-center text--small text-muted text-truncate">
-                    <i class="las la-check-circle text--success me-1"></i> @lang('Multi-Timeframe Validated')
+                    <i class="las la-check-circle text--success me-1"></i> @lang('AI Verified')
                 </div>
             </div>
         </div>
@@ -116,7 +113,7 @@
                 </div>
                 <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4 font-mono">{{ $activeBots->count() }} <span class="text-muted fs-6 fw-normal">/ {{ $plans->count() }}</span></h3>
                 <div class="d-flex align-items-center text--small text-muted">
-                    <span class="live-pulse-dot me-1"></span> {{ $totalTrades }} @lang('Executions Fills')
+                    <span class="live-pulse-dot me-1"></span> {{ $totalTrades }} @lang('Trades')
                 </div>
             </div>
         </div>
@@ -126,7 +123,7 @@
     <div id="activeBotsSection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
         <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
             <h5 class="text-white mb-0 d-flex align-items-center gap-2">
-                <i class="las la-server text--base"></i> @lang('My Active AI Quantitative Instances')
+                <i class="las la-server text--base"></i> @lang('My Active Bots')
                 <span class="badge badge--primary rounded-pill">{{ $activeBots->count() }}</span>
             </h5>
             <button type="button" class="btn btn-sm btn-outline--base rounded-pill px-3 openMarketplaceBtn">
@@ -144,7 +141,7 @@
                                     <div>
                                         <h5 class="text-white fw-bold mb-1">{{ @$userBot->plan->name }}</h5>
                                         <div class="d-flex gap-2 align-items-center">
-                                            <span class="badge badge--dark text-uppercase text--small">{{ @$userBot->plan->strategy_type }} Model</span>
+                                            <span class="badge badge--dark text-uppercase text--small">{{ @$userBot->plan->strategy_type }}</span>
                                             <span class="text-muted text--small font-mono"><i class="las la-clock"></i> <span class="bot-uptime" data-start="{{ $userBot->created_at->toISOString() }}">0h 0m</span></span>
                                         </div>
                                     </div>
@@ -155,20 +152,20 @@
 
                                 <div class="row g-2 mb-3 bg--dark-three p-3 rounded-3">
                                     <div class="col-6">
-                                        <small class="text-muted text-uppercase d-block">@lang('Allocated Capital')</small>
-                                        <strong class="text-white fs-6 font-mono">${{ showAmount($userBot->allocated_amount, currencyFormat: false) }}</strong>
+                                        <small class="text-muted text-uppercase d-block">@lang('Capital')</small>
+                                        <strong class="text-white fs-6 font-mono">${{ number_format($userBot->allocated_amount, 2) }}</strong>
                                     </div>
                                     <div class="col-6 text-end">
-                                        <small class="text-muted text-uppercase d-block">@lang('Accumulated Profit')</small>
-                                        <strong class="text--success fs-6 font-mono">+${{ showAmount($userBot->current_profit, currencyFormat: false) }}</strong>
+                                        <small class="text-muted text-uppercase d-block">@lang('Profit')</small>
+                                        <strong class="text--success fs-6 font-mono">+${{ number_format($userBot->current_profit, 2) }}</strong>
                                     </div>
                                     <div class="col-6 mt-2">
-                                        <small class="text-muted text-uppercase d-block">@lang('Target Daily ROI')</small>
+                                        <small class="text-muted text-uppercase d-block">@lang('Daily ROI')</small>
                                         <span class="text--base fw-semibold font-mono">{{ @$userBot->plan->daily_roi_min }}% - {{ @$userBot->plan->daily_roi_max }}%</span>
                                     </div>
                                     <div class="col-6 text-end mt-2">
-                                        <small class="text-muted text-uppercase d-block">@lang('Executed Orders')</small>
-                                        <span class="text-white font-mono">{{ $userBot->total_trades }} @lang('fills')</span>
+                                        <small class="text-muted text-uppercase d-block">@lang('Trades')</small>
+                                        <span class="text-white font-mono">{{ $userBot->total_trades }} @lang('orders')</span>
                                     </div>
                                 </div>
 
@@ -177,7 +174,7 @@
                                         <form action="{{ route('user.ai.bot.harvest', $userBot->id) }}" method="POST" class="flex-grow-1">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn--success w-100 rounded-pill py-2">
-                                                <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest') (${{ showAmount($userBot->current_profit, currencyFormat: false) }})
+                                                <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest') (${{ number_format($userBot->current_profit, 2) }})
                                             </button>
                                         </form>
                                     @endif
@@ -199,10 +196,10 @@
                     </div>
                     <h5 class="text-white mb-2">@lang('No AI Trading Bots Currently Deployed')</h5>
                     <p class="text-muted mb-4 mx-auto" style="max-width: 460px;">
-                        @lang('Select one of our institutional neural strategies to begin automated 24/7 high-frequency quantitative trading.')
+                        @lang('Select one of our institutional strategies to begin automated 24/7 high-frequency quantitative trading.')
                     </p>
                     <button type="button" class="btn btn--base rounded-pill px-4 py-2 openMarketplaceBtn">
-                        <i class="las la-rocket me-1"></i> @lang('Explore & Deploy AI Bot')
+                        <i class="las la-rocket me-1"></i> @lang('Deploy AI Bot')
                     </button>
                 </div>
             @endif
@@ -213,8 +210,8 @@
     <div id="desktopMarketplace" class="d-none d-md-block mb-5 pt-2">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h4 class="text-white fw-bold mb-1"><i class="las la-brain text--base"></i> @lang('AI Strategy Marketplace')</h4>
-                <p class="text-muted text--small mb-0">@lang('Institutional neural algorithms calibrated for maximum risk-adjusted alpha')</p>
+                <h4 class="text-white fw-bold mb-1"><i class="las la-brain text--base"></i> @lang('AI Strategies')</h4>
+                <p class="text-muted text--small mb-0">@lang('Neural algorithms calibrated for optimal risk-adjusted alpha')</p>
             </div>
         </div>
 
@@ -223,7 +220,7 @@
                 <div class="col-xl-3 col-md-6">
                     <div class="bot-plan-card h-100 p-4 rounded-4 d-flex flex-column justify-content-between position-relative">
                         @if($loop->first)
-                            <div class="popular-ribbon">@lang('MOST POPULAR')</div>
+                            <div class="popular-ribbon">@lang('POPULAR')</div>
                         @endif
 
                         <div>
@@ -239,15 +236,15 @@
 
                             <!-- Daily ROI Box -->
                             <div class="roi-highlight-box p-3 rounded-3 mb-3 text-center">
-                                <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Target Daily Return')</span>
+                                <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Daily Return')</span>
                                 <h3 class="text--base fw-bold mb-0 font-mono">{{ $plan->daily_roi_min }}% - {{ $plan->daily_roi_max }}%</h3>
                                 <small class="text-muted">@lang('Win Rate'): <strong class="text--success font-mono">{{ $plan->win_rate }}%</strong></small>
                             </div>
 
                             <!-- Min / Max Investment -->
                             <div class="d-flex justify-content-between text--small mb-3 bg--dark-three p-2 rounded-2">
-                                <span class="text-muted">@lang('Min Capital'): <strong class="text-white font-mono">${{ showAmount($plan->min_investment, currencyFormat: false) }}</strong></span>
-                                <span class="text-muted">@lang('Max'): <strong class="text-white font-mono">${{ showAmount($plan->max_investment, currencyFormat: false) }}</strong></span>
+                                <span class="text-muted">@lang('Min'): <strong class="text-white font-mono">${{ number_format($plan->min_investment, 0) }}</strong></span>
+                                <span class="text-muted">@lang('Max'): <strong class="text-white font-mono">${{ number_format($plan->max_investment, 0) }}</strong></span>
                             </div>
 
                             <!-- Features List -->
@@ -286,27 +283,27 @@
             <div class="card bg--dark-two border-0 rounded-4 shadow-sm h-100">
                 <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
                     <h5 class="text-white mb-0 d-flex align-items-center gap-2">
-                        <i class="las la-bolt text--base"></i> @lang('Live AI Signal & Execution Feed')
+                        <i class="las la-bolt text--base"></i> @lang('Live AI Signals')
                         <span class="badge badge--success-soft rounded-pill text--small"><span class="live-pulse-dot"></span> @lang('LIVE')</span>
                     </h5>
-                    <small class="text-muted d-none d-sm-inline font-mono">SOR Gateway: 1.1ms</small>
+                    <small class="text-muted d-none d-sm-inline font-mono">1.1ms latency</small>
                 </div>
                 <div class="card-body p-3">
                     <div class="ai-signal-terminal p-3 rounded-3" id="signalTerminal">
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s') }}]</span> <span class="text--base fw-bold">[QUANT-SCAN]</span> Scanning 48 Spot & Derivative pairs via low-latency WebSocket feed...
+                            <span class="text-muted">[{{ date('H:i:s') }}]</span> <span class="text--base fw-bold">[QUANT-SCAN]</span> Scanning 48 pairs via WebSocket feed...
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-6) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> <strong>BTC/USDT</strong> (@ $77,901.50) Multi-Timeframe Momentum Breakout &rarr; Consensus: 98.6%
+                            <span class="text-muted">[{{ date('H:i:s', time()-6) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> <strong>BTC/USDT</strong> (@ $77,901.50) Momentum Breakout &rarr; Consensus: 98.6%
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-18) }}]</span> <span class="text--info fw-bold">[ARBITRAGE]</span> <strong>SOL/USDT</strong> (@ $195.40) Cross-Exchange triangular spread +0.42% captured
+                            <span class="text-muted">[{{ date('H:i:s', time()-18) }}]</span> <span class="text--info fw-bold">[ARBITRAGE]</span> <strong>SOL/USDT</strong> (@ $195.40) Spread +0.42% captured
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-32) }}]</span> <span class="text--success fw-bold">[TAKE-PROFIT]</span> <strong>ETH/USDT</strong> (@ $3,120.80) Target 2 cleared (+3.12%) &rarr; Trailing stop locked
+                            <span class="text-muted">[{{ date('H:i:s', time()-32) }}]</span> <span class="text--success fw-bold">[TAKE-PROFIT]</span> <strong>ETH/USDT</strong> (@ $3,120.80) Target 2 cleared (+3.12%)
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-47) }}]</span> <span class="text--warning fw-bold">[DEPTH-SWEEP]</span> <strong>XRP/USDT</strong> (@ $0.5840) Institutional bid wall imbalance absorbed
+                            <span class="text-muted">[{{ date('H:i:s', time()-47) }}]</span> <span class="text--warning fw-bold">[DEPTH-SWEEP]</span> <strong>XRP/USDT</strong> (@ $0.5840) Bid wall absorbed
                         </div>
                     </div>
                 </div>
@@ -318,14 +315,14 @@
             <div class="card bg--dark-two border-0 rounded-4 shadow-sm h-100">
                 <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
                     <h5 class="text-white mb-0 d-flex align-items-center gap-2">
-                        <i class="las la-network-wired text--base"></i> @lang('Neural Engine Performance')
+                        <i class="las la-network-wired text--base"></i> @lang('Engine Telemetry')
                     </h5>
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-3">
                         <div class="col-6">
                             <div class="bg--dark-three p-3 rounded-3">
-                                <small class="text-muted text-uppercase d-block mb-1">@lang('Execution Latency')</small>
+                                <small class="text-muted text-uppercase d-block mb-1">@lang('Latency')</small>
                                 <h4 class="text-white fw-bold mb-0 font-mono">1.2 <span class="fs-6 text-muted">ms</span></h4>
                             </div>
                         </div>
@@ -343,7 +340,7 @@
                         </div>
                         <div class="col-6">
                             <div class="bg--dark-three p-3 rounded-3">
-                                <small class="text-muted text-uppercase d-block mb-1">@lang('Encryption')</small>
+                                <small class="text-muted text-uppercase d-block mb-1">@lang('Security')</small>
                                 <h4 class="text--base fw-bold mb-0 font-mono"><i class="las la-lock"></i> AES-256</h4>
                             </div>
                         </div>
@@ -357,9 +354,9 @@
     <div id="tradeHistorySection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm">
         <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
             <h5 class="text-white mb-0 d-flex align-items-center gap-2">
-                <i class="las la-history text--base"></i> @lang('AI Trade Execution History')
+                <i class="las la-history text--base"></i> @lang('Trade History')
             </h5>
-            <span class="text-muted text--small font-mono">{{ $tradeLogs->count() }} @lang('Total Records')</span>
+            <span class="text-muted text--small font-mono">{{ $tradeLogs->count() }} @lang('Total')</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -369,10 +366,10 @@
                             <th class="ps-3 ps-sm-4">@lang('Date / Time')</th>
                             <th>@lang('Pair')</th>
                             <th>@lang('Side')</th>
-                            <th class="text-end">@lang('Entry Price')</th>
-                            <th class="text-end">@lang('Exit Price')</th>
+                            <th class="text-end">@lang('Entry')</th>
+                            <th class="text-end">@lang('Exit')</th>
                             <th class="text-end">@lang('Volume')</th>
-                            <th class="text-end">@lang('Realized Profit')</th>
+                            <th class="text-end">@lang('Profit')</th>
                             <th class="text-center pe-3 pe-sm-4">@lang('Status')</th>
                         </tr>
                     </thead>
@@ -391,19 +388,19 @@
                                         {{ $trade->side }}
                                     </span>
                                 </td>
-                                <td class="text-end fw-medium text-white font-mono">${{ showAmount($trade->entry_price, currencyFormat: false) }}</td>
-                                <td class="text-end fw-medium text-white font-mono">${{ showAmount($trade->exit_price, currencyFormat: false) }}</td>
-                                <td class="text-end fw-medium text-white font-mono">${{ showAmount($trade->amount, currencyFormat: false) }}</td>
+                                <td class="text-end fw-medium text-white font-mono">${{ number_format($trade->entry_price, 2) }}</td>
+                                <td class="text-end fw-medium text-white font-mono">${{ number_format($trade->exit_price, 2) }}</td>
+                                <td class="text-end fw-medium text-white font-mono">${{ number_format($trade->amount, 2) }}</td>
                                 <td class="text-end font-mono">
                                     <span class="{{ $trade->profit_amount >= 0 ? 'text--success' : 'text--danger' }} fw-bold">
-                                        {{ $trade->profit_amount >= 0 ? '+' : '' }}${{ showAmount($trade->profit_amount, currencyFormat: false) }}
+                                        {{ $trade->profit_amount >= 0 ? '+' : '' }}${{ number_format($trade->profit_amount, 2) }}
                                     </span>
                                     <small class="text-muted d-block">({{ $trade->profit_percentage >= 0 ? '+' : '' }}{{ $trade->profit_percentage }}%)</small>
                                 </td>
                                 <td class="text-center pe-3 pe-sm-4">
                                     @if($trade->status == 'open')
                                         <span class="badge badge--warning-soft rounded-pill px-3 py-1 font-mono">
-                                            <span class="live-pulse-dot me-1"></span> @lang('ACTIVE HOLDING')
+                                            <span class="live-pulse-dot me-1"></span> @lang('HOLDING')
                                         </span>
                                     @else
                                         <span class="badge badge--success-soft rounded-pill px-3 py-1 font-mono">
@@ -433,7 +430,7 @@
         <div class="modal-content bg--dark-two border-0 rounded-4 text-white shadow-lg">
             <div class="modal-header border-bottom border-dark py-3 px-4">
                 <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2">
-                    <i class="las la-brain text--base"></i> @lang('Select AI Strategy Model')
+                    <i class="las la-brain text--base"></i> @lang('Select Strategy')
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -458,8 +455,8 @@
                                     </div>
 
                                     <div class="d-flex justify-content-between text--small mb-3 bg--dark-three p-2 rounded-2">
-                                        <span class="text-muted">Min: <strong class="text-white font-mono">${{ showAmount($plan->min_investment, currencyFormat: false) }}</strong></span>
-                                        <span class="text-muted">Max: <strong class="text-white font-mono">${{ showAmount($plan->max_investment, currencyFormat: false) }}</strong></span>
+                                        <span class="text-muted">Min: <strong class="text-white font-mono">${{ number_format($plan->min_investment, 0) }}</strong></span>
+                                        <span class="text-muted">Max: <strong class="text-white font-mono">${{ number_format($plan->max_investment, 0) }}</strong></span>
                                     </div>
                                 </div>
 
@@ -498,14 +495,14 @@
                 <div class="modal-body p-4">
                     <!-- Expected Return Summary -->
                     <div class="bg--dark-three p-3 rounded-3 mb-4 text-center">
-                        <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Estimated Daily ROI')</span>
+                        <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Daily ROI')</span>
                         <h3 class="text--base fw-bold mb-0 font-mono" id="modalRoiText">1.50% - 3.20%</h3>
-                        <small class="text-muted">@lang('Contract Duration'): <strong class="text-white font-mono" id="modalDurationText">30</strong> @lang('Days')</small>
+                        <small class="text-muted">@lang('Duration'): <strong class="text-white font-mono" id="modalDurationText">30</strong> @lang('Days')</small>
                     </div>
 
                     <!-- Wallet Selection with Custom Dark Styling -->
                     <div class="form-group mb-3">
-                        <label class="form-label text-muted text--small text-uppercase">@lang('Funding Wallet Source')</label>
+                        <label class="form-label text-muted text--small text-uppercase">@lang('Wallet Source')</label>
                         <select name="wallet_type" class="form-control form-select custom-dark-select" id="walletTypeSelect" required>
                             <option value="spot" selected>Spot Wallet (${{ number_format($spotBalance, 2) }} USDT)</option>
                             <option value="funding">Funding Wallet (${{ number_format($fundingBalance, 2) }} USDT)</option>
@@ -515,7 +512,7 @@
                     <!-- Capital Allocation Amount -->
                     <div class="form-group mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label text-muted text--small text-uppercase mb-0">@lang('Allocation Capital ($)')</label>
+                            <label class="form-label text-muted text--small text-uppercase mb-0">@lang('Capital ($)')</label>
                             <span class="text-muted text--small">@lang('Limit'): <span id="modalLimitsText" class="text--base font-mono"></span></span>
                         </div>
                         <div class="input-group">
@@ -535,13 +532,13 @@
 
                     <!-- Projected Return -->
                     <div class="d-flex justify-content-between text--small bg--dark-three p-3 rounded-3 mb-2">
-                        <span class="text-muted">@lang('Est. Daily Profit'):</span>
+                        <span class="text-muted">@lang('Est. Daily'):</span>
                         <strong class="text--success font-mono" id="estDailyProfit">+$0.00</strong>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-dark p-4">
                     <button type="submit" class="btn btn--base w-100 rounded-pill py-3 fw-bold fs-6 shadow-sm">
-                        <i class="las la-bolt me-1"></i> @lang('Confirm & Activate Bot')
+                        <i class="las la-bolt me-1"></i> @lang('Activate Bot')
                     </button>
                 </div>
             </form>
@@ -561,16 +558,6 @@
     }
     .font-mono {
         font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', Courier, monospace !important;
-    }
-    .ai-main-title {
-        font-size: 1.35rem;
-        line-height: 1.3;
-        word-break: normal;
-    }
-    @media (min-width: 768px) {
-        .ai-main-title {
-            font-size: 1.6rem;
-        }
     }
     .bg--dark-two {
         background: #0f172a !important;
@@ -873,14 +860,14 @@
 
         // Real-Time Signal Stream Generator with Institutional Quant Formatting
         var signalTemplates = [
-            { pair: 'BTC/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Multi-Timeframe Momentum Breakout &rarr; Consensus: 98.6%' },
-            { pair: 'ETH/USDT', type: 'ARBITRAGE', tag: 'text--info', text: 'Cross-Exchange triangular spread +0.42% captured' },
-            { pair: 'SOL/USDT', type: 'TAKE-PROFIT', tag: 'text--success', text: 'Trailing stop ratchet engaged &rarr; Profit locked' },
-            { pair: 'BNB/USDT', type: 'QUANT-SCAN', tag: 'text--base', text: 'Volatility compression band expansion detected' },
-            { pair: 'XRP/USDT', type: 'DEPTH-SWEEP', tag: 'text--warning', text: 'Institutional bid wall imbalance absorbed' },
-            { pair: 'AVAX/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Volume surge +280% on 15m timeframe &rarr; Long position' },
-            { pair: 'SUI/USDT', type: 'TRAILING-STOP', tag: 'text--info', text: 'Dynamic trailing profit adjusted (+3.40%)' },
-            { pair: 'NEAR/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Mean reversion bounce &rarr; Atomic order fill' }
+            { pair: 'BTC/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Momentum Breakout &rarr; 98.6%' },
+            { pair: 'ETH/USDT', type: 'ARBITRAGE', tag: 'text--info', text: 'Spread +0.42% captured' },
+            { pair: 'SOL/USDT', type: 'TAKE-PROFIT', tag: 'text--success', text: 'Trailing stop locked' },
+            { pair: 'BNB/USDT', type: 'QUANT-SCAN', tag: 'text--base', text: 'Compression band expansion' },
+            { pair: 'XRP/USDT', type: 'DEPTH-SWEEP', tag: 'text--warning', text: 'Bid wall absorbed' },
+            { pair: 'AVAX/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Volume surge +280% on 15m' },
+            { pair: 'SUI/USDT', type: 'TRAILING-STOP', tag: 'text--info', text: 'Trailing profit adjusted (+3.40%)' },
+            { pair: 'NEAR/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Mean reversion bounce fill' }
         ];
 
         setInterval(function() {
