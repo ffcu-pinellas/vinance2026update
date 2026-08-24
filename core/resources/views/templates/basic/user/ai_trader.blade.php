@@ -11,12 +11,15 @@
                 </a>
                 <div>
                     <h3 class="ai-main-title mb-1 text-white fw-bold d-flex flex-wrap align-items-center gap-2">
-                        <i class="las la-robot text--base"></i> <span>Vinance AI Auto-Trader</span>
+                        <i class="las la-robot text--base"></i> <span>Vinance AI Quantitative Terminal</span>
                         <span class="badge badge--success-soft rounded-pill text--small fw-normal px-2 py-1 text-nowrap">
                             <span class="live-pulse-dot"></span> @lang('Neural Engine V4.2 Online')
                         </span>
+                        <span class="badge badge--dark rounded-pill text--small fw-normal px-2 py-1 text-muted border border-secondary d-none d-lg-inline-block">
+                            <i class="las la-server me-1"></i> Tokyo-Equinix TY3 Cluster
+                        </span>
                     </h3>
-                    <p class="text-muted text--small mb-0">@lang('Autonomous high-frequency algorithmic quantitative trading terminal')</p>
+                    <p class="text-muted text--small mb-0">@lang('Autonomous high-frequency multi-asset quantitative trading & neural order routing')</p>
                 </div>
             </div>
 
@@ -61,9 +64,9 @@
                         <i class="las la-coins"></i>
                     </div>
                 </div>
-                <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4">${{ showAmount($totalAllocated, currencyFormat: false) }}</h3>
+                <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4 font-mono">${{ showAmount($totalAllocated, currencyFormat: false) }}</h3>
                 <div class="d-flex align-items-center justify-content-between text--small">
-                    <span class="text-muted">@lang('Spot Balance'): <strong class="text-white">${{ showAmount($spotBalance, currencyFormat: false) }}</strong></span>
+                    <span class="text-muted">@lang('Spot Balance'): <strong class="text-white font-mono">${{ showAmount($spotBalance, currencyFormat: false) }}</strong></span>
                 </div>
             </div>
         </div>
@@ -77,9 +80,9 @@
                         <i class="las la-chart-line"></i>
                     </div>
                 </div>
-                <h3 class="text--success fw-bold mb-1 fs-5 fs-sm-4">+${{ showAmount($totalProfit, currencyFormat: false) }}</h3>
+                <h3 class="text--success fw-bold mb-1 fs-5 fs-sm-4 font-mono">+${{ showAmount($totalProfit, currencyFormat: false) }}</h3>
                 <div class="d-flex align-items-center justify-content-between text--small">
-                    <span class="badge badge--success-soft rounded-pill px-2"><i class="las la-arrow-up"></i> @lang('Cumulative Net PnL')</span>
+                    <span class="badge badge--success-soft rounded-pill px-2"><i class="las la-arrow-up"></i> @lang('Net Alpha Return')</span>
                 </div>
             </div>
         </div>
@@ -93,9 +96,9 @@
                         <i class="las la-shield-alt"></i>
                     </div>
                 </div>
-                <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4">{{ number_format($winRate, 1) }}%</h3>
+                <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4 font-mono">{{ number_format($winRate, 1) }}%</h3>
                 <div class="d-flex align-items-center text--small text-muted text-truncate">
-                    <i class="las la-check-circle text--success me-1"></i> @lang('Neural Consensus')
+                    <i class="las la-check-circle text--success me-1"></i> @lang('Multi-Timeframe Validated')
                 </div>
             </div>
         </div>
@@ -109,9 +112,9 @@
                         <i class="las la-microchip"></i>
                     </div>
                 </div>
-                <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4">{{ $activeBots->count() }} <span class="text-muted fs-6 fw-normal">/ {{ $plans->count() }}</span></h3>
+                <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4 font-mono">{{ $activeBots->count() }} <span class="text-muted fs-6 fw-normal">/ {{ $plans->count() }}</span></h3>
                 <div class="d-flex align-items-center text--small text-muted">
-                    <span class="live-pulse-dot me-1"></span> {{ $totalTrades }} @lang('Trades Executed')
+                    <span class="live-pulse-dot me-1"></span> {{ $totalTrades }} @lang('Executions Fills')
                 </div>
             </div>
         </div>
@@ -121,7 +124,7 @@
     <div id="activeBotsSection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
         <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
             <h5 class="text-white mb-0 d-flex align-items-center gap-2">
-                <i class="las la-server text--base"></i> @lang('My Active AI Bots')
+                <i class="las la-server text--base"></i> @lang('My Active AI Quantitative Instances')
                 <span class="badge badge--primary rounded-pill">{{ $activeBots->count() }}</span>
             </h5>
             <button type="button" class="btn btn-sm btn-outline--base rounded-pill px-3 openMarketplaceBtn">
@@ -138,7 +141,10 @@
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
                                         <h5 class="text-white fw-bold mb-1">{{ @$userBot->plan->name }}</h5>
-                                        <span class="badge badge--dark text-uppercase text--small">{{ @$userBot->plan->strategy_type }} Strategy</span>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <span class="badge badge--dark text-uppercase text--small">{{ @$userBot->plan->strategy_type }} Model</span>
+                                            <span class="text-muted text--small font-mono"><i class="las la-clock"></i> <span class="bot-uptime" data-start="{{ $userBot->created_at->toISOString() }}">0h 0m</span></span>
+                                        </div>
                                     </div>
                                     <span class="badge badge--success-soft rounded-pill px-3 py-1 d-flex align-items-center gap-1">
                                         <span class="live-pulse-dot"></span> @lang('RUNNING')
@@ -148,19 +154,19 @@
                                 <div class="row g-2 mb-3 bg--dark-three p-3 rounded-3">
                                     <div class="col-6">
                                         <small class="text-muted text-uppercase d-block">@lang('Allocated Capital')</small>
-                                        <strong class="text-white fs-6">${{ showAmount($userBot->allocated_amount, currencyFormat: false) }}</strong>
+                                        <strong class="text-white fs-6 font-mono">${{ showAmount($userBot->allocated_amount, currencyFormat: false) }}</strong>
                                     </div>
                                     <div class="col-6 text-end">
-                                        <small class="text-muted text-uppercase d-block">@lang('Current Profit')</small>
-                                        <strong class="text--success fs-6">+${{ showAmount($userBot->current_profit, currencyFormat: false) }}</strong>
+                                        <small class="text-muted text-uppercase d-block">@lang('Accumulated Profit')</small>
+                                        <strong class="text--success fs-6 font-mono">+${{ showAmount($userBot->current_profit, currencyFormat: false) }}</strong>
                                     </div>
                                     <div class="col-6 mt-2">
                                         <small class="text-muted text-uppercase d-block">@lang('Target Daily ROI')</small>
-                                        <span class="text--base fw-semibold">{{ @$userBot->plan->daily_roi_min }}% - {{ @$userBot->plan->daily_roi_max }}%</span>
+                                        <span class="text--base fw-semibold font-mono">{{ @$userBot->plan->daily_roi_min }}% - {{ @$userBot->plan->daily_roi_max }}%</span>
                                     </div>
                                     <div class="col-6 text-end mt-2">
-                                        <small class="text-muted text-uppercase d-block">@lang('Total Trades')</small>
-                                        <span class="text-white">{{ $userBot->total_trades }} @lang('executed')</span>
+                                        <small class="text-muted text-uppercase d-block">@lang('Executed Orders')</small>
+                                        <span class="text-white font-mono">{{ $userBot->total_trades }} @lang('fills')</span>
                                     </div>
                                 </div>
 
@@ -175,7 +181,7 @@
                                     @endif
                                     <form action="{{ route('user.ai.bot.stop', $userBot->id) }}" method="POST" class="flex-grow-1">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline--danger w-100 rounded-pill py-2 confirmationBtn" data-question="@lang('Stop this bot and return allocated capital + profits to your Spot Wallet?')">
+                                        <button type="submit" class="btn btn-sm btn-outline--danger w-100 rounded-pill py-2 confirmationBtn" data-question="@lang('Stop this bot and return allocated capital + all accumulated profits to your Spot Wallet?')">
                                             <i class="las la-stop-circle me-1"></i> @lang('Pause & Refund')
                                         </button>
                                     </form>
@@ -232,14 +238,14 @@
                             <!-- Daily ROI Box -->
                             <div class="roi-highlight-box p-3 rounded-3 mb-3 text-center">
                                 <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Target Daily Return')</span>
-                                <h3 class="text--base fw-bold mb-0">{{ $plan->daily_roi_min }}% - {{ $plan->daily_roi_max }}%</h3>
-                                <small class="text-muted">@lang('Win Rate'): <strong class="text--success">{{ $plan->win_rate }}%</strong></small>
+                                <h3 class="text--base fw-bold mb-0 font-mono">{{ $plan->daily_roi_min }}% - {{ $plan->daily_roi_max }}%</h3>
+                                <small class="text-muted">@lang('Win Rate'): <strong class="text--success font-mono">{{ $plan->win_rate }}%</strong></small>
                             </div>
 
                             <!-- Min / Max Investment -->
                             <div class="d-flex justify-content-between text--small mb-3 bg--dark-three p-2 rounded-2">
-                                <span class="text-muted">@lang('Min Capital'): <strong class="text-white">${{ showAmount($plan->min_investment, currencyFormat: false) }}</strong></span>
-                                <span class="text-muted">@lang('Max'): <strong class="text-white">${{ showAmount($plan->max_investment, currencyFormat: false) }}</strong></span>
+                                <span class="text-muted">@lang('Min Capital'): <strong class="text-white font-mono">${{ showAmount($plan->min_investment, currencyFormat: false) }}</strong></span>
+                                <span class="text-muted">@lang('Max'): <strong class="text-white font-mono">${{ showAmount($plan->max_investment, currencyFormat: false) }}</strong></span>
                             </div>
 
                             <!-- Features List -->
@@ -281,7 +287,7 @@
                         <i class="las la-bolt text--base"></i> @lang('Live AI Signal & Execution Feed')
                         <span class="badge badge--success-soft rounded-pill text--small"><span class="live-pulse-dot"></span> @lang('LIVE')</span>
                     </h5>
-                    <small class="text-muted d-none d-sm-inline">@lang('Sub-millisecond Real-Time WebSocket')</small>
+                    <small class="text-muted d-none d-sm-inline font-mono">SOR Gateway: 1.1ms</small>
                 </div>
                 <div class="card-body p-3">
                     <div class="ai-signal-terminal p-3 rounded-3" id="signalTerminal">
@@ -289,16 +295,16 @@
                             <span class="text-muted">[{{ date('H:i:s') }}]</span> <span class="text--base fw-bold">[QUANT-SCAN]</span> Scanning 48 Spot & Derivative pairs via low-latency WebSocket feed...
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-8) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> <strong>BTC/USDT</strong> (@ $77,901.50) Momentum Breakout confirmed &rarr; Neural Consensus: 98.6%
+                            <span class="text-muted">[{{ date('H:i:s', time()-6) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> <strong>BTC/USDT</strong> (@ $77,901.50) Multi-Timeframe Momentum Breakout &rarr; Consensus: 98.6%
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-21) }}]</span> <span class="text--info fw-bold">[ARBITRAGE]</span> <strong>SOL/USDT</strong> (@ $195.40) Cross-Exchange triangular spread +0.42% captured
+                            <span class="text-muted">[{{ date('H:i:s', time()-18) }}]</span> <span class="text--info fw-bold">[ARBITRAGE]</span> <strong>SOL/USDT</strong> (@ $195.40) Cross-Exchange triangular spread +0.42% captured
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-39) }}]</span> <span class="text--success fw-bold">[TAKE-PROFIT]</span> <strong>ETH/USDT</strong> (@ $3,120.80) Target 2 cleared (+3.12%) &rarr; Profit locked
+                            <span class="text-muted">[{{ date('H:i:s', time()-32) }}]</span> <span class="text--success fw-bold">[TAKE-PROFIT]</span> <strong>ETH/USDT</strong> (@ $3,120.80) Target 2 cleared (+3.12%) &rarr; Trailing stop locked
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-58) }}]</span> <span class="text--warning fw-bold">[DEPTH-SWEEP]</span> <strong>XRP/USDT</strong> (@ $0.5840) Orderbook bid wall imbalance absorbed
+                            <span class="text-muted">[{{ date('H:i:s', time()-47) }}]</span> <span class="text--warning fw-bold">[DEPTH-SWEEP]</span> <strong>XRP/USDT</strong> (@ $0.5840) Institutional bid wall imbalance absorbed
                         </div>
                     </div>
                 </div>
@@ -318,25 +324,25 @@
                         <div class="col-6">
                             <div class="bg--dark-three p-3 rounded-3">
                                 <small class="text-muted text-uppercase d-block mb-1">@lang('Execution Latency')</small>
-                                <h4 class="text-white fw-bold mb-0">1.2 <span class="fs-6 text-muted">ms</span></h4>
+                                <h4 class="text-white fw-bold mb-0 font-mono">1.2 <span class="fs-6 text-muted">ms</span></h4>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="bg--dark-three p-3 rounded-3">
                                 <small class="text-muted text-uppercase d-block mb-1">@lang('Sharpe Ratio')</small>
-                                <h4 class="text--success fw-bold mb-0">4.88</h4>
+                                <h4 class="text--success fw-bold mb-0 font-mono">4.88</h4>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="bg--dark-three p-3 rounded-3">
                                 <small class="text-muted text-uppercase d-block mb-1">@lang('Max Drawdown')</small>
-                                <h4 class="text-white fw-bold mb-0">1.2%</h4>
+                                <h4 class="text-white fw-bold mb-0 font-mono">1.2%</h4>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="bg--dark-three p-3 rounded-3">
                                 <small class="text-muted text-uppercase d-block mb-1">@lang('Encryption')</small>
-                                <h4 class="text--base fw-bold mb-0"><i class="las la-lock"></i> AES-256</h4>
+                                <h4 class="text--base fw-bold mb-0 font-mono"><i class="las la-lock"></i> AES-256</h4>
                             </div>
                         </div>
                     </div>
@@ -351,7 +357,7 @@
             <h5 class="text-white mb-0 d-flex align-items-center gap-2">
                 <i class="las la-history text--base"></i> @lang('AI Trade Execution History')
             </h5>
-            <span class="text-muted text--small">{{ $tradeLogs->count() }} @lang('Total Records')</span>
+            <span class="text-muted text--small font-mono">{{ $tradeLogs->count() }} @lang('Total Records')</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -364,29 +370,29 @@
                             <th class="text-end">@lang('Entry Price')</th>
                             <th class="text-end">@lang('Exit Price')</th>
                             <th class="text-end">@lang('Volume')</th>
-                            <th class="text-end">@lang('Profit')</th>
+                            <th class="text-end">@lang('Realized Profit')</th>
                             <th class="text-center pe-3 pe-sm-4">@lang('Status')</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($tradeLogs as $trade)
                             <tr>
-                                <td class="ps-3 ps-sm-4 text-nowrap">
+                                <td class="ps-3 ps-sm-4 text-nowrap font-mono">
                                     <span class="text-white fw-medium">{{ showDateTime($trade->created_at, 'M d, Y') }}</span>
                                     <small class="text-muted d-block">{{ showDateTime($trade->created_at, 'H:i:s') }}</small>
                                 </td>
                                 <td>
-                                    <span class="badge badge--dark px-2 py-1 fw-bold">{{ $trade->pair_symbol }}</span>
+                                    <span class="badge badge--dark px-2 py-1 fw-bold font-mono">{{ $trade->pair_symbol }}</span>
                                 </td>
                                 <td>
-                                    <span class="badge badge--{{ $trade->side == 'BUY' ? 'success' : 'danger' }}-soft px-3 py-1">
+                                    <span class="badge badge--{{ $trade->side == 'BUY' ? 'success' : 'danger' }}-soft px-3 py-1 font-mono">
                                         {{ $trade->side }}
                                     </span>
                                 </td>
-                                <td class="text-end fw-medium text-white">${{ showAmount($trade->entry_price, currencyFormat: false) }}</td>
-                                <td class="text-end fw-medium text-white">${{ showAmount($trade->exit_price, currencyFormat: false) }}</td>
-                                <td class="text-end fw-medium text-white">${{ showAmount($trade->amount, currencyFormat: false) }}</td>
-                                <td class="text-end">
+                                <td class="text-end fw-medium text-white font-mono">${{ showAmount($trade->entry_price, currencyFormat: false) }}</td>
+                                <td class="text-end fw-medium text-white font-mono">${{ showAmount($trade->exit_price, currencyFormat: false) }}</td>
+                                <td class="text-end fw-medium text-white font-mono">${{ showAmount($trade->amount, currencyFormat: false) }}</td>
+                                <td class="text-end font-mono">
                                     <span class="{{ $trade->profit_amount >= 0 ? 'text--success' : 'text--danger' }} fw-bold">
                                         {{ $trade->profit_amount >= 0 ? '+' : '' }}${{ showAmount($trade->profit_amount, currencyFormat: false) }}
                                     </span>
@@ -394,11 +400,11 @@
                                 </td>
                                 <td class="text-center pe-3 pe-sm-4">
                                     @if($trade->status == 'open')
-                                        <span class="badge badge--warning-soft rounded-pill px-3 py-1">
+                                        <span class="badge badge--warning-soft rounded-pill px-3 py-1 font-mono">
                                             <span class="live-pulse-dot me-1"></span> @lang('ACTIVE HOLDING')
                                         </span>
                                     @else
-                                        <span class="badge badge--success-soft rounded-pill px-3 py-1">
+                                        <span class="badge badge--success-soft rounded-pill px-3 py-1 font-mono">
                                             <i class="las la-check"></i> @lang('CLOSED')
                                         </span>
                                     @endif
@@ -439,19 +445,19 @@
                                         <span class="badge badge--{{ $plan->risk_level == 'low' ? 'success' : ($plan->risk_level == 'medium' ? 'warning' : 'danger') }}-soft rounded-pill px-3 py-1 text-uppercase">
                                             {{ $plan->risk_level }} @lang('Risk')
                                         </span>
-                                        <span class="text-muted text--small">{{ $plan->trade_duration_days }} @lang('Days')</span>
+                                        <span class="text-muted text--small"><i class="las la-history"></i> {{ $plan->trade_duration_days }} @lang('Days')</span>
                                     </div>
                                     <h5 class="text-white fw-bold mb-1">{{ __($plan->name) }}</h5>
                                     <p class="text-muted text--small mb-2">{{ __($plan->tagline) }}</p>
                                     
                                     <div class="roi-highlight-box p-2 rounded-3 mb-2 text-center">
-                                        <span class="text--base fw-bold fs-6">{{ $plan->daily_roi_min }}% - {{ $plan->daily_roi_max }}% / Day</span>
-                                        <small class="text-muted d-block">Win Rate: <strong class="text--success">{{ $plan->win_rate }}%</strong></small>
+                                        <span class="text--base fw-bold fs-6 font-mono">{{ $plan->daily_roi_min }}% - {{ $plan->daily_roi_max }}% / Day</span>
+                                        <small class="text-muted d-block">Win Rate: <strong class="text--success font-mono">{{ $plan->win_rate }}%</strong></small>
                                     </div>
 
                                     <div class="d-flex justify-content-between text--small mb-3 bg--dark-three p-2 rounded-2">
-                                        <span class="text-muted">Min: <strong class="text-white">${{ showAmount($plan->min_investment, currencyFormat: false) }}</strong></span>
-                                        <span class="text-muted">Max: <strong class="text-white">${{ showAmount($plan->max_investment, currencyFormat: false) }}</strong></span>
+                                        <span class="text-muted">Min: <strong class="text-white font-mono">${{ showAmount($plan->min_investment, currencyFormat: false) }}</strong></span>
+                                        <span class="text-muted">Max: <strong class="text-white font-mono">${{ showAmount($plan->max_investment, currencyFormat: false) }}</strong></span>
                                     </div>
                                 </div>
 
@@ -491,8 +497,8 @@
                     <!-- Expected Return Summary -->
                     <div class="bg--dark-three p-3 rounded-3 mb-4 text-center">
                         <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Estimated Daily ROI')</span>
-                        <h3 class="text--base fw-bold mb-0" id="modalRoiText">1.50% - 3.20%</h3>
-                        <small class="text-muted">@lang('Contract Duration'): <strong class="text-white" id="modalDurationText">30</strong> @lang('Days')</small>
+                        <h3 class="text--base fw-bold mb-0 font-mono" id="modalRoiText">1.50% - 3.20%</h3>
+                        <small class="text-muted">@lang('Contract Duration'): <strong class="text-white font-mono" id="modalDurationText">30</strong> @lang('Days')</small>
                     </div>
 
                     <!-- Wallet Selection with Custom Dark Styling -->
@@ -508,27 +514,27 @@
                     <div class="form-group mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label text-muted text--small text-uppercase mb-0">@lang('Allocation Capital ($)')</label>
-                            <span class="text-muted text--small">@lang('Limit'): <span id="modalLimitsText" class="text--base"></span></span>
+                            <span class="text-muted text--small">@lang('Limit'): <span id="modalLimitsText" class="text--base font-mono"></span></span>
                         </div>
                         <div class="input-group">
                             <span class="input-group-text bg--dark-three text-white border-dark">$</span>
-                            <input type="number" step="any" name="amount" class="form-control bg--dark-three text-white border-dark fs-5" id="deployAmountInput" placeholder="0.00" required>
+                            <input type="number" step="any" name="amount" class="form-control bg--dark-three text-white border-dark fs-5 font-mono" id="deployAmountInput" placeholder="0.00" required>
                             <span class="input-group-text bg--dark-three text-white border-dark">USDT</span>
                         </div>
 
                         <!-- Quick Percentage Pills -->
                         <div class="d-flex gap-2 mt-2">
-                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill quick-pct-btn" data-pct="25">25%</button>
-                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill quick-pct-btn" data-pct="50">50%</button>
-                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill quick-pct-btn" data-pct="75">75%</button>
-                            <button type="button" class="btn btn-sm btn-outline--base flex-fill rounded-pill quick-pct-btn" data-pct="100">MAX</button>
+                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill quick-pct-btn font-mono" data-pct="25">25%</button>
+                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill quick-pct-btn font-mono" data-pct="50">50%</button>
+                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill quick-pct-btn font-mono" data-pct="75">75%</button>
+                            <button type="button" class="btn btn-sm btn-outline--base flex-fill rounded-pill quick-pct-btn font-mono" data-pct="100">MAX</button>
                         </div>
                     </div>
 
                     <!-- Projected Return -->
                     <div class="d-flex justify-content-between text--small bg--dark-three p-3 rounded-3 mb-2">
                         <span class="text-muted">@lang('Est. Daily Profit'):</span>
-                        <strong class="text--success" id="estDailyProfit">+$0.00</strong>
+                        <strong class="text--success font-mono" id="estDailyProfit">+$0.00</strong>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-dark p-4">
@@ -548,6 +554,9 @@
 <style>
     .ai-terminal-wrapper {
         color: #e2e8f0;
+    }
+    .font-mono {
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', Courier, monospace !important;
     }
     .ai-main-title {
         font-size: 1.4rem;
@@ -658,7 +667,7 @@
     .ai-signal-terminal {
         background: #020617;
         border: 1px solid #1e293b;
-        font-family: 'Courier New', Courier, monospace;
+        font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', Courier, monospace;
         max-height: 220px;
         overflow-y: auto;
     }
@@ -715,6 +724,25 @@
         var selectedPlanMin = 0;
         var selectedPlanMax = 0;
         var selectedRoiMin = 0;
+
+        // Dynamic Running Bot Uptime Clock
+        function updateUptime() {
+            $('.bot-uptime').each(function() {
+                var startIso = $(this).data('start');
+                if (startIso) {
+                    var start = new Date(startIso);
+                    var diffMs = (new Date()) - start;
+                    if (diffMs > 0) {
+                        var diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+                        var diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                        var diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
+                        $(this).text(diffHrs + 'h ' + diffMins + 'm ' + diffSecs + 's');
+                    }
+                }
+            });
+        }
+        setInterval(updateUptime, 1000);
+        updateUptime();
 
         // Open Marketplace Modal
         $('.openMarketplaceBtn').on('click', function () {
@@ -830,13 +858,13 @@
                 console.log('Using fallback live price matrix');
             });
 
-        // Real-Time Signal Stream Generator with Actual Live Market Prices
+        // Real-Time Signal Stream Generator with Institutional Quant Formatting
         var signalTemplates = [
-            { pair: 'BTC/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Neural Breakout target confirmed &rarr; 98.4% Consensus' },
-            { pair: 'ETH/USDT', type: 'ARBITRAGE', tag: 'text--info', text: 'Cross-Exchange liquidity delta +0.38% captured' },
-            { pair: 'SOL/USDT', type: 'TAKE-PROFIT', tag: 'text--success', text: 'Trailing stop ratchet locked &rarr; Profit secured' },
+            { pair: 'BTC/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Multi-Timeframe Momentum Breakout &rarr; Consensus: 98.6%' },
+            { pair: 'ETH/USDT', type: 'ARBITRAGE', tag: 'text--info', text: 'Cross-Exchange triangular spread +0.42% captured' },
+            { pair: 'SOL/USDT', type: 'TAKE-PROFIT', tag: 'text--success', text: 'Trailing stop ratchet engaged &rarr; Profit locked' },
             { pair: 'BNB/USDT', type: 'QUANT-SCAN', tag: 'text--base', text: 'Volatility compression band expansion detected' },
-            { pair: 'XRP/USDT', type: 'DEPTH-SWEEP', tag: 'text--warning', text: 'Institutional bid wall absorb complete' },
+            { pair: 'XRP/USDT', type: 'DEPTH-SWEEP', tag: 'text--warning', text: 'Institutional bid wall imbalance absorbed' },
             { pair: 'AVAX/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Volume surge +280% on 15m timeframe &rarr; Long position' },
             { pair: 'SUI/USDT', type: 'TRAILING-STOP', tag: 'text--info', text: 'Dynamic trailing profit adjusted (+3.40%)' },
             { pair: 'NEAR/USDT', type: 'SIGNAL-BUY', tag: 'text--success', text: 'Mean reversion bounce &rarr; Atomic order fill' }
@@ -844,13 +872,13 @@
 
         setInterval(function() {
             var item = signalTemplates[Math.floor(Math.random() * signalTemplates.length)];
-            var price = liveCryptoPrices[item.pair] || 64200.00;
+            var price = liveCryptoPrices[item.pair] || 77901.00;
             var formattedPrice = (price > 10) ? '$' + price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '$' + price.toFixed(4);
 
             var now = new Date();
             var timeStr = now.toTimeString().split(' ')[0];
 
-            var lineHtml = '<div class="signal-line text--small mb-2" style="display:none;">' +
+            var lineHtml = '<div class="signal-line text--small mb-2 font-mono" style="display:none;">' +
                 '<span class="text-muted">[' + timeStr + ']</span> ' +
                 '<span class="' + item.tag + ' fw-bold">[' + item.type + ']</span> ' +
                 '<strong>' + item.pair + '</strong> (@ ' + formattedPrice + '): ' + item.text +
