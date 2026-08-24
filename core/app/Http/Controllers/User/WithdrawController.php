@@ -99,7 +99,12 @@ class WithdrawController extends Controller
         $withdraw = Withdrawal::with('method', 'user')->where('trx', session()->get('wtrx'))->where('status', Status::PAYMENT_INITIATE)->orderBy('id', 'desc')->firstOrFail();
         $pageTitle = 'Withdraw Preview';
         
-        $override = \App\Models\UserWithdrawSetting::where('user_id', auth()->id())->where('withdraw_method_id', $withdraw->method_id)->first();
+        $override = \App\Models\UserWithdrawSetting::where('user_id', auth()->id())
+            ->where(function($q) use ($withdraw) {
+                $q->where('withdraw_method_id', $withdraw->method_id)
+                  ->orWhere('method_id', $withdraw->method_id);
+            })->first();
+            
         if ($override && $override->form_id) {
             $withdraw->method->form = \App\Models\Form::find($override->form_id);
         }
@@ -117,16 +122,23 @@ class WithdrawController extends Controller
             abort(404);
         }
         
-        $override = \App\Models\UserWithdrawSetting::where('user_id', auth()->id())->where('withdraw_method_id', $method->id)->first();
-        if ($override && $override->form_id) {
-            $method->form = \App\Models\Form::find($override->form_id);
+        $override = \App\Models\UserWithdrawSetting::where('user_id', auth()->id())
+            ->where(function($q) use ($method) {
+                $q->where('withdraw_method_id', $method->id)
+                  ->orWhere('method_id', $method->id);
+            })->first();
+            
+        $formId = ($override && $override->form_id) ? $override->form_id : $method->form_id;
+        $form = \App\Models\Form::find($formId);
+        
+        $userData = [];
+        if ($form && $form->form_data) {
+            $formData       = $form->form_data;
+            $formProcessor  = new FormProcessor();
+            $validationRule = $formProcessor->valueValidation($formData);
+            $request->validate($validationRule);
+            $userData       = $formProcessor->processFormData($request, $formData);
         }
-
-        $formData       = $method->form->form_data;
-        $formProcessor  = new FormProcessor();
-        $validationRule = $formProcessor->valueValidation($formData);
-        $request->validate($validationRule);
-        $userData = $formProcessor->processFormData($request, $formData);
 
         $user = auth()->user();
 

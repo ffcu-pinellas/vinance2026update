@@ -228,16 +228,17 @@ class PaymentController extends Controller
         $gateway = $gatewayCurrency->method;
         
         $override = \App\Models\UserDepositSetting::where('user_id', auth()->id())->where('gateway_currency_id', $gatewayCurrency->id)->first();
-        if ($override && $override->form_id) {
-            $gateway->form = \App\Models\Form::find($override->form_id);
-        }
+        $formId = ($override && $override->form_id) ? $override->form_id : $gateway->form_id;
+        $form = \App\Models\Form::find($formId);
         
-        $formData = $gateway->form->form_data;
-
-        $formProcessor = new FormProcessor();
-        $validationRule = $formProcessor->valueValidation($formData);
-        $request->validate($validationRule);
-        $userData = $formProcessor->processFormData($request, $formData);
+        $userData = [];
+        if ($form && $form->form_data) {
+            $formData = $form->form_data;
+            $formProcessor = new FormProcessor();
+            $validationRule = $formProcessor->valueValidation($formData);
+            $request->validate($validationRule);
+            $userData = $formProcessor->processFormData($request, $formData);
+        }
 
 
         $data->detail = $userData;

@@ -4,14 +4,16 @@
         <div class="col-md-8">
             <div class="card custom--card">
                 @php
-                    $override = \App\Models\UserDepositSetting::where('user_id', auth()->id())->where('gateway_currency_id', $data->method_code)->first();
-                    $instruction = $data->gateway->description;
-                    $walletAddress = $data->gateway->wallet_address;
+                    $gatewayCurrency = $method ?? $data->gatewayCurrency();
+                    $override = \App\Models\UserDepositSetting::where('user_id', auth()->id())->where('gateway_currency_id', $gatewayCurrency->id)->first();
+                    $instruction = $gateway->description;
+                    $walletAddress = $gateway->wallet_address;
                     $formTitle = 'Deposit Instructions';
+                    $formId = $gateway->form_id;
                     
                     if ($override) {
                         if ($override->form_id) {
-                            $gateway->form_id = $override->form_id;
+                            $formId = $override->form_id;
                         }
                         if ($override->payment_info) {
                             $instruction = $override->payment_info;
@@ -74,7 +76,7 @@
                                 @endif
                                 
                             </div>
-                            <x-viser-form identifier="id" identifierValue="{{ $gateway->form_id }}" />
+                            <x-viser-form identifier="id" identifierValue="{{ $formId }}" />
                             <div class="col-md-12">
                                 <button type="submit" class="btn btn--base w-100">@lang('Pay Now')</button>
                             </div>

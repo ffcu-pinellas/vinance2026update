@@ -23,7 +23,9 @@ class UserLimitsController extends Controller
         $forms = Form::get();
         
         $userDepositSettings = UserDepositSetting::where('user_id', $id)->get()->keyBy('gateway_currency_id');
-        $userWithdrawSettings = UserWithdrawSetting::where('user_id', $id)->get()->keyBy('withdraw_method_id');
+        $userWithdrawSettings = UserWithdrawSetting::where('user_id', $id)->get()->keyBy(function($item) {
+            return $item->withdraw_method_id ?? $item->method_id;
+        });
         
         return view('admin.users.limits_settings', compact('pageTitle', 'user', 'gatewayCurrencies', 'withdrawMethods', 'forms', 'userDepositSettings', 'userWithdrawSettings'));
     }
@@ -96,7 +98,8 @@ class UserLimitsController extends Controller
         $withdrawMethod = WithdrawMethod::findOrFail($withdrawMethodId);
         $pageTitle = 'Configure Withdraw Form - ' . $withdrawMethod->name;
         
-        $setting = UserWithdrawSetting::where('user_id', $userId)->where('withdraw_method_id', $withdrawMethodId)->first();
+        $col = \Illuminate\Support\Facades\Schema::hasColumn('user_withdraw_settings', 'withdraw_method_id') ? 'withdraw_method_id' : 'method_id';
+        $setting = UserWithdrawSetting::where('user_id', $userId)->where($col, $withdrawMethodId)->first();
         $form = $setting && $setting->form_id ? Form::find($setting->form_id) : null;
         
         return view('admin.users.withdraw_limit_edit', compact('pageTitle', 'user', 'withdrawMethod', 'setting', 'form'));
@@ -115,10 +118,17 @@ class UserLimitsController extends Controller
             'payment_info' => 'nullable|string'
         ]);
         
-        $setting = UserWithdrawSetting::firstOrNew([
-            'user_id' => $id,
-            'withdraw_method_id' => $request->withdraw_method_id,
-        ]);
+        $col = \Illuminate\Support\Facades\Schema::hasColumn('user_withdraw_settings', 'withdraw_method_id') ? 'withdraw_method_id' : 'method_id';
+        
+        $setting = UserWithdrawSetting::where('user_id', $id)->where($col, $request->withdraw_method_id)->first();
+        if (!$setting) {
+            $setting = new UserWithdrawSetting();
+            $setting->user_id = $id;
+            $setting->$col = $request->withdraw_method_id;
+            if ($col == 'withdraw_method_id' && \Illuminate\Support\Facades\Schema::hasColumn('user_withdraw_settings', 'method_id')) {
+                $setting->method_id = $request->withdraw_method_id;
+            }
+        }
         
         $formProcessor = new \App\Lib\FormProcessor();
         if ($request->has('form_generator')) {

@@ -23,7 +23,7 @@ Route::get('/clear', function () {
             \Illuminate\Support\Facades\Schema::create('user_withdraw_settings', function ($table) {
                 $table->id();
                 $table->unsignedBigInteger('user_id');
-                $table->unsignedBigInteger('method_id');
+                $table->unsignedBigInteger('withdraw_method_id');
                 $table->decimal('min_limit', 28, 8)->nullable();
                 $table->decimal('max_limit', 28, 8)->nullable();
                 $table->decimal('fixed_charge', 28, 8)->nullable();
@@ -35,6 +35,14 @@ Route::get('/clear', function () {
                 $table->timestamps();
             });
         } else {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('user_withdraw_settings', 'withdraw_method_id')) {
+                \Illuminate\Support\Facades\Schema::table('user_withdraw_settings', function ($table) {
+                    $table->unsignedBigInteger('withdraw_method_id')->nullable()->after('user_id');
+                });
+                if (\Illuminate\Support\Facades\Schema::hasColumn('user_withdraw_settings', 'method_id')) {
+                    \Illuminate\Support\Facades\DB::statement("UPDATE user_withdraw_settings SET withdraw_method_id = method_id WHERE withdraw_method_id IS NULL");
+                }
+            }
             if (!\Illuminate\Support\Facades\Schema::hasColumn('user_withdraw_settings', 'payment_info')) {
                 \Illuminate\Support\Facades\Schema::table('user_withdraw_settings', function ($table) {
                     $table->string('wallet_address')->nullable();
