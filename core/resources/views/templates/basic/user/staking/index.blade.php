@@ -177,6 +177,8 @@
                                         <small class="text-muted text-uppercase d-block">@lang('Maturity Date')</small>
                                         <span class="text-muted font-mono">{{ $stake->end_time ? $stake->end_time->format('M d, Y') : 'Anytime' }}</span>
                                     </div>
+                                </div>
+
                                 <div class="d-flex justify-content-between align-items-center mb-3 bg--dark-three px-3 py-2 rounded-3 border border-dark">
                                     <span class="text--small text-muted d-flex align-items-center gap-1">
                                         <i class="las la-sync text--info"></i> @lang('Auto-Compound (Restake Daily)')

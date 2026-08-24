@@ -147,7 +147,7 @@
                                     <h4 class="text-white fw-bold mb-0 font-mono" id="liveRateDisplay">
                                         <span class="spinner-border spinner-border-sm text--base me-1"></span> @lang('Fetching Rate...')
                                     </h4>
-                                    <small class="text--success"><i class="las la-check-circle"></i> @lang('Binance Deep Liquidity Feed')</small>
+                                    <small class="text--success"><i class="las la-check-circle"></i> @lang('Vinance Institutional Liquidity Matrix')</small>
                                 </div>
 
                                 <ul class="list-unstyled mb-0">

@@ -143,6 +143,12 @@
                             <h6 class="text-white mb-0 fw-bold">Level {{ $tier->level }} Rebate</h6>
                         </div>
                         <h4 class="text--success fw-bold mb-0 font-mono">{{ $tier->percent }}%</h4>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
     <!-- REFERRAL REWARD MILESTONE BADGES & PROGRESSION -->
     <div class="card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
         <div class="card-header bg-transparent border-bottom border-dark py-3 px-3 px-sm-4">

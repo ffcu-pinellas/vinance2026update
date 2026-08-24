@@ -700,25 +700,61 @@
 <script>
     (function ($) {
         "use strict";
-        var liveActivities = [
-            '<span class="text--base fw-bold">Trader user***82</span> swapped 2.50 ETH to 7,750.20 USDT via Instant Convert',
-            '<span class="text--success fw-bold">Trader alex***19</span> harvested +$342.50 USDT profit from AI High-Frequency Bot',
-            '<span class="text--warning fw-bold">Trader vip***77</span> staked $25,000 USDT in 180-Day Institutional VIP Vault',
-            '<span class="text--info fw-bold">Trader quant***04</span> earned +$118.40 USDT lifetime referral commission',
-            '<span class="text--base fw-bold">Trader mark***61</span> activated Jane Street Quant Arbitrage Bot ($5,000 USDT)',
-            '<span class="text--success fw-bold">Trader crypto***92</span> swapped 0.85 BTC to 66,215.80 USDT (0-Slippage)'
+        var baseFeedEvents = [
+            { type: 'SWAP', tag: 'text--base', format: (u, a, c1, c2) => `Trader <strong>${u}</strong> converted <strong>${a} ${c1}</strong> &rarr; <strong>${c2}</strong> (0-Slippage)` },
+            { type: 'HARVEST', tag: 'text--success', format: (u, a) => `Trader <strong>${u}</strong> harvested <strong class="text--success">+${a} USDT</strong> from AI Quant Bot` },
+            { type: 'STAKE', tag: 'text--warning', format: (u, a, pool) => `Trader <strong>${u}</strong> staked <strong>$${a} USDT</strong> in ${pool}` },
+            { type: 'COPY', tag: 'text--info', format: (u, bot) => `Trader <strong>${u}</strong> copied <strong>${bot}</strong> strategy` },
+            { type: 'REBATE', tag: 'text--success', format: (u, a) => `Partner <strong>${u}</strong> received <strong class="text--success">+$${a} USDT</strong> multi-tier rebate` },
+            { type: 'BINARY_WIN', tag: 'text--success', format: (u, p, a) => `Trader <strong>${u}</strong> settled <strong class="text--success">+${a} USDT</strong> on ${p} 60s Contract` },
+            { type: 'AUTO_COMPOUND', tag: 'text--info', format: (u, a) => `Vault <strong>${u}</strong> auto-reinvested <strong>+$${a} USDT</strong> daily yield` }
         ];
 
-        var activityIndex = 0;
+        var userPool = ['alex***82', 'vip_trader***19', 'quant_whale***07', 'david***91', 'emma_k***44', 'crypto_hulk***12', 'sarah_m***33', ' institutional***01', 'matrix_node***88', 'zenith***25', 'nordic***73', 'alpha_prime***69', 'tokyo_trader***50'];
+        var pools = ['180-Day Institutional VIP Vault', '90-Day High Yield Vault', 'Flexible USDT Earn', '30-Day Locked Vault'];
+        var bots = ['Jane Street Arbitrage', 'Citadel High-Frequency Alpha', 'Jump Crypto Delta Neutral', 'Wintermute Market Maker', 'Two Sigma Quant Momentum'];
+        var pairs = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'XRP/USDT', 'BNB/USDT', 'SUI/USDT'];
+
+        function getRandomActivity() {
+            var evt = baseFeedEvents[Math.floor(Math.random() * baseFeedEvents.length)];
+            var user = userPool[Math.floor(Math.random() * userPool.length)];
+
+            if (evt.type === 'SWAP') {
+                var c1 = pairs[Math.floor(Math.random() * pairs.length)].split('/')[0];
+                var c2 = 'USDT';
+                var amt = c1 === 'BTC' ? (Math.random() * 2 + 0.1).toFixed(4) : (Math.random() * 25 + 1).toFixed(2);
+                return evt.format(user, amt, c1, c2);
+            } else if (evt.type === 'HARVEST') {
+                var profit = (Math.random() * 450 + 25).toFixed(2);
+                return evt.format(user, profit);
+            } else if (evt.type === 'STAKE') {
+                var stakeAmt = (Math.floor(Math.random() * 40 + 2) * 500).toLocaleString();
+                var p = pools[Math.floor(Math.random() * pools.length)];
+                return evt.format(user, stakeAmt, p);
+            } else if (evt.type === 'COPY') {
+                var b = bots[Math.floor(Math.random() * bots.length)];
+                return evt.format(user, b);
+            } else if (evt.type === 'REBATE') {
+                var reb = (Math.random() * 120 + 15).toFixed(2);
+                return evt.format(user, reb);
+            } else if (evt.type === 'BINARY_WIN') {
+                var pair = pairs[Math.floor(Math.random() * pairs.length)];
+                var win = (Math.random() * 380 + 40).toFixed(2);
+                return evt.format(user, pair, win);
+            } else {
+                var cmp = (Math.random() * 85 + 10).toFixed(2);
+                return evt.format(user, cmp);
+            }
+        }
+
         setInterval(function() {
-            activityIndex = (activityIndex + 1) % liveActivities.length;
             var ticker = $('#livePlatformTicker');
             if (ticker.length) {
                 ticker.fadeOut(250, function() {
-                    ticker.html(liveActivities[activityIndex]).fadeIn(250);
+                    ticker.html(getRandomActivity()).fadeIn(250);
                 });
             }
-        }, 4500);
+        }, 3800);
     })(jQuery);
 </script>
 @endpush
