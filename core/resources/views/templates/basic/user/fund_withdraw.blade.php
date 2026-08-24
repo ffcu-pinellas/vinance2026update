@@ -8,22 +8,22 @@
             </div>
             <div class="card-body">
                 <p class="text-muted mb-4 text-center">@lang('Please select the action you would like to perform.')</p>
-                <div class="row justify-content-center gy-4">
+                <div class="row justify-content-center g-4 mt-2">
                     <div class="col-md-6 col-lg-5">
-                        <div class="card bg--dark shadow-sm border border-primary h-100 selection-card" onclick="window.location.href='{{ route('user.deposit.index') }}'" style="cursor:pointer; transition: transform 0.2s;">
+                        <div class="card bg--dark shadow-sm border border-success h-100 selection-card" onclick="window.location.href='{{ route('user.deposit.index') }}'" style="cursor:pointer; transition: transform 0.2s;">
                             <div class="card-body text-center p-5">
-                                <div class="icon-circle bg-primary text-white mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                                <div class="icon-circle bg-success text-white mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px;">
                                     <i class="las la-wallet"></i>
                                 </div>
                                 <h4 class="mb-2 text-white">@lang('Deposit Funds')</h4>
-                                <p class="text-white-50">@lang('Add money to your Vinance wallet via crypto or manual gateways.')</p>
-                                <button class="btn btn--primary w-100 mt-3">@lang('Proceed to Deposit')</button>
+                                <p class="text-white-50">@lang('Add funds to your wallet using crypto or fiat gateways.')</p>
+                                <button class="btn btn--success w-100 mt-3">@lang('Proceed to Deposit')</button>
                             </div>
                         </div>
                     </div>
                     
                     <div class="col-md-6 col-lg-5">
-                        <div class="card bg--dark shadow-sm border border-danger h-100 selection-card" onclick="window.location.href='{{ route('user.withdraw') }}'" style="cursor:pointer; transition: transform 0.2s;">
+                        <div class="card bg--dark shadow-sm border border-danger h-100 selection-card" onclick="window.location.href='{{ route('user.withdraw.index') }}'" style="cursor:pointer; transition: transform 0.2s;">
                             <div class="card-body text-center p-5">
                                 <div class="icon-circle bg-danger text-white mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px;">
                                     <i class="las la-money-bill-wave"></i>
