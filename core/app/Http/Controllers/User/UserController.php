@@ -16,6 +16,7 @@ use App\Models\Order;
 use App\Models\Referral;
 use App\Models\Trade;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WithdrawMethod;
 use Illuminate\Http\Request;
