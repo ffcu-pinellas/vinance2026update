@@ -289,16 +289,16 @@
                             <span class="text-muted">[{{ date('H:i:s') }}]</span> <span class="text--base fw-bold">[QUANT-SCAN]</span> Scanning 48 Spot & Derivative pairs via low-latency WebSocket feed...
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-8) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> <strong>BTC/USDT</strong> Momentum Breakout confirmed &rarr; Neural Consensus: 98.6%
+                            <span class="text-muted">[{{ date('H:i:s', time()-8) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> <strong>BTC/USDT</strong> (@ $77,901.50) Momentum Breakout confirmed &rarr; Neural Consensus: 98.6%
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-21) }}]</span> <span class="text--info fw-bold">[ARBITRAGE]</span> <strong>SOL/USDT</strong> Cross-Exchange triangular spread +0.42% captured
+                            <span class="text-muted">[{{ date('H:i:s', time()-21) }}]</span> <span class="text--info fw-bold">[ARBITRAGE]</span> <strong>SOL/USDT</strong> (@ $195.40) Cross-Exchange triangular spread +0.42% captured
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-39) }}]</span> <span class="text--success fw-bold">[TAKE-PROFIT]</span> <strong>ETH/USDT</strong> Target 2 cleared (+3.12%) &rarr; Profit locked
+                            <span class="text-muted">[{{ date('H:i:s', time()-39) }}]</span> <span class="text--success fw-bold">[TAKE-PROFIT]</span> <strong>ETH/USDT</strong> (@ $3,120.80) Target 2 cleared (+3.12%) &rarr; Profit locked
                         </div>
                         <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-58) }}]</span> <span class="text--warning fw-bold">[DEPTH-SWEEP]</span> <strong>XRP/USDT</strong> Orderbook bid wall imbalance absorbed
+                            <span class="text-muted">[{{ date('H:i:s', time()-58) }}]</span> <span class="text--warning fw-bold">[DEPTH-SWEEP]</span> <strong>XRP/USDT</strong> (@ $0.5840) Orderbook bid wall imbalance absorbed
                         </div>
                     </div>
                 </div>
@@ -393,9 +393,15 @@
                                     <small class="text-muted d-block">({{ $trade->profit_percentage >= 0 ? '+' : '' }}{{ $trade->profit_percentage }}%)</small>
                                 </td>
                                 <td class="text-center pe-3 pe-sm-4">
-                                    <span class="badge badge--success-soft rounded-pill px-3 py-1">
-                                        <i class="las la-check"></i> @lang('CLOSED')
-                                    </span>
+                                    @if($trade->status == 'open')
+                                        <span class="badge badge--warning-soft rounded-pill px-3 py-1">
+                                            <span class="live-pulse-dot me-1"></span> @lang('ACTIVE HOLDING')
+                                        </span>
+                                    @else
+                                        <span class="badge badge--success-soft rounded-pill px-3 py-1">
+                                            <i class="las la-check"></i> @lang('CLOSED')
+                                        </span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -791,15 +797,15 @@
 
         // Real-Time Live Crypto Prices Cache
         var liveCryptoPrices = {
-            'BTC/USDT': 64250.00,
-            'ETH/USDT': 3450.00,
-            'SOL/USDT': 152.40,
-            'BNB/USDT': 578.20,
+            'BTC/USDT': 77901.00,
+            'ETH/USDT': 3120.00,
+            'SOL/USDT': 195.40,
+            'BNB/USDT': 640.00,
             'XRP/USDT': 0.5840,
-            'AVAX/USDT': 28.60,
-            'SUI/USDT': 1.94,
-            'DOGE/USDT': 0.124,
-            'NEAR/USDT': 4.82
+            'AVAX/USDT': 28.50,
+            'SUI/USDT': 1.95,
+            'DOGE/USDT': 0.142,
+            'NEAR/USDT': 4.85
         };
 
         // Fetch actual live ticker prices from Binance public endpoint

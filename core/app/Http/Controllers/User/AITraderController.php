@@ -17,6 +17,98 @@ use Illuminate\Support\Facades\DB;
 
 class AITraderController extends Controller
 {
+    public static function getLiveCryptoPrice($pairSymbol = 'BTC/USDT')
+    {
+        $cleanSymbol = strtoupper(str_replace(['/', '_', '-'], '', $pairSymbol));
+        
+        // 1. Check CoinPair table in database
+        try {
+            $coinSym = explode('/', str_replace('_', '/', $pairSymbol))[0];
+            $pair = \App\Models\CoinPair::whereHas('coin', function($q) use ($coinSym) {
+                $q->where('symbol', $coinSym);
+            })->first();
+            if ($pair && $pair->price > 0) {
+                return (float)$pair->price;
+            }
+        } catch (\Exception $e) {}
+
+        // 2. Fetch directly from Binance live API
+        try {
+            $res = \App\Lib\CurlRequest::curlContent("https://api.binance.com/api/v3/ticker/price?symbol={$cleanSymbol}");
+            $json = json_decode($res, true);
+            if (isset($json['price']) && $json['price'] > 0) {
+                return (float)$json['price'];
+            }
+        } catch (\Exception $e) {}
+
+        // 3. Fallbacks matching current market
+        $fallbacks = [
+            'BTCUSDT' => 77900.00,
+            'ETHUSDT' => 3120.00,
+            'SOLUSDT' => 195.00,
+            'BNBUSDT' => 640.00,
+            'XRPUSDT' => 0.584,
+            'AVAXUSDT' => 28.50,
+            'SUIUSDT' => 1.95,
+            'DOGEUSDT' => 0.142,
+            'NEARUSDT' => 4.85,
+        ];
+
+        return $fallbacks[$cleanSymbol] ?? 100.00;
+    }
+
+    protected function processAutoBotTrading($user, $activeBots)
+    {
+        foreach ($activeBots as $userBot) {
+            $plan = $userBot->plan;
+            if (!$plan) continue;
+
+            $lastTrade = AiTradeLog::where('user_ai_bot_id', $userBot->id)->latest()->first();
+            $shouldTrade = false;
+
+            if (!$lastTrade) {
+                $shouldTrade = true;
+            } elseif ($lastTrade->created_at->diffInMinutes(now()) >= 3) {
+                // Execute a periodic micro-trade every 3+ minutes
+                $shouldTrade = true;
+            }
+
+            if ($shouldTrade) {
+                $pairs = is_array($plan->trading_pairs) && count($plan->trading_pairs) > 0 
+                    ? $plan->trading_pairs 
+                    : ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+                
+                $randomPair = $pairs[array_rand($pairs)];
+                $entryPrice = self::getLiveCryptoPrice($randomPair);
+
+                $minTradePct = max(0.20, ($plan->daily_roi_min / 4.0));
+                $maxTradePct = max(0.55, ($plan->daily_roi_max / 3.0));
+                $randomTradePct = round(mt_rand($minTradePct * 100, $maxTradePct * 100) / 100, 2);
+
+                $exitPrice = $entryPrice * (1 + ($randomTradePct / 100));
+                $tradeVolume = $userBot->allocated_amount * round(mt_rand(15, 30) / 100, 2);
+                $tradeProfit = round($tradeVolume * ($randomTradePct / 100), 4);
+
+                $trade = new AiTradeLog();
+                $trade->user_id = $user->id;
+                $trade->user_ai_bot_id = $userBot->id;
+                $trade->pair_symbol = $randomPair;
+                $trade->side = mt_rand(0, 1) ? 'BUY' : 'SELL';
+                $trade->entry_price = $entryPrice;
+                $trade->exit_price = $exitPrice;
+                $trade->amount = $tradeVolume;
+                $trade->profit_amount = $tradeProfit;
+                $trade->profit_percentage = $randomTradePct;
+                $trade->status = 'closed';
+                $trade->save();
+
+                $userBot->current_profit += $tradeProfit;
+                $userBot->total_trades += 1;
+                $userBot->save();
+            }
+        }
+    }
+
     public function index()
     {
         $pageTitle = 'Vinance AI Quantitative Terminal';
@@ -40,6 +132,14 @@ class AITraderController extends Controller
         // User's active & completed bots
         $userBots = UserAiBot::with('plan')->where('user_id', $user->id)->latest()->get();
         $activeBots = $userBots->where('status', 1);
+
+        // Auto accumulate realistic bot profits over time while running
+        if ($activeBots->count() > 0) {
+            $this->processAutoBotTrading($user, $activeBots);
+            // Refresh user bots
+            $userBots = UserAiBot::with('plan')->where('user_id', $user->id)->latest()->get();
+            $activeBots = $userBots->where('status', 1);
+        }
 
         // User settings & overrides
         $userSetting = UserAiSetting::where('user_id', $user->id)->first();
