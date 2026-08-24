@@ -48,8 +48,6 @@ class UserLimitsController extends Controller
             'gateway_currency_id' => $request->gateway_currency_id,
         ]);
         
-        $setting->gateway_code = $gatewayCurrency->method_code;
-        $setting->currency = $gatewayCurrency->currency;
         $setting->min_amount = $request->min_amount;
         $setting->max_amount = $request->max_amount;
         $setting->fixed_charge = $request->fixed_charge;
