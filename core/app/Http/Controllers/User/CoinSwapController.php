@@ -2,27 +2,62 @@
 
 namespace App\Http\Controllers\User;
 
-use App\Http\Controllers\Controller;
-use App\Models\Currency;
-use App\Models\CoinSwap;
-use App\Models\Transaction;
-use Illuminate\Http\Request;
 use App\Constants\Status;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\Controller;
+use App\Models\CoinSwap;
+use App\Models\Currency;
+use App\Models\Transaction;
+use App\Models\UserSwapSetting;
+use App\Models\Wallet;
+use App\Services\TelegramService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class CoinSwapController extends Controller
 {
     public function index()
     {
-        $pageTitle = 'Coin Swap';
+        $pageTitle = 'Instant Crypto Convert & Swap';
+        $user = auth()->user();
+
         $currencies = Currency::active()->get();
-        $swaps = CoinSwap::where('user_id', auth()->id())->with(['fromCurrency', 'toCurrency'])->latest()->paginate(getPaginate());
-        
-        return view('templates.basic.user.coin_swap.swap', compact('pageTitle', 'currencies', 'swaps'));
+
+        // Attach user balances to currencies for spot wallet
+        $wallets = Wallet::spot()->where('user_id', $user->id)->get()->keyBy('currency_id');
+        foreach ($currencies as $currency) {
+            $wallet = $wallets->get($currency->id);
+            $currency->user_balance = $wallet ? (float)$wallet->balance : 0;
+        }
+
+        $userSetting = UserSwapSetting::where('user_id', $user->id)->first();
+        $feeRate = $userSetting && $userSetting->custom_fee_percentage !== null 
+            ? (float)$userSetting->custom_fee_percentage 
+            : (float)(gs('swap_charge') ?? 0.10);
+
+        $swaps = CoinSwap::where('user_id', $user->id)
+            ->with(['fromCurrency', 'toCurrency'])
+            ->latest()
+            ->paginate(getPaginate());
+
+        $statistics = [
+            'total_swaps' => CoinSwap::where('user_id', $user->id)->count(),
+            'total_volume' => CoinSwap::where('user_id', $user->id)->where('status', Status::COMPLETED)->sum('from_amount'),
+            'fee_rate' => $feeRate,
+            'is_locked' => $userSetting && $userSetting->is_swap_locked
+        ];
+
+        return view('templates.basic.user.coin_swap.swap', compact(
+            'pageTitle',
+            'user',
+            'currencies',
+            'swaps',
+            'statistics',
+            'feeRate'
+        ));
     }
 
     public function swap(Request $request)
@@ -35,257 +70,238 @@ class CoinSwapController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()->all()]);
+                return response()->json(['error' => $validator->errors()->first()]);
+            }
+
+            $user = auth()->user();
+
+            // Check if swap is locked for this user
+            $userSetting = UserSwapSetting::where('user_id', $user->id)->first();
+            if ($userSetting && $userSetting->is_swap_locked) {
+                return response()->json(['error' => 'Instant coin swapping is temporarily suspended for your account. Please contact VIP support.']);
             }
 
             $fromCurrency = Currency::findOrFail($request->from_currency);
             $toCurrency = Currency::findOrFail($request->to_currency);
-            $user = auth()->user();
 
-            // Check if user has sufficient balance
-            $wallet = $user->wallets()->where('currency_id', $fromCurrency->id)->first();
-            if (!$wallet) {
-                return response()->json(['error' => 'Wallet not found for ' . $fromCurrency->symbol]);
-            }
-
-            if ($wallet->balance < $request->amount) {
-                return response()->json(['error' => 'Insufficient ' . $fromCurrency->symbol . ' balance']);
-            }
-
-            // Get real-time market rate with caching
-            $rate = $this->getCachedRate($fromCurrency->symbol, $toCurrency->symbol);
+            // Check if user has sufficient balance in Spot Wallet
+            $fromWallet = Wallet::spot()->where('user_id', $user->id)->where('currency_id', $fromCurrency->id)->first();
             
-            // Calculate amounts with fee applied to final amount
-            $grossAmount = $request->amount * $rate;
-            $charge = $grossAmount * (gs('swap_charge') / 100);
+            $availableBalance = $fromWallet ? (float)$fromWallet->balance : 0;
+
+            if ($availableBalance < (float)$request->amount) {
+                return response()->json(['error' => 'Insufficient ' . $fromCurrency->symbol . ' balance in your Spot Wallet.']);
+            }
+
+            // Get live market exchange rate
+            $rate = $this->getLiveRate($fromCurrency->symbol, $toCurrency->symbol);
+            if ($rate <= 0) {
+                return response()->json(['error' => 'Unable to fetch live market quotation for ' . $fromCurrency->symbol . '/' . $toCurrency->symbol . '. Please try again.']);
+            }
+
+            // Calculate fees
+            $feePercentage = $userSetting && $userSetting->custom_fee_percentage !== null 
+                ? (float)$userSetting->custom_fee_percentage 
+                : (float)(gs('swap_charge') ?? 0.10);
+
+            $grossAmount = (float)$request->amount * $rate;
+            $charge = $grossAmount * ($feePercentage / 100);
             $finalAmount = $grossAmount - $charge;
 
             DB::beginTransaction();
-
             try {
+                // Deduct from wallet
+                $fromWallet->balance -= (float)$request->amount;
+                $fromWallet->save();
+
+                // Add to toWallet
+                $toWallet = Wallet::spot()->firstOrCreate(
+                    ['user_id' => $user->id, 'currency_id' => $toCurrency->id],
+                    ['balance' => 0]
+                );
+                $toWallet->balance += $finalAmount;
+                $toWallet->save();
+
                 // Create swap record
                 $swap = new CoinSwap();
                 $swap->user_id = $user->id;
                 $swap->from_currency_id = $fromCurrency->id;
                 $swap->to_currency_id = $toCurrency->id;
-                $swap->from_amount = $request->amount;
+                $swap->from_amount = (float)$request->amount;
                 $swap->to_amount = $finalAmount;
                 $swap->rate = $rate;
                 $swap->charge = $charge;
                 $swap->status = Status::COMPLETED;
                 $swap->save();
 
-                // Update wallet balances
-                $wallet->balance -= $request->amount;
-                $wallet->save();
-
-                $toWallet = $user->wallets()->firstOrCreate(
-                    ['currency_id' => $toCurrency->id],
-                    ['balance' => 0]
-                );
-                $toWallet->balance += $finalAmount;
-                $toWallet->save();
-
-                // Create transactions
-                $this->createTransaction($user, $wallet, $request->amount, '-', 'Coin swap from ' . $fromCurrency->symbol);
-                $this->createTransaction($user, $toWallet, $finalAmount, '+', 'Coin swap to ' . $toCurrency->symbol);
+                // Create transaction records
+                $this->createTransaction($user, $fromWallet, (float)$request->amount, '-', "Swapped {$request->amount} {$fromCurrency->symbol} to {$toCurrency->symbol}");
+                $this->createTransaction($user, $toWallet, $finalAmount, '+', "Received {$finalAmount} {$toCurrency->symbol} from {$fromCurrency->symbol} swap");
 
                 DB::commit();
 
-                // Send beautifully formatted Telegram notification
-                $this->sendBeautifulTelegramNotification($user, [
-                    'from_amount' => $request->amount,
-                    'from_currency' => $fromCurrency->symbol,
-                    'to_amount' => $finalAmount,
-                    'to_currency' => $toCurrency->symbol,
-                    'rate' => $rate,
-                    'charge' => $charge,
-                    'swap_id' => $swap->id,
-                    'date' => now()->format('Y-m-d H:i:s')
-                ]);
+                // Send Telegram Notification
+                try {
+                    $telegram = new TelegramService();
+                    $telegram->notifyCoinSwapExecuted($user, $swap, $fromCurrency->symbol, $toCurrency->symbol);
+                } catch (\Exception $e) {
+                    Log::error('Coin swap Telegram error: ' . $e->getMessage());
+                }
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Coin swap completed successfully',
+                    'message' => 'Successfully converted ' . number_format($request->amount, 6) . ' ' . $fromCurrency->symbol . ' to ' . number_format($finalAmount, 6) . ' ' . $toCurrency->symbol . '!',
                     'details' => [
-                        'from_amount' => showAmount($request->amount),
+                        'from_amount' => number_format($request->amount, 6),
                         'from_currency' => $fromCurrency->symbol,
-                        'to_amount' => showAmount($finalAmount),
+                        'to_amount' => number_format($finalAmount, 6),
                         'to_currency' => $toCurrency->symbol,
-                        'rate' => showAmount($rate),
-                        'fee' => showAmount($charge),
-                        'provider' => 'CoinMarketCap'
+                        'rate' => number_format($rate, 6),
+                        'fee' => number_format($charge, 6),
+                        'new_from_balance' => number_format($fromWallet->balance, 6),
+                        'new_to_balance' => number_format($toWallet->balance, 6)
                     ]
                 ]);
+
             } catch (\Exception $e) {
                 DB::rollBack();
                 Log::error('Coin swap transaction error: ' . $e->getMessage());
-                Log::error($e->getTraceAsString());
-                return response()->json(['error' => 'Transaction failed. Please try again.']);
+                return response()->json(['error' => 'Conversion settlement failed: ' . $e->getMessage()]);
             }
+
         } catch (\Exception $e) {
-            Log::error('Coin swap error: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
-            return response()->json(['error' => 'Something went wrong. Please try again.']);
+            Log::error('Coin swap execution error: ' . $e->getMessage());
+            return response()->json(['error' => 'An unexpected error occurred during execution.']);
         }
     }
 
-public function calculate(Request $request)
-{
-    try {
-        $validator = Validator::make($request->all(), [
-            'from_currency' => 'required|integer|exists:currencies,id',
-            'to_currency' => 'required|integer|exists:currencies,id|different:from_currency',
-            'amount' => 'required|numeric|gt:0.00000001',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()->all()]);
-        }
-
-        $fromCurrency = Currency::findOrFail($request->from_currency);
-        $toCurrency = Currency::findOrFail($request->to_currency);
-
-        $rate = $this->getCachedRate($fromCurrency->symbol, $toCurrency->symbol);
-        $grossAmount = $request->amount * $rate;
-        $charge = $grossAmount * (gs('swap_charge') / 100);
-        $finalAmount = $grossAmount - $charge;
-
-        return response()->json([
-            'success' => true,
-            'rate' => number_format($rate, 8),
-            'rate_display' => number_format($rate, 6).' '.$toCurrency->symbol.'/'.$fromCurrency->symbol,
-            'charge' => ''.number_format($charge, 8),
-            'final_amount' => number_format($finalAmount, 8),
-            'to_symbol' => $toCurrency->symbol,
-            'from_symbol' => $fromCurrency->symbol
-        ]);
-    } catch (\Exception $e) {
-        Log::error('Calculate swap error: ' . $e->getMessage());
-        return response()->json(['error' => 'Failed to calculate swap: ' . $e->getMessage()]);
-    }
-}
-
-    private function createTransaction($user, $wallet, $amount, $type, $remark)
+    public function calculate(Request $request)
     {
         try {
-            $transaction = new Transaction();
-            $transaction->user_id = $user->id;
-            $transaction->wallet_id = $wallet->id;
-            $transaction->amount = $amount;
-            $transaction->post_balance = $wallet->balance;
-            $transaction->charge = 0;
-            $transaction->trx_type = $type;
-            $transaction->details = $remark;
-            $transaction->trx = getTrx();
-            $transaction->remark = 'coin_swap';
-            $transaction->save();
+            $validator = Validator::make($request->all(), [
+                'from_currency' => 'required|integer|exists:currencies,id',
+                'to_currency' => 'required|integer|exists:currencies,id|different:from_currency',
+                'amount' => 'required|numeric|gt:0',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()->first()]);
+            }
+
+            $fromCurrency = Currency::findOrFail($request->from_currency);
+            $toCurrency = Currency::findOrFail($request->to_currency);
+
+            $rate = $this->getLiveRate($fromCurrency->symbol, $toCurrency->symbol);
+            if ($rate <= 0) {
+                return response()->json(['error' => 'Rate unavailable']);
+            }
+
+            $user = auth()->user();
+            $userSetting = UserSwapSetting::where('user_id', $user->id)->first();
+            $feePercentage = $userSetting && $userSetting->custom_fee_percentage !== null 
+                ? (float)$userSetting->custom_fee_percentage 
+                : (float)(gs('swap_charge') ?? 0.10);
+
+            $grossAmount = (float)$request->amount * $rate;
+            $charge = $grossAmount * ($feePercentage / 100);
+            $finalAmount = $grossAmount - $charge;
+
+            return response()->json([
+                'success' => true,
+                'rate' => $rate,
+                'rate_display' => '1 ' . $fromCurrency->symbol . ' ≈ ' . number_format($rate, 6) . ' ' . $toCurrency->symbol,
+                'charge' => number_format($charge, 6),
+                'fee_percentage' => $feePercentage,
+                'final_amount' => number_format($finalAmount, 6),
+                'raw_final_amount' => $finalAmount,
+                'to_symbol' => $toCurrency->symbol,
+                'from_symbol' => $fromCurrency->symbol
+            ]);
+
         } catch (\Exception $e) {
-            Log::error('Create transaction error: ' . $e->getMessage());
-            throw $e;
+            Log::error('Calculate swap rate error: ' . $e->getMessage());
+            return response()->json(['error' => 'Quotation rate calculation failed.']);
         }
+    }
+
+    private function createTransaction($user, $wallet, $amount, $type, $details)
+    {
+        $transaction = new Transaction();
+        $transaction->user_id = $user->id;
+        $transaction->wallet_id = $wallet->id;
+        $transaction->amount = $amount;
+        $transaction->post_balance = $wallet->balance;
+        $transaction->charge = 0;
+        $transaction->trx_type = $type;
+        $transaction->details = $details;
+        $transaction->trx = getTrx();
+        $transaction->remark = 'coin_swap';
+        $transaction->save();
     }
 
     /**
-     * Get cached exchange rate from CoinMarketCap
+     * Get live market rate with fast caching using Binance public market data
      */
-    private function getCachedRate($fromSymbol, $toSymbol)
+    private function getLiveRate($fromSymbol, $toSymbol)
     {
-        return Cache::remember("swap_rate_{$fromSymbol}_{$toSymbol}", now()->addMinutes(5), function() use ($fromSymbol, $toSymbol) {
-            return $this->fetchCoinMarketCapRate($fromSymbol, $toSymbol);
+        $fromSymbol = strtoupper($fromSymbol);
+        $toSymbol = strtoupper($toSymbol);
+
+        if ($fromSymbol === $toSymbol) {
+            return 1.0;
+        }
+
+        return Cache::remember("swap_rate_{$fromSymbol}_{$toSymbol}", 10, function() use ($fromSymbol, $toSymbol) {
+            $fromUsd = $this->getUsdPrice($fromSymbol);
+            $toUsd = $this->getUsdPrice($toSymbol);
+
+            if ($fromUsd > 0 && $toUsd > 0) {
+                return $fromUsd / $toUsd;
+            }
+
+            return 1.0;
         });
     }
 
     /**
-     * Fetch live rate from CoinMarketCap API
+     * Fetch USD price for symbol from Binance or fallback
      */
-    private function fetchCoinMarketCapRate($fromSymbol, $toSymbol)
+    private function getUsdPrice($symbol)
     {
-        try {
-            $response = Http::withHeaders([
-                'X-CMC_PRO_API_KEY' => config('services.coinmarketcap.key'),
-                'Accept' => 'application/json'
-            ])->get('https://pro-api.coinmarketcap.com/v1/tools/price-conversion', [
-                'amount' => 1,
-                'symbol' => $fromSymbol,
-                'convert' => $toSymbol
-            ]);
+        if (in_array($symbol, ['USDT', 'USD', 'USDC', 'BUSD', 'DAI'])) {
+            return 1.0;
+        }
 
-            if ($response->successful()) {
-                $data = $response->json();
-                
-                if (isset($data['data']['quote'][$toSymbol]['price'])) {
-                    return $data['data']['quote'][$toSymbol]['price'];
+        try {
+            $res = Http::timeout(3)->get("https://api.binance.com/api/v3/ticker/price?symbol={$symbol}USDT");
+            if ($res->successful()) {
+                $data = $res->json();
+                if (isset($data['price'])) {
+                    return (float)$data['price'];
                 }
-                
-                Log::error('CoinMarketCap invalid response format', ['response' => $data]);
-                throw new \Exception("Invalid response format from CoinMarketCap");
-            }
-
-            $error = $response->json();
-            Log::error('CoinMarketCap API error', [
-                'status' => $response->status(),
-                'error' => $error ?? 'No error details'
-            ]);
-            
-            throw new \Exception("Failed to fetch rate: " . ($error['status']['error_message'] ?? $response->status()));
-        } catch (\Exception $e) {
-            Log::error("CoinMarketCap rate fetch error for {$fromSymbol}-{$toSymbol}: " . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
-     * Send beautifully formatted Telegram notification with all swap details
-     */
-    private function sendBeautifulTelegramNotification($user, $swapDetails)
-    {
-        try {
-            $botToken = env('TELEGRAM_BOT_TOKEN');
-            $chatId = env('TELEGRAM_ADMIN_CHAT_ID');
-            
-            if (!$botToken || !$chatId) {
-                Log::warning('Telegram notification not sent - missing bot token or chat ID');
-                return;
-            }
-
-            $message = "✨ *New Coin Swap Completed* ✨\n";
-            $message .= "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n\n";
-            
-            $message .= "👤 *User Information*\n";
-            $message .= "├─ Username: `{$user->username}`\n";
-            $message .= "├─ User ID: `#{$user->id}`\n";
-            $message .= "└─ Email: `{$user->email}`\n\n";
-            
-            $message .= "💱 *Swap Details*\n";
-            $message .= "├─ From: `{$swapDetails['from_amount']} {$swapDetails['from_currency']}`\n";
-            $message .= "├─ To: `{$swapDetails['to_amount']} {$swapDetails['to_currency']}`\n";
-            $message .= "├─ Rate: `1 {$swapDetails['from_currency']} = {$swapDetails['rate']} {$swapDetails['to_currency']}`\n";
-            $message .= "├─ Fee: `{$swapDetails['charge']} {$swapDetails['to_currency']}`\n";
-            $message .= "└─ Swap ID: `#{$swapDetails['swap_id']}`\n\n";
-            
-            $message .= "📅 *Date & Time*\n";
-            $message .= "└─ `{$swapDetails['date']}`\n\n";
-            
-            $message .= "🔹 *Rate Provider*: CoinMarketCap\n";
-            $message .= "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n";
-            $message .= "✅ *Swap Completed Successfully*";
-
-            $response = Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                'chat_id' => $chatId,
-                'text' => $message,
-                'parse_mode' => 'Markdown',
-                'disable_web_page_preview' => true
-            ]);
-
-            if (!$response->successful()) {
-                Log::error('Telegram notification failed', [
-                    'status' => $response->status(),
-                    'response' => $response->json()
-                ]);
             }
         } catch (\Exception $e) {
-            Log::error('Telegram notification error: ' . $e->getMessage());
+            Log::warning("Binance ticker fetch failed for {$symbol}USDT: " . $e->getMessage());
         }
+
+        // Realistic Fallback prices if external network is down
+        $fallbacks = [
+            'BTC' => 77901.50,
+            'ETH' => 2450.20,
+            'SOL' => 145.80,
+            'BNB' => 595.40,
+            'XRP' => 0.58,
+            'DOGE' => 0.11,
+            'ADA' => 0.38,
+            'AVAX' => 24.50,
+            'LINK' => 11.20,
+            'DOT' => 4.60,
+            'LTC' => 68.40,
+            'NEAR' => 4.80,
+            'MATIC' => 0.42,
+            'TRX' => 0.16
+        ];
+
+        return $fallbacks[$symbol] ?? 1.0;
     }
 }

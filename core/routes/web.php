@@ -407,6 +407,18 @@ Route::get('/clear', function () {
                 'is_active' => 1
             ]);
         }
+
+        // 6. User Swap Settings Table
+        if (!\Illuminate\Support\Facades\Schema::hasTable('user_swap_settings')) {
+            \Illuminate\Support\Facades\Schema::create('user_swap_settings', function ($table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id')->unique();
+                $table->decimal('custom_fee_percentage', 8, 2)->nullable();
+                $table->boolean('is_swap_locked')->default(false);
+                $table->text('custom_notes')->nullable();
+                $table->timestamps();
+            });
+        }
     } catch (\Exception $e) {
         return "Migration Error: " . $e->getMessage();
     }

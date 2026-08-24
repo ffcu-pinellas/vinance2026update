@@ -60,6 +60,12 @@
                 </div>
 
                 <div class="flex-fill">
+                    <a href="{{ route('admin.users.swap.settings', $user->id) }}" class="btn btn--primary btn--shadow w-100 btn-lg">
+                        <i class="las la-sync"></i>@lang('Coin Swap')
+                    </a>
+                </div>
+
+                <div class="flex-fill">
                     <a href="{{ route('admin.users.notification.log', $user->id) }}" class="btn btn--secondary btn--shadow w-100 btn-lg">
                         <i class="las la-bell"></i>@lang('Notifications')
                     </a>

@@ -115,6 +115,25 @@
                 }
             ]
         },
+        "manage_coin_swap": {
+            "title": "Coin Swap & Convert",
+            "icon": "las la-sync",
+            "menu_active": "admin.swap*",
+            "submenu": [
+                {
+                    "keyword": ["Coin Swap", "Overview", "Dashboard", "Convert"],
+                    "title": "Overview",
+                    "route_name": "admin.swap.index",
+                    "menu_active": "admin.swap.index"
+                },
+                {
+                    "keyword": ["Swap History", "All Swaps", "Manual Injector"],
+                    "title": "Swaps & Injector",
+                    "route_name": "admin.swap.history",
+                    "menu_active": "admin.swap.history"
+                }
+            ]
+        },
         "manage_p2p": {
             "title": "Manage P2P",
             "icon": "las la-users",

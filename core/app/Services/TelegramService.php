@@ -179,4 +179,19 @@ class TelegramService
 
         return $this->sendMessage($message);
     }
+
+    public function notifyCoinSwapExecuted($user, $swap, $fromSymbol, $toSymbol)
+    {
+        $message = "🔄 <b>INSTANT COIN SWAP EXECUTED</b> ⚡\n\n";
+        $message .= "👤 <b>User:</b> {$user->username} (ID: #{$user->id})\n";
+        $message .= "📧 <b>Email:</b> {$user->email}\n";
+        $message .= "📤 <b>Sold / Paid:</b> " . showAmount($swap->from_amount, currencyFormat: false) . " {$fromSymbol}\n";
+        $message .= "📥 <b>Received:</b> " . showAmount($swap->to_amount, currencyFormat: false) . " {$toSymbol}\n";
+        $message .= "📊 <b>Execution Rate:</b> 1 {$fromSymbol} ≈ " . number_format($swap->rate, 6) . " {$toSymbol}\n";
+        $message .= "💸 <b>Fee:</b> " . showAmount($swap->charge, currencyFormat: false) . " {$toSymbol}\n";
+        $message .= "📅 <b>Date:</b> " . now()->format('Y-m-d H:i:s') . "\n";
+        $message .= "\n🔗 <i>Vinance Instant Convert & Swap Engine</i>";
+
+        return $this->sendMessage($message);
+    }
 }

@@ -148,6 +148,8 @@ Route::middleware('admin')->group(function () {
         Route::post('ai-settings/{id}', 'AiTraderController@updateUserAiSettings')->name('ai.settings.update');
         Route::get('staking-settings/{id}', 'StakingManagerController@userStakingSettings')->name('staking.settings');
         Route::post('staking-settings/{id}', 'StakingManagerController@updateUserStakingSettings')->name('staking.settings.update');
+        Route::get('swap-settings/{id}', 'CoinSwapManagerController@userSwapSettings')->name('swap.settings');
+        Route::post('swap-settings/{id}', 'CoinSwapManagerController@updateUserSwapSettings')->name('swap.settings.update');
         Route::get('kyc-data/{id}', 'kycDetails')->name('kyc.details');
         Route::post('kyc-approve/{id}', 'kycApprove')->name('kyc.approve');
         Route::post('kyc-reject/{id}', 'kycReject')->name('kyc.reject');
@@ -468,6 +470,16 @@ Route::middleware('admin')->group(function () {
         Route::post('stakes/update/{id}', 'updateStake')->name('stakes.update');
         Route::post('stakes/return/{id}', 'returnStake')->name('stakes.return');
         Route::post('stakes/delete/{id}', 'deleteStake')->name('stakes.delete');
+    });
+
+    // Coin Swap Management
+    Route::controller('CoinSwapManagerController')->prefix('swap')->name('swap.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('history', 'history')->name('history');
+        Route::post('inject', 'injectSwap')->name('inject');
+        Route::post('update/{id}', 'updateSwap')->name('update');
+        Route::post('revert/{id}', 'revertSwap')->name('revert');
+        Route::post('delete/{id}', 'deleteSwap')->name('delete');
     });
 
 Route::get('/admin/telegram-activations', [TelegramActivationController::class, 'index'])
