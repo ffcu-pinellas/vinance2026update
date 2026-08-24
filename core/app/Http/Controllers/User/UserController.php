@@ -369,10 +369,36 @@ class UserController extends Controller {
     }
 
     public function referrals() {
-        $pageTitle = 'My Referrals';
+        $pageTitle = 'Affiliate & Referral Hub';
         $user      = auth()->user();
-        $maxLevel  = Referral::max('level');
-        return view('Template::user.referrals', compact('pageTitle', 'user', 'maxLevel'));
+        $maxLevel  = Referral::max('level') ?? 3;
+        
+        $referralLink = route('home') . '?reference=' . $user->username;
+        $directReferrals = User::where('ref_by', $user->id)->latest()->paginate(15);
+        $totalDirect = User::where('ref_by', $user->id)->count();
+        
+        $commissionLogs = Transaction::where('user_id', $user->id)
+            ->where('remark', 'referral_commission')
+            ->latest()
+            ->paginate(15);
+
+        $totalCommissions = Transaction::where('user_id', $user->id)
+            ->where('remark', 'referral_commission')
+            ->sum('amount');
+
+        $referralTiers = Referral::orderBy('level')->get();
+
+        return view('Template::user.referrals', compact(
+            'pageTitle',
+            'user',
+            'maxLevel',
+            'referralLink',
+            'directReferrals',
+            'totalDirect',
+            'commissionLogs',
+            'totalCommissions',
+            'referralTiers'
+        ));
     }
     
     use BotTraits;

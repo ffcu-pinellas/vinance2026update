@@ -13,7 +13,7 @@
     </div>
 
     <!-- Main Header Card -->
-    <div class="swap-header-card bg--dark-two p-3 p-md-4 rounded-4 mb-3 border-0 shadow-sm">
+    <div class="swap-header-card bg--dark-two p-3 p-md-4 rounded-4 mb-4 border-0 shadow-sm">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <div>
                 <h3 class="text-white fw-bold mb-1 fs-4 d-flex align-items-center gap-2">
@@ -48,113 +48,140 @@
         </div>
     </div>
 
+    <!-- FULL WIDTH SWAP TERMINAL & TELEMETRY GRID -->
     <div class="row g-4">
-        <!-- Swap Terminal Box -->
-        <div id="swapTerminalSection" class="swap-content-section col-lg-6 mx-auto">
-            <div class="swap-terminal-card bg--dark-two p-3 p-sm-4 rounded-4 shadow-lg border-0">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="text-white mb-0 fw-bold d-flex align-items-center gap-2">
-                        <i class="las la-coins text--base"></i> @lang('Convert Crypto')
-                    </h5>
-                    <span class="text-muted text--small font-mono">
-                        <i class="las la-shield-alt text--success"></i> @lang('Spot Wallet Settlement')
-                    </span>
+        <!-- Main Converter Card (Full Width / Balanced) -->
+        <div id="swapTerminalSection" class="swap-content-section col-12">
+            <div class="swap-terminal-card bg--dark-two p-4 p-md-5 rounded-4 shadow-lg border-0 mb-4">
+                <div class="row align-items-center g-4">
+                    <!-- Left Column: Converter Form -->
+                    <div class="col-lg-7">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="text-white mb-0 fw-bold d-flex align-items-center gap-2">
+                                <i class="las la-coins text--base"></i> @lang('Convert & Swap Assets')
+                            </h5>
+                            <span class="badge badge--dark px-3 py-1 font-mono text-muted">
+                                <i class="las la-shield-alt text--success me-1"></i> @lang('Spot Wallet')
+                            </span>
+                        </div>
+
+                        <form id="instantSwapForm" method="POST">
+                            @csrf
+
+                            <!-- "FROM" (PAY) INPUT BOX -->
+                            <div class="swap-input-box p-3 p-sm-4 rounded-3 mb-2 bg--dark-three border border-dark">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted text--small text-uppercase fw-semibold">@lang('From (Pay)')</span>
+                                    <span class="text-muted text--small">
+                                        @lang('Balance'): <strong class="text-white font-mono" id="fromUserBalance">0.00</strong>
+                                    </span>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-3">
+                                    <input type="number" step="any" name="amount" class="form-control bg-transparent text-white border-0 fs-3 fw-bold font-mono p-0 shadow-none" id="swapAmountInput" placeholder="0.0" required>
+                                    
+                                    <select name="from_currency" class="form-select form-control custom-coin-select flex-shrink-0" id="fromCurrencySelect" required style="min-width: 130px; max-width: 160px;">
+                                        @foreach($currencies as $currency)
+                                            <option value="{{ $currency->id }}" data-symbol="{{ $currency->symbol }}" data-balance="{{ $currency->user_balance }}" {{ $loop->first ? 'selected' : '' }}>
+                                                {{ $currency->symbol }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Quick Percentage Pills -->
+                                <div class="d-flex gap-2 mt-3 pt-2 border-top border-dark">
+                                    <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill py-1 text--small quick-pct-btn font-mono" data-pct="25">25%</button>
+                                    <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill py-1 text--small quick-pct-btn font-mono" data-pct="50">50%</button>
+                                    <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill py-1 text--small quick-pct-btn font-mono" data-pct="75">75%</button>
+                                    <button type="button" class="btn btn-sm btn-outline--base flex-fill rounded-pill py-1 text--small quick-pct-btn font-mono" data-pct="100">MAX</button>
+                                </div>
+                            </div>
+
+                            <!-- ANIMATED INTERACTIVE SWAP DIRECTION BUTTON -->
+                            <div class="d-flex justify-content-center my-1 position-relative" style="z-index: 5;">
+                                <button type="button" class="btn btn--base rounded-circle swap-direction-btn shadow" id="flipDirectionBtn" title="Flip conversion direction">
+                                    <i class="las la-exchange-alt rotate-icon"></i>
+                                </button>
+                            </div>
+
+                            <!-- "TO" (RECEIVE) INPUT BOX -->
+                            <div class="swap-input-box p-3 p-sm-4 rounded-3 mb-3 bg--dark-three border border-dark">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted text--small text-uppercase fw-semibold">@lang('To (Receive Estimated)')</span>
+                                    <span class="text-muted text--small">
+                                        @lang('Balance'): <strong class="text-white font-mono" id="toUserBalance">0.00</strong>
+                                    </span>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-3">
+                                    <input type="text" class="form-control bg-transparent text--success border-0 fs-3 fw-bold font-mono p-0 shadow-none" id="swapReceivePreview" placeholder="0.0" readonly>
+
+                                    <select name="to_currency" class="form-select form-control custom-coin-select flex-shrink-0" id="toCurrencySelect" required style="min-width: 130px; max-width: 160px;">
+                                        @foreach($currencies as $currency)
+                                            <option value="{{ $currency->id }}" data-symbol="{{ $currency->symbol }}" data-balance="{{ $currency->user_balance }}" {{ $loop->iteration == 2 ? 'selected' : '' }}>
+                                                {{ $currency->symbol }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- SWAP ACTION BUTTON -->
+                            <button type="submit" class="btn btn--base w-100 rounded-pill py-3 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2 mt-3" id="submitSwapBtn">
+                                <i class="las la-sync-alt fs-5"></i> <span>@lang('Convert & Swap Now')</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Right Column: Live Quotation & Execution Analytics -->
+                    <div class="col-lg-5">
+                        <div class="bg--dark-three p-4 rounded-4 border border-dark h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <h6 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                                    <i class="las la-chart-bar text--base"></i> @lang('Live Execution Telemetry')
+                                </h6>
+
+                                <div class="p-3 rounded-3 bg--dark-two mb-3 text-center border border-dark">
+                                    <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Guaranteed Exchange Rate')</span>
+                                    <h4 class="text-white fw-bold mb-0 font-mono" id="liveRateDisplay">
+                                        <span class="spinner-border spinner-border-sm text--base me-1"></span> @lang('Fetching Rate...')
+                                    </h4>
+                                    <small class="text--success"><i class="las la-check-circle"></i> @lang('Binance Deep Liquidity Feed')</small>
+                                </div>
+
+                                <ul class="list-unstyled mb-0">
+                                    <li class="d-flex justify-content-between py-2 border-bottom border-dark text--small">
+                                        <span class="text-muted">@lang('Transaction Fee'):</span>
+                                        <span class="text-white font-mono" id="liveFeeDisplay">$0.00</span>
+                                    </li>
+                                    <li class="d-flex justify-content-between py-2 border-bottom border-dark text--small">
+                                        <span class="text-muted">@lang('Slippage Tolerance'):</span>
+                                        <span class="text--success font-mono">0.00% (@lang('Guaranteed'))</span>
+                                    </li>
+                                    <li class="d-flex justify-content-between py-2 border-bottom border-dark text--small">
+                                        <span class="text-muted">@lang('Settlement Speed'):</span>
+                                        <span class="text-white font-mono">@lang('Instant Sub-second')</span>
+                                    </li>
+                                    <li class="d-flex justify-content-between py-2 text--small">
+                                        <span class="text-muted">@lang('Net Settlement Output'):</span>
+                                        <span class="text--base fw-bold font-mono" id="finalReceiveDisplay">0.00</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="mt-4 p-3 rounded-3 bg--dark-two border border-dark text-muted text--small">
+                                <i class="las la-info-circle text--info me-1"></i>
+                                @lang('Converted assets are settled directly into your Spot Balance with zero-directional market price slippage.')
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <form id="instantSwapForm" method="POST">
-                    @csrf
-
-                    <!-- "FROM" (PAY) INPUT BOX -->
-                    <div class="swap-input-box p-3 rounded-3 mb-2 bg--dark-three border border-dark">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-muted text--small text-uppercase fw-semibold">@lang('From (Pay)')</span>
-                            <span class="text-muted text--small">
-                                @lang('Balance'): <strong class="text-white font-mono" id="fromUserBalance">0.00</strong>
-                            </span>
-                        </div>
-
-                        <div class="d-flex align-items-center gap-2">
-                            <input type="number" step="any" name="amount" class="form-control bg-transparent text-white border-0 fs-4 fw-bold font-mono p-0 shadow-none" id="swapAmountInput" placeholder="0.0" required>
-                            
-                            <select name="from_currency" class="form-select form-control custom-coin-select flex-shrink-0" id="fromCurrencySelect" required style="max-width: 140px;">
-                                @foreach($currencies as $currency)
-                                    <option value="{{ $currency->id }}" data-symbol="{{ $currency->symbol }}" data-balance="{{ $currency->user_balance }}" {{ $loop->first ? 'selected' : '' }}>
-                                        {{ $currency->symbol }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <!-- Quick Percentage Pills -->
-                        <div class="d-flex gap-2 mt-2 pt-1 border-top border-dark">
-                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill py-0 text--small quick-pct-btn font-mono" data-pct="25">25%</button>
-                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill py-0 text--small quick-pct-btn font-mono" data-pct="50">50%</button>
-                            <button type="button" class="btn btn-sm btn-outline--light flex-fill rounded-pill py-0 text--small quick-pct-btn font-mono" data-pct="75">75%</button>
-                            <button type="button" class="btn btn-sm btn-outline--base flex-fill rounded-pill py-0 text--small quick-pct-btn font-mono" data-pct="100">MAX</button>
-                        </div>
-                    </div>
-
-                    <!-- ANIMATED INTERACTIVE SWAP DIRECTION BUTTON -->
-                    <div class="d-flex justify-content-center my-1 position-relative" style="z-index: 5;">
-                        <button type="button" class="btn btn--base rounded-circle swap-direction-btn shadow" id="flipDirectionBtn" title="Flip conversion direction">
-                            <i class="las la-exchange-alt rotate-icon"></i>
-                        </button>
-                    </div>
-
-                    <!-- "TO" (RECEIVE) INPUT BOX -->
-                    <div class="swap-input-box p-3 rounded-3 mb-3 bg--dark-three border border-dark">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-muted text--small text-uppercase fw-semibold">@lang('To (Receive Estimated)')</span>
-                            <span class="text-muted text--small">
-                                @lang('Balance'): <strong class="text-white font-mono" id="toUserBalance">0.00</strong>
-                            </span>
-                        </div>
-
-                        <div class="d-flex align-items-center gap-2">
-                            <input type="text" class="form-control bg-transparent text--success border-0 fs-4 fw-bold font-mono p-0 shadow-none" id="swapReceivePreview" placeholder="0.0" readonly>
-
-                            <select name="to_currency" class="form-select form-control custom-coin-select flex-shrink-0" id="toCurrencySelect" required style="max-width: 140px;">
-                                @foreach($currencies as $currency)
-                                    <option value="{{ $currency->id }}" data-symbol="{{ $currency->symbol }}" data-balance="{{ $currency->user_balance }}" {{ $loop->iteration == 2 ? 'selected' : '' }}>
-                                        {{ $currency->symbol }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- LIVE EXCHANGE RATE & TELEMETRY BREAKDOWN -->
-                    <div class="swap-telemetry-box bg--dark-three p-3 rounded-3 mb-4 border border-dark">
-                        <div class="d-flex justify-content-between text--small mb-2">
-                            <span class="text-muted">@lang('Guaranteed Rate'):</span>
-                            <span class="text-white font-mono fw-bold" id="liveRateDisplay">
-                                <span class="spinner-border spinner-border-sm text--base me-1"></span> @lang('Fetching...')
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between text--small mb-2">
-                            <span class="text-muted">@lang('Transaction Fee') ({{ $feeRate }}%):</span>
-                            <span class="text-muted font-mono" id="liveFeeDisplay">$0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between text--small mb-2">
-                            <span class="text-muted">@lang('Price Slippage'):</span>
-                            <span class="text--success font-mono">0.00% (@lang('Guaranteed'))</span>
-                        </div>
-                        <div class="d-flex justify-content-between text--small pt-2 border-top border-dark">
-                            <span class="text-muted">@lang('Estimated Settlement'):</span>
-                            <span class="text--base fw-bold font-mono" id="finalReceiveDisplay">0.00</span>
-                        </div>
-                    </div>
-
-                    <!-- SWAP ACTION BUTTON -->
-                    <button type="submit" class="btn btn--base w-100 rounded-pill py-3 fw-bold fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2" id="submitSwapBtn">
-                        <i class="las la-sync-alt fs-5"></i> <span>@lang('Convert & Swap Now')</span>
-                    </button>
-                </form>
             </div>
         </div>
 
         <!-- Swap History Table -->
-        <div id="swapHistorySection" class="swap-content-section col-12 mt-4">
+        <div id="swapHistorySection" class="swap-content-section col-12">
             <div class="card bg--dark-two border-0 rounded-4 shadow-sm">
                 <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
                     <h5 class="text-white mb-0 d-flex align-items-center gap-2">
@@ -347,17 +374,19 @@
         var calculateUrl = "{{ route('user.coin.swap.calculate') }}";
         var swapUrl = "{{ route('user.coin.swap') }}";
         var currentRate = 0;
-        var isCalculating = false;
 
         function updateSelectedBalances() {
-            var fromOpt = $('#fromCurrencySelect').find(':selected');
-            var toOpt = $('#toCurrencySelect').find(':selected');
+            var fromOpt = $('#fromCurrencySelect option:selected');
+            var toOpt = $('#toCurrencySelect option:selected');
 
-            var fromBal = parseFloat(fromOpt.data('balance')) || 0;
-            var toBal = parseFloat(toOpt.data('balance')) || 0;
+            var fromSymbol = fromOpt.attr('data-symbol') || fromOpt.text().trim() || 'USDT';
+            var toSymbol = toOpt.attr('data-symbol') || toOpt.text().trim() || 'BTC';
 
-            $('#fromUserBalance').text(fromBal.toFixed(6) + ' ' + fromOpt.data('symbol'));
-            $('#toUserBalance').text(toBal.toFixed(6) + ' ' + toOpt.data('symbol'));
+            var fromBal = parseFloat(fromOpt.attr('data-balance')) || 0;
+            var toBal = parseFloat(toOpt.attr('data-balance')) || 0;
+
+            $('#fromUserBalance').text(fromBal.toFixed(6) + ' ' + fromSymbol);
+            $('#toUserBalance').text(toBal.toFixed(6) + ' ' + toSymbol);
         }
 
         function calculateQuotation() {
@@ -386,7 +415,6 @@
 
             $('#liveRateDisplay').html('<span class="spinner-border spinner-border-sm text--base"></span>');
 
-            isCalculating = true;
             $.ajax({
                 url: calculateUrl,
                 type: 'POST',
@@ -397,7 +425,6 @@
                     amount: amount > 0 ? amount : 1
                 },
                 success: function (res) {
-                    isCalculating = false;
                     if (res.success) {
                         currentRate = res.rate;
                         $('#liveRateDisplay').text(res.rate_display);
@@ -416,7 +443,6 @@
                     }
                 },
                 error: function () {
-                    isCalculating = false;
                     $('#liveRateDisplay').text("@lang('Rate Error')");
                 }
             });
@@ -439,8 +465,8 @@
         // Quick Percentage buttons
         $('.quick-pct-btn').on('click', function () {
             var pct = parseFloat($(this).data('pct'));
-            var fromOpt = $('#fromCurrencySelect').find(':selected');
-            var balance = parseFloat(fromOpt.data('balance')) || 0;
+            var fromOpt = $('#fromCurrencySelect option:selected');
+            var balance = parseFloat(fromOpt.attr('data-balance')) || 0;
             var calcAmount = (balance * (pct / 100));
 
             $('#swapAmountInput').val(calcAmount.toFixed(6));
@@ -486,11 +512,11 @@
                         $('#finalReceiveDisplay').text('0.00');
 
                         // Update cached balances in select elements
-                        var fromOpt = $('#fromCurrencySelect').find(':selected');
-                        var toOpt = $('#toCurrencySelect').find(':selected');
+                        var fromOpt = $('#fromCurrencySelect option:selected');
+                        var toOpt = $('#toCurrencySelect option:selected');
 
-                        fromOpt.data('balance', res.details.new_from_balance);
-                        toOpt.data('balance', res.details.new_to_balance);
+                        fromOpt.attr('data-balance', res.details.new_from_balance);
+                        toOpt.attr('data-balance', res.details.new_to_balance);
                         updateSelectedBalances();
 
                         // Prepend new row to swap history table
