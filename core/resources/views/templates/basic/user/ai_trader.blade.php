@@ -7,9 +7,14 @@
         <a href="{{ route('user.home') }}" class="btn btn-outline--light btn-sm rounded-pill px-3 py-1 text--small d-inline-flex align-items-center">
             <i class="las la-arrow-left me-1"></i> <span>@lang('Dashboard')</span>
         </a>
-        <span class="badge badge--success-soft rounded-pill px-3 py-1 text--small d-inline-flex align-items-center gap-1">
-            <span class="live-pulse-dot"></span> @lang('AI Engine Online')
-        </span>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline--light btn-sm rounded-pill px-3 py-1 text--small d-inline-flex align-items-center gap-1" id="soundToggleBtn">
+                <i class="las la-volume-up text--info" id="soundToggleIcon"></i> <span id="soundToggleText">@lang('Audio')</span>
+            </button>
+            <span class="badge badge--success-soft rounded-pill px-3 py-1 text--small d-inline-flex align-items-center gap-1">
+                <span class="live-pulse-dot"></span> @lang('AI Engine Online')
+            </span>
+        </div>
     </div>
 
     <!-- Main Header Card -->
@@ -242,9 +247,19 @@
                 <i class="las la-server text--base"></i> @lang('My Active Bots')
                 <span class="badge badge--primary rounded-pill">{{ $activeBots->count() }}</span>
             </h5>
-            <button type="button" class="btn btn-sm btn-outline--base rounded-pill px-3 openMarketplaceBtn">
-                <i class="las la-plus"></i> @lang('Deploy Bot')
-            </button>
+            <div class="d-flex align-items-center gap-2">
+                @if($activeBots->sum('current_profit') > 0 && $activeBots->count() > 1)
+                    <form action="{{ route('user.ai.bot.harvest.all') }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline--success rounded-pill px-3">
+                            <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest All') (${{ number_format($activeBots->sum('current_profit'), 2) }})
+                        </button>
+                    </form>
+                @endif
+                <button type="button" class="btn btn-sm btn-outline--base rounded-pill px-3 openMarketplaceBtn">
+                    <i class="las la-plus"></i> @lang('Deploy Bot')
+                </button>
+            </div>
         </div>
         <div class="card-body p-3 p-sm-4">
             @if($activeBots->count() > 0)
@@ -282,6 +297,20 @@
                                     <div class="col-6 text-end mt-2">
                                         <small class="text-muted text-uppercase d-block">@lang('Trades')</small>
                                         <span class="text-white font-mono">{{ $userBot->total_trades }} @lang('orders')</span>
+                                    </div>
+                                </div>
+
+                                <!-- Auto-Compound Toggle -->
+                                <div class="d-flex align-items-center justify-content-between p-2 px-3 rounded-3 bg--dark-three border border-dark mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="las la-sync-alt text--info fs-5"></i>
+                                        <div>
+                                            <span class="text-white text--small fw-bold d-block" style="font-size: 12px;">@lang('Auto-Compound Daily Yield')</span>
+                                            <small class="text-muted" style="font-size: 10px;">@lang('Reinvests profits into working capital')</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch form-switch-success m-0">
+                                        <input class="form-check-input bot-autocompound-toggle" type="checkbox" role="switch" data-id="{{ $userBot->id }}" {{ $userBot->auto_compound ? 'checked' : '' }}>
                                     </div>
                                 </div>
 
@@ -1261,6 +1290,114 @@
                 $('#signalTerminal .signal-line').last().remove();
             }
         }, 3500);
+
+        // Web Audio API Institutional Synthesis Engine (100% Lightweight, No Assets)
+        var SoundFX = (function() {
+            var audioCtx = null;
+            var isMuted = localStorage.getItem('vinance_sound_muted') === '1';
+
+            function getCtx() {
+                if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                return audioCtx;
+            }
+
+            function updateUI() {
+                if (isMuted) {
+                    $('#soundToggleIcon').removeClass('la-volume-up text--info').addClass('la-volume-mute text-muted');
+                    $('#soundToggleText').text("@lang('Muted')");
+                } else {
+                    $('#soundToggleIcon').removeClass('la-volume-mute text-muted').addClass('la-volume-up text--info');
+                    $('#soundToggleText').text("@lang('Audio')");
+                }
+            }
+
+            return {
+                init: function() {
+                    updateUI();
+                    $('#soundToggleBtn').on('click', function() {
+                        isMuted = !isMuted;
+                        localStorage.setItem('vinance_sound_muted', isMuted ? '1' : '0');
+                        updateUI();
+                        if (!isMuted) SoundFX.play('click');
+                    });
+                },
+                play: function(type) {
+                    if (isMuted) return;
+                    try {
+                        var ctx = getCtx();
+                        if (!ctx) return;
+                        if (ctx.state === 'suspended') ctx.resume();
+
+                        var now = ctx.currentTime;
+                        var osc = ctx.createOscillator();
+                        var gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+
+                        if (type === 'click') {
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(1200, now);
+                            gain.gain.setValueAtTime(0.08, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                            osc.start(now);
+                            osc.stop(now + 0.04);
+                        } else if (type === 'success' || type === 'deploy') {
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(523.25, now);
+                            osc.frequency.setValueAtTime(659.25, now + 0.08);
+                            gain.gain.setValueAtTime(0.12, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                            osc.start(now);
+                            osc.stop(now + 0.3);
+                        } else if (type === 'harvest') {
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(783.99, now);
+                            osc.frequency.setValueAtTime(1046.50, now + 0.07);
+                            osc.frequency.setValueAtTime(1318.51, now + 0.14);
+                            gain.gain.setValueAtTime(0.15, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                            osc.start(now);
+                            osc.stop(now + 0.45);
+                        }
+                    } catch (e) {}
+                }
+            };
+        })();
+
+        SoundFX.init();
+
+        // Auto-Compound Toggle AJAX Handler
+        $(document).on('change', '.bot-autocompound-toggle', function () {
+            var botId = $(this).data('id');
+            var isChecked = $(this).is(':checked');
+            var toggleUrl = "{{ route('user.ai.bot.autocompound', ':id') }}".replace(':id', botId);
+            var $this = $(this);
+
+            SoundFX.play('click');
+
+            $.ajax({
+                url: toggleUrl,
+                type: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function (res) {
+                    if (res.success) {
+                        notify('success', res.message);
+                        SoundFX.play('success');
+                    } else {
+                        $this.prop('checked', !isChecked);
+                        notify('error', res.message || "@lang('Failed to update Auto-Compound')");
+                    }
+                },
+                error: function () {
+                    $this.prop('checked', !isChecked);
+                    notify('error', "@lang('Server connection error')");
+                }
+            });
+        });
     })(jQuery);
 </script>
 @endpush

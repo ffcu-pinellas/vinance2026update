@@ -231,6 +231,7 @@ Route::get('/clear', function () {
                 $table->decimal('trailing_stop_loss', 8, 2)->default(2.0);
                 $table->decimal('take_profit_target', 8, 2)->default(5.0);
                 $table->decimal('current_profit', 28, 8)->default(0);
+                $table->tinyInteger('auto_compound')->default(0);
                 $table->integer('total_trades')->default(0);
                 $table->tinyInteger('status')->default(1); // 1=active, 0=paused, 2=completed
                 $table->timestamp('started_at')->nullable();
@@ -246,6 +247,11 @@ Route::get('/clear', function () {
             if (!\Illuminate\Support\Facades\Schema::hasColumn('user_ai_bots', 'take_profit_target')) {
                 \Illuminate\Support\Facades\Schema::table('user_ai_bots', function ($table) {
                     $table->decimal('take_profit_target', 8, 2)->default(5.0)->after('trailing_stop_loss');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('user_ai_bots', 'auto_compound')) {
+                \Illuminate\Support\Facades\Schema::table('user_ai_bots', function ($table) {
+                    $table->tinyInteger('auto_compound')->default(0)->after('current_profit');
                 });
             }
         }
@@ -482,6 +488,8 @@ Route::middleware(['auth'])->group(function() {
         Route::post('ai-trader/start', 'startBot')->name('user.ai.bot.start');
         Route::post('ai-trader/stop/{id}', 'stopBot')->name('user.ai.bot.stop');
         Route::post('ai-trader/harvest/{id}', 'harvestProfit')->name('user.ai.bot.harvest');
+        Route::post('ai-trader/harvest-all', 'harvestAllProfits')->name('user.ai.bot.harvest.all');
+        Route::post('ai-trader/auto-compound/{id}', 'toggleAutoCompound')->name('user.ai.bot.autocompound');
         Route::get('ai-settings', 'settings')->name('user.ai.settings');
         Route::post('ai-settings/save', 'saveSettings')->name('user.ai.settings.save');
     });

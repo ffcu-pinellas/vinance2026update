@@ -7,9 +7,14 @@
         <a href="{{ route('user.home') }}" class="btn btn-outline--light btn-sm rounded-pill px-3 py-1 text--small d-inline-flex align-items-center">
             <i class="las la-arrow-left me-1"></i> <span>@lang('Dashboard')</span>
         </a>
-        <span class="badge badge--success-soft rounded-pill px-3 py-1 text--small d-inline-flex align-items-center gap-1">
-            <span class="live-pulse-dot"></span> @lang('Institutional Liquidity Online')
-        </span>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline--light btn-sm rounded-pill px-3 py-1 text--small d-inline-flex align-items-center gap-1" id="soundToggleBtn">
+                <i class="las la-volume-up text--info" id="soundToggleIcon"></i> <span id="soundToggleText">@lang('Audio')</span>
+            </button>
+            <span class="badge badge--success-soft rounded-pill px-3 py-1 text--small d-inline-flex align-items-center gap-1">
+                <span class="live-pulse-dot"></span> @lang('Institutional Liquidity Online')
+            </span>
+        </div>
     </div>
 
     <!-- Main Header Card -->
@@ -80,9 +85,17 @@
                                 <div class="d-flex align-items-center gap-3">
                                     <input type="number" step="any" name="amount" class="form-control bg-transparent text-white border-0 fs-3 fw-bold font-mono p-0 shadow-none" id="swapAmountInput" placeholder="0.0" required>
                                     
-                                    <select name="from_currency" class="form-select form-control custom-coin-select flex-shrink-0" id="fromCurrencySelect" required style="min-width: 130px; max-width: 160px;">
+                                    <!-- Searchable Coin Selector Trigger -->
+                                    <button type="button" class="btn btn-outline--light d-flex align-items-center justify-content-between gap-2 rounded-pill px-3 py-2 openCoinSearchBtn flex-shrink-0" data-target="from" style="min-width: 125px;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="coin-symbol-label fw-bold font-mono text-white fs-6" id="fromCoinSymbolText">{{ @$currencies->first()->symbol ?? 'BTC' }}</span>
+                                        </div>
+                                        <i class="las la-angle-down text-muted text--small"></i>
+                                    </button>
+
+                                    <select name="from_currency" class="d-none" id="fromCurrencySelect" required>
                                         @foreach($currencies as $currency)
-                                            <option value="{{ $currency->id }}" data-symbol="{{ $currency->symbol }}" data-balance="{{ $currency->user_balance }}" {{ $loop->first ? 'selected' : '' }}>
+                                            <option value="{{ $currency->id }}" data-symbol="{{ $currency->symbol }}" data-name="{{ $currency->name }}" data-balance="{{ $currency->user_balance }}" {{ $loop->first ? 'selected' : '' }}>
                                                 {{ $currency->symbol }}
                                             </option>
                                         @endforeach
@@ -117,9 +130,17 @@
                                 <div class="d-flex align-items-center gap-3">
                                     <input type="text" class="form-control bg-transparent text--success border-0 fs-3 fw-bold font-mono p-0 shadow-none" id="swapReceivePreview" placeholder="0.0" readonly>
 
-                                    <select name="to_currency" class="form-select form-control custom-coin-select flex-shrink-0" id="toCurrencySelect" required style="min-width: 130px; max-width: 160px;">
+                                    <!-- Searchable Coin Selector Trigger -->
+                                    <button type="button" class="btn btn-outline--light d-flex align-items-center justify-content-between gap-2 rounded-pill px-3 py-2 openCoinSearchBtn flex-shrink-0" data-target="to" style="min-width: 125px;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="coin-symbol-label fw-bold font-mono text-white fs-6" id="toCoinSymbolText">{{ @$currencies->count() > 1 ? $currencies[1]->symbol : 'USDT' }}</span>
+                                        </div>
+                                        <i class="las la-angle-down text-muted text--small"></i>
+                                    </button>
+
+                                    <select name="to_currency" class="d-none" id="toCurrencySelect" required>
                                         @foreach($currencies as $currency)
-                                            <option value="{{ $currency->id }}" data-symbol="{{ $currency->symbol }}" data-balance="{{ $currency->user_balance }}" {{ $loop->iteration == 2 ? 'selected' : '' }}>
+                                            <option value="{{ $currency->id }}" data-symbol="{{ $currency->symbol }}" data-name="{{ $currency->name }}" data-balance="{{ $currency->user_balance }}" {{ $loop->iteration == 2 ? 'selected' : '' }}>
                                                 {{ $currency->symbol }}
                                             </option>
                                         @endforeach
@@ -252,6 +273,50 @@
                         {{ paginateLinks($swaps) }}
                     </div>
                 @endif
+    <!-- Instant Searchable Coin Selection Modal -->
+    <div class="modal fade" id="coinSearchModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg--dark-two border border-dark rounded-4 shadow-lg">
+                <div class="modal-header border-bottom border-dark p-3 px-4">
+                    <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2" id="coinSearchModalTitle">
+                        <i class="las la-search text--base"></i> @lang('Select Asset')
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3 px-4">
+                    <!-- Instant Search Input -->
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg--dark-three border-dark text-muted"><i class="las la-search fs-5"></i></span>
+                        <input type="text" class="form-control bg--dark-three text-white border-dark font-mono shadow-none" id="coinSearchInput" placeholder="@lang('Type coin symbol (e.g. BTC, SOL, USDT)...')" autocomplete="off">
+                    </div>
+
+                    <!-- Fast Coin List -->
+                    <div class="coin-search-list-wrapper overflow-auto pe-1" style="max-height: 360px;">
+                        <div class="list-group list-group-flush" id="coinSearchList">
+                            @foreach($currencies as $currency)
+                                <button type="button" class="list-group-item list-group-item-action bg-transparent text-white border-dark d-flex justify-content-between align-items-center py-2 px-2 rounded-3 coin-item-btn mb-1" 
+                                    data-id="{{ $currency->id }}" 
+                                    data-symbol="{{ $currency->symbol }}" 
+                                    data-name="{{ $currency->name }}" 
+                                    data-balance="{{ $currency->user_balance }}">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="coin-avatar-circle bg--dark-three text--base fw-bold rounded-circle d-flex align-items-center justify-content-center border border-dark" style="width: 36px; height: 36px; font-size: 12px;">
+                                            {{ substr($currency->symbol, 0, 3) }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold font-mono text-white fs-6 coin-symbol-val">{{ $currency->symbol }}</div>
+                                            <small class="text-muted coin-name-val">{{ $currency->name }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end font-mono">
+                                        <span class="text-white d-block text--small">{{ number_format($currency->user_balance, 6) }}</span>
+                                        <small class="text-muted" style="font-size: 11px;">@lang('Available')</small>
+                                    </div>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -519,6 +584,132 @@
             calculateQuotation();
         });
 
+        // Web Audio API Institutional Synthesis Engine (100% Lightweight, No Assets)
+        var SoundFX = (function() {
+            var audioCtx = null;
+            var isMuted = localStorage.getItem('vinance_sound_muted') === '1';
+
+            function getCtx() {
+                if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                return audioCtx;
+            }
+
+            function updateUI() {
+                if (isMuted) {
+                    $('#soundToggleIcon').removeClass('la-volume-up text--info').addClass('la-volume-mute text-muted');
+                    $('#soundToggleText').text("@lang('Muted')");
+                } else {
+                    $('#soundToggleIcon').removeClass('la-volume-mute text-muted').addClass('la-volume-up text--info');
+                    $('#soundToggleText').text("@lang('Audio')");
+                }
+            }
+
+            return {
+                init: function() {
+                    updateUI();
+                    $('#soundToggleBtn').on('click', function() {
+                        isMuted = !isMuted;
+                        localStorage.setItem('vinance_sound_muted', isMuted ? '1' : '0');
+                        updateUI();
+                        if (!isMuted) SoundFX.play('click');
+                    });
+                },
+                play: function(type) {
+                    if (isMuted) return;
+                    try {
+                        var ctx = getCtx();
+                        if (!ctx) return;
+                        if (ctx.state === 'suspended') ctx.resume();
+
+                        var now = ctx.currentTime;
+                        var osc = ctx.createOscillator();
+                        var gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+
+                        if (type === 'click') {
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(1200, now);
+                            gain.gain.setValueAtTime(0.08, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                            osc.start(now);
+                            osc.stop(now + 0.04);
+                        } else if (type === 'success' || type === 'swap') {
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(523.25, now);
+                            osc.frequency.setValueAtTime(659.25, now + 0.08);
+                            gain.gain.setValueAtTime(0.12, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                            osc.start(now);
+                            osc.stop(now + 0.3);
+                        } else if (type === 'harvest') {
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(783.99, now);
+                            osc.frequency.setValueAtTime(1046.50, now + 0.07);
+                            osc.frequency.setValueAtTime(1318.51, now + 0.14);
+                            gain.gain.setValueAtTime(0.15, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                            osc.start(now);
+                            osc.stop(now + 0.45);
+                        }
+                    } catch (e) {}
+                }
+            };
+        })();
+
+        SoundFX.init();
+
+        // Searchable Coin Modal Selector
+        var currentSearchTarget = 'from';
+
+        $('.openCoinSearchBtn').on('click', function () {
+            currentSearchTarget = $(this).data('target');
+            if (currentSearchTarget === 'from') {
+                $('#coinSearchModalTitle').html('<i class="las la-arrow-circle-up text--danger"></i> @lang("Select Pay Asset")');
+            } else {
+                $('#coinSearchModalTitle').html('<i class="las la-arrow-circle-down text--success"></i> @lang("Select Receive Asset")');
+            }
+
+            $('#coinSearchInput').val('');
+            $('#coinSearchList .coin-item-btn').removeClass('d-none');
+            $('#coinSearchModal').modal('show');
+            setTimeout(function () {
+                $('#coinSearchInput').focus();
+            }, 300);
+        });
+
+        $('#coinSearchInput').on('input keyup', function () {
+            var query = $(this).val().toLowerCase().trim();
+            $('#coinSearchList .coin-item-btn').each(function () {
+                var sym = $(this).data('symbol').toString().toLowerCase();
+                var name = ($(this).data('name') || '').toString().toLowerCase();
+                if (sym.indexOf(query) > -1 || name.indexOf(query) > -1) {
+                    $(this).removeClass('d-none');
+                } else {
+                    $(this).addClass('d-none');
+                }
+            });
+        });
+
+        $(document).on('click', '.coin-item-btn', function () {
+            var id = $(this).data('id');
+            var sym = $(this).data('symbol');
+
+            if (currentSearchTarget === 'from') {
+                $('#fromCurrencySelect').val(id);
+                $('#fromCoinSymbolText').text(sym);
+            } else {
+                $('#toCurrencySelect').val(id);
+                $('#toCoinSymbolText').text(sym);
+            }
+
+            SoundFX.play('click');
+            $('#coinSearchModal').modal('hide');
+            calculateQuotation();
+        });
+
         // Quick Percentage buttons
         $('.quick-pct-btn').on('click', function () {
             var pct = parseFloat($(this).data('pct'));
@@ -527,6 +718,7 @@
             var calcAmount = (balance * (pct / 100));
 
             $('#swapAmountInput').val(calcAmount > 0 ? (pct === 100 ? balance : calcAmount.toFixed(6)) : '0.00');
+            SoundFX.play('click');
             calculateQuotation();
         });
 
@@ -534,10 +726,15 @@
         $('#flipDirectionBtn').on('click', function () {
             var fromId = $('#fromCurrencySelect').val();
             var toId = $('#toCurrencySelect').val();
+            var fromSym = $('#fromCoinSymbolText').text();
+            var toSym = $('#toCoinSymbolText').text();
 
             $('#fromCurrencySelect').val(toId);
             $('#toCurrencySelect').val(fromId);
+            $('#fromCoinSymbolText').text(toSym);
+            $('#toCoinSymbolText').text(fromSym);
 
+            SoundFX.play('click');
             calculateQuotation();
         });
 
@@ -563,17 +760,22 @@
                     submitBtn.prop('disabled', false).html('<i class="las la-sync-alt fs-5"></i> <span>Convert & Swap Now</span>');
 
                     if (res.success) {
+                        SoundFX.play('swap');
                         notify('success', res.message);
                         $('#swapAmountInput').val('');
                         $('#swapReceivePreview').val('');
                         $('#finalReceiveDisplay').text('0.00');
 
-                        // Update cached balances in select elements
+                        // Update cached balances in select elements and search modal
                         var fromOpt = $('#fromCurrencySelect option:selected');
                         var toOpt = $('#toCurrencySelect option:selected');
 
                         fromOpt.attr('data-balance', res.details.new_from_balance);
                         toOpt.attr('data-balance', res.details.new_to_balance);
+                        
+                        $('#coinSearchList .coin-item-btn[data-id="' + fromOpt.val() + '"]').attr('data-balance', res.details.new_from_balance).find('.font-mono .text--small').text(parseFloat(res.details.new_from_balance).toFixed(6));
+                        $('#coinSearchList .coin-item-btn[data-id="' + toOpt.val() + '"]').attr('data-balance', res.details.new_to_balance).find('.font-mono .text--small').text(parseFloat(res.details.new_to_balance).toFixed(6));
+
                         updateSelectedBalances();
 
                         // Prepend new row to swap history table

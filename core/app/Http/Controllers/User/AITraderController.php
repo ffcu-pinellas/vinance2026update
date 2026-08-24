@@ -105,7 +105,12 @@ class AITraderController extends Controller
                 $trade->status = 'closed';
                 $trade->save();
 
-                $userBot->current_profit += $tradeProfit;
+                if ($userBot->auto_compound) {
+                    $userBot->allocated_amount += $tradeProfit;
+                } else {
+                    $userBot->current_profit += $tradeProfit;
+                }
+
                 $userBot->total_trades += 1;
                 $userBot->save();
             }
@@ -444,6 +449,73 @@ class AITraderController extends Controller
         }
 
         $notify[] = ['success', 'Successfully harvested $' . showAmount($harvestAmount, currencyFormat: false) . ' USDT to your Spot Wallet!'];
+        return back()->withNotify($notify);
+    }
+
+    public function harvestAllProfits(Request $request)
+    {
+        $user = auth()->user();
+        $activeBots = UserAiBot::with('plan')->where('user_id', $user->id)->where('status', 1)->where('current_profit', '>', 0)->get();
+
+        if ($activeBots->count() == 0) {
+            $notify[] = ['error', 'No accumulated profits to harvest across your active bots.'];
+            return back()->withNotify($notify);
+        }
+
+        $totalHarvest = $activeBots->sum('current_profit');
+
+        $usdt = Currency::where('symbol', 'USDT')->first();
+        $wallet = Wallet::spot()->where('user_id', $user->id)->where('currency_id', @$usdt->id)->first();
+
+        if ($wallet) {
+            $wallet->balance += $totalHarvest;
+            $wallet->save();
+        } else {
+            $user->balance += $totalHarvest;
+            $user->save();
+        }
+
+        foreach ($activeBots as $bot) {
+            $bot->current_profit = 0;
+            $bot->save();
+        }
+
+        $trx = getTrx();
+        $transaction = new Transaction();
+        $transaction->user_id = $user->id;
+        $transaction->amount = $totalHarvest;
+        $transaction->post_balance = $wallet ? $wallet->balance : $user->balance;
+        $transaction->charge = 0;
+        $transaction->trx_type = '+';
+        $transaction->details = 'Harvested all accumulated profits across ' . $activeBots->count() . ' AI Trading Bots';
+        $transaction->trx = $trx;
+        $transaction->remark = 'ai_bot_harvest_all';
+        $transaction->save();
+
+        $notify[] = ['success', 'Successfully harvested $' . showAmount($totalHarvest, currencyFormat: false) . ' USDT across all active bots to your Spot Wallet!'];
+        return back()->withNotify($notify);
+    }
+
+    public function toggleAutoCompound(Request $request, $id)
+    {
+        $user = auth()->user();
+        $userBot = UserAiBot::where('user_id', $user->id)->findOrFail($id);
+
+        $userBot->auto_compound = $userBot->auto_compound ? 0 : 1;
+        $userBot->save();
+
+        $statusText = $userBot->auto_compound ? 'enabled' : 'disabled';
+        $message = 'Auto-Compound (Daily Profit Reinvestment) has been ' . $statusText . ' for ' . @$userBot->plan->name . '.';
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'auto_compound' => $userBot->auto_compound,
+                'message' => $message
+            ]);
+        }
+
+        $notify[] = ['success', $message];
         return back()->withNotify($notify);
     }
 }
