@@ -91,6 +91,7 @@
     @include('partials.notify')
 
     @php echo loadExtension('tawk-chat') @endphp
+    @php echo loadExtension('chatwoot') @endphp
 
     @if (gs('pn'))
         @include('partials.push_script')

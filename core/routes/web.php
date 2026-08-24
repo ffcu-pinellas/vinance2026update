@@ -84,6 +84,45 @@ Route::get('/clear', function () {
                 });
             }
         }
+
+        // Seed or Update Chatwoot Extension
+        $chatwoot = \App\Models\Extension::where('act', 'chatwoot')->first();
+        if (!$chatwoot) {
+            $chatwoot = new \App\Models\Extension();
+            $chatwoot->act = 'chatwoot';
+            $chatwoot->name = 'Chatwoot Live Chat';
+            $chatwoot->description = 'Chatwoot is an open-source customer engagement suite, providing real-time live chat alternative to Tawk.to and Zendesk.';
+            $chatwoot->image = 'chatwoot.png';
+            $chatwoot->script = '<script>
+  (function(d,t) {
+    var BASE_URL="{{base_url}}";
+    var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=BASE_URL+"/packs/js/sdk.js";
+    g.defer = true;
+    g.async = true;
+    s.parentNode.insertBefore(g,s);
+    g.onload=function(){
+      window.chatwootSDK.run({
+        websiteToken: "{{website_token}}",
+        baseUrl: BASE_URL
+      })
+    }
+  })(document,"script");
+</script>';
+            $chatwoot->shortcode = [
+                'base_url' => [
+                    'title' => 'Chatwoot Base URL (e.g. https://app.chatwoot.com)',
+                    'value' => 'https://app.chatwoot.com'
+                ],
+                'website_token' => [
+                    'title' => 'Website Token',
+                    'value' => ''
+                ]
+            ];
+            $chatwoot->support = '1. Create a Website channel in your Chatwoot Dashboard.\n2. Copy the Website Token and your Chatwoot Base URL.\n3. Paste them here and enable the extension.';
+            $chatwoot->status = 0;
+            $chatwoot->save();
+        }
     } catch (\Exception $e) {
         return "Migration Error: " . $e->getMessage();
     }

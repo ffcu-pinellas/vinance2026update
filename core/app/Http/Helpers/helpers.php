@@ -702,25 +702,27 @@ function copyRightText(): string {
     return $text;
 }
 
-function defaultCurrencyDataProvider($newObject = true): object {
-    $provider = CurrencyDataProvider::active()->where('is_default', Status::YES)->first();
+function defaultCurrencyDataProvider($newObject = true): ?object {
+    $provider = CurrencyDataProvider::active()->where('is_default', Status::YES)->first()
+             ?? CurrencyDataProvider::active()->first()
+             ?? CurrencyDataProvider::first();
 
     if (!$provider) {
-        if (!$newObject) {
-            return null;
-        }
-        throw new Exception('Currency data provider not found');
+        return null;
     }
 
     if (!$newObject) {
         return $provider;
     }
 
-    $alias               = "App\\Lib\\CurrencyDataProvider\\" . $provider->alias;
-    $newObject           = new $alias;
-    $newObject->provider = $provider;
+    $alias = "App\\Lib\\CurrencyDataProvider\\" . $provider->alias;
+    if (class_exists($alias)) {
+        $object = new $alias;
+        $object->provider = $provider;
+        return $object;
+    }
 
-    return $newObject;
+    return $provider;
 }
 
 function upOrDown($newNumber, $oldNumber) {
