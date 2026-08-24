@@ -3,37 +3,39 @@
 @section('content')
 <div class="ai-terminal-wrapper pb-5">
     <!-- Header with Back Button and Engine Status -->
-    <div class="ai-header-card bg--dark-two p-3 p-sm-4 rounded-4 mb-3 border-0 shadow-sm">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-            <div class="d-flex align-items-center gap-2 gap-sm-3">
-                <a href="{{ route('user.home') }}" class="btn btn-outline--light btn-sm rounded-pill px-3 py-2 text-nowrap d-inline-flex align-items-center">
-                    <i class="las la-arrow-left me-1"></i> <span>@lang('Dashboard')</span>
-                </a>
-                <div>
-                    <h3 class="ai-main-title mb-1 text-white fw-bold d-flex flex-wrap align-items-center gap-2">
-                        <i class="las la-robot text--base"></i> <span>Vinance AI Quantitative Terminal</span>
-                        <span class="badge badge--success-soft rounded-pill text--small fw-normal px-2 py-1 text-nowrap">
-                            <span class="live-pulse-dot"></span> @lang('Neural Engine V4.2 Online')
-                        </span>
-                        <span class="badge badge--dark rounded-pill text--small fw-normal px-2 py-1 text-muted border border-secondary d-none d-lg-inline-block">
-                            <i class="las la-server me-1"></i> Tokyo-Equinix TY3 Cluster
-                        </span>
-                    </h3>
-                    <p class="text-muted text--small mb-0">@lang('Autonomous high-frequency multi-asset quantitative trading & neural order routing')</p>
+    <div class="ai-header-card bg--dark-two p-3 p-sm-4 rounded-4 mb-4 border-0 shadow-sm">
+        <div class="row g-3 align-items-center">
+            <!-- Left Column: Back Button & Title -->
+            <div class="col-xl-7 col-12">
+                <div class="d-flex align-items-center gap-2 gap-sm-3">
+                    <a href="{{ route('user.home') }}" class="btn btn-outline--light btn-sm rounded-pill px-3 py-2 text-nowrap d-inline-flex align-items-center flex-shrink-0">
+                        <i class="las la-arrow-left me-1"></i> <span>@lang('Dashboard')</span>
+                    </a>
+                    <div class="flex-grow-1 min-w-0">
+                        <h3 class="ai-main-title mb-1 text-white fw-bold d-flex flex-wrap align-items-center gap-2">
+                            <i class="las la-robot text--base"></i> <span>Vinance AI Quantitative Terminal</span>
+                            <span class="badge badge--success-soft rounded-pill text--small fw-normal px-2 py-1 text-nowrap">
+                                <span class="live-pulse-dot"></span> @lang('Neural Engine Online')
+                            </span>
+                        </h3>
+                        <p class="text-muted text--small mb-0 text-truncate">@lang('Autonomous high-frequency multi-asset quantitative trading & order routing')</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="d-flex align-items-center gap-2 w-100 w-md-auto justify-content-between justify-content-md-end flex-wrap">
-                <!-- User Wallet Balance Pill -->
-                <div class="user-wallet-pill bg--dark-three border border-dark rounded-pill px-3 py-2 d-flex align-items-center gap-2 text--small">
-                    <span class="text-muted"><i class="las la-wallet text--base"></i> Spot: <strong class="text-white">${{ showAmount($spotBalance, currencyFormat: false) }}</strong></span>
-                    <span class="text-muted opacity-50">|</span>
-                    <span class="text-muted"><i class="las la-coins text--info"></i> Funding: <strong class="text-white">${{ showAmount($fundingBalance, currencyFormat: false) }}</strong></span>
-                </div>
+            <!-- Right Column: Wallet Balances & Deploy Bot Button -->
+            <div class="col-xl-5 col-12">
+                <div class="d-flex align-items-center justify-content-start justify-content-xl-end gap-2 flex-wrap">
+                    <div class="user-wallet-pill bg--dark-three border border-dark rounded-pill px-3 py-2 d-flex align-items-center gap-2 text--small">
+                        <span class="text-muted"><i class="las la-wallet text--base"></i> Spot: <strong class="text-white font-mono">${{ number_format($spotBalance, 2) }}</strong></span>
+                        <span class="text-muted opacity-50">|</span>
+                        <span class="text-muted"><i class="las la-coins text--info"></i> Funding: <strong class="text-white font-mono">${{ number_format($fundingBalance, 2) }}</strong></span>
+                    </div>
 
-                <button type="button" class="btn btn--base btn-sm rounded-pill px-3 py-2 text-nowrap openMarketplaceBtn">
-                    <i class="las la-plus-circle me-1"></i> @lang('Deploy Bot')
-                </button>
+                    <button type="button" class="btn btn--base btn-sm rounded-pill px-3 py-2 text-nowrap openMarketplaceBtn flex-shrink-0">
+                        <i class="las la-plus-circle me-1"></i> @lang('Deploy Bot')
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -66,7 +68,7 @@
                 </div>
                 <h3 class="text-white fw-bold mb-1 fs-5 fs-sm-4 font-mono">${{ showAmount($totalAllocated, currencyFormat: false) }}</h3>
                 <div class="d-flex align-items-center justify-content-between text--small">
-                    <span class="text-muted">@lang('Spot Balance'): <strong class="text-white font-mono">${{ showAmount($spotBalance, currencyFormat: false) }}</strong></span>
+                    <span class="text-muted">@lang('Spot Balance'): <strong class="text-white font-mono">${{ number_format($spotBalance, 2) }}</strong></span>
                 </div>
             </div>
         </div>
@@ -505,8 +507,8 @@
                     <div class="form-group mb-3">
                         <label class="form-label text-muted text--small text-uppercase">@lang('Funding Wallet Source')</label>
                         <select name="wallet_type" class="form-control form-select custom-dark-select" id="walletTypeSelect" required>
-                            <option value="spot" selected>Spot Wallet (${{ showAmount($spotBalance, currencyFormat: false) }} USDT)</option>
-                            <option value="funding">Funding Wallet (${{ showAmount($fundingBalance, currencyFormat: false) }} USDT)</option>
+                            <option value="spot" selected>Spot Wallet (${{ number_format($spotBalance, 2) }} USDT)</option>
+                            <option value="funding">Funding Wallet (${{ number_format($fundingBalance, 2) }} USDT)</option>
                         </select>
                     </div>
 
@@ -554,18 +556,20 @@
 <style>
     .ai-terminal-wrapper {
         color: #e2e8f0;
+        max-width: 100%;
+        overflow-x: clip;
     }
     .font-mono {
         font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', Courier, monospace !important;
     }
     .ai-main-title {
-        font-size: 1.4rem;
+        font-size: 1.35rem;
         line-height: 1.3;
         word-break: normal;
     }
     @media (min-width: 768px) {
         .ai-main-title {
-            font-size: 1.75rem;
+            font-size: 1.6rem;
         }
     }
     .bg--dark-two {
@@ -710,6 +714,15 @@
         background-color: #0f172a !important;
         color: #f8fafc !important;
         padding: 12px !important;
+    }
+
+    /* Hide the topbar/sidebar hamburger menu button on mobile so back button is exclusively used */
+    @media (max-width: 1199px) {
+        .dashboard-body__bar,
+        .dashboard-sidebar-filter__button,
+        .dashboardBodyNav {
+            display: none !important;
+        }
     }
 </style>
 @endpush
