@@ -15,7 +15,7 @@ class Extension extends Model
 
     protected $hidden = ['script','shortcode'];
 
-    public function scopeGenerateScript()
+    public function generateScript()
     {
         if ($this->act == 'chatwoot') {
             $baseUrl = @$this->shortcode->base_url->value ?: 'https://app.chatwoot.com';
@@ -24,7 +24,13 @@ class Extension extends Model
                 return '';
             }
             return '<script>
-  window.chatwootSettings = {"position":"right","type":"standard","launcherTitle":""};
+  window.chatwootSettings = {
+    position: "right",
+    type: "standard",
+    launcherTitle: "",
+    hideMessageBubble: true,
+    showPopoutButton: true
+  };
   (function(d,t) {
     var BASE_URL="' . $baseUrl . '";
     var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
@@ -61,5 +67,10 @@ class Extension extends Model
             $script = str_replace('{{' . $key . '}}', $item->value, $script);
         }
         return $script;
+    }
+
+    public function scopeGenerateScript($query)
+    {
+        return $this->generateScript();
     }
 }
