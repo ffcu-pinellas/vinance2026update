@@ -90,39 +90,6 @@
 
     @include('partials.notify')
 
-    @auth
-        <script>
-            window.chatwootUserData = {
-                identifier: "{{ auth()->id() }}",
-                name: "{{ auth()->user()->fullname ?? auth()->user()->username }}",
-                email: "{{ auth()->user()->email }}"
-            };
-        </script>
-    @endauth
-
-    <style>
-        /* Chatwoot Premium Styling */
-        .woot--bubble-holder {
-            box-shadow: 0 10px 30px rgba(56, 97, 251, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.15) !important;
-            border-radius: 50% !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            background: linear-gradient(135deg, #3861FB 0%, #1e40af 100%) !important;
-        }
-        .woot--bubble-holder:hover {
-            transform: scale(1.08) translateY(-2px) !important;
-            box-shadow: 0 14px 40px rgba(56, 97, 251, 0.65), 0 0 0 2px rgba(56, 97, 251, 0.4) !important;
-        }
-        .woot-widget-holder {
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
-            border-radius: 20px !important;
-            overflow: hidden !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        }
-        .woot-widget-holder iframe {
-            border-radius: 20px !important;
-        }
-    </style>
-
     @php echo loadExtension('tawk-chat') @endphp
     @php echo loadExtension('chatwoot') @endphp
 
