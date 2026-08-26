@@ -18,8 +18,11 @@ class Extension extends Model
     public function scopeGenerateScript()
     {
         $script = $this->script;
-        foreach ($this->shortcode as $key => $item) {
-            $script = str_replace('{{' . $key . '}}', $item->value, $script);
+        if ($this->shortcode) {
+            foreach ($this->shortcode as $key => $item) {
+                $val = is_object($item) ? (@$item->value ?? '') : (is_array($item) ? (@$item['value'] ?? '') : (string)$item);
+                $script = str_replace('{{' . $key . '}}', $val, $script);
+            }
         }
         return $script;
     }
