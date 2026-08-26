@@ -295,28 +295,28 @@
                         </a>
                     </div>
                 </div>
-                <div class="right-sidebar mt-3" style="background: var(--vn-bg-card) !important; border: 1px solid var(--vn-border) !important;">
+                <a href="{{ route('user.deposit.index') }}" class="right-sidebar mt-3 d-block text-decoration-none text-reset cursor-pointer transition-all hover-scale" style="background: var(--vn-bg-card) !important; border: 1px solid var(--vn-border) !important; transition: all 0.2s ease;">
                     <div class="right-sidebar__header mb-3 skeleton">
-                        <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Deposit Money')</h4>
+                        <h4 class="mb-0 fs-18 text-white">@lang('Deposit Money')</h4>
                         <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Instant crypto & multi-chain network deposits')</p>
                     </div>
                     <div class="right-sidebar__deposit">
-                        <a href="{{ route('user.deposit.index') }}" class="btn btn--base w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 text-decoration-none fw-bold shadow-sm">
+                        <div class="btn btn--base w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 fw-bold shadow-sm">
                             <i class="las la-arrow-circle-down fs-5"></i> @lang('Deposit Funds')
-                        </a>
+                        </div>
                     </div>
-                </div>
-                <div class="right-sidebar mt-3" style="background: var(--vn-bg-card) !important; border: 1px solid var(--vn-border) !important;">
+                </a>
+                <a href="{{ route('user.withdraw.index') }}" class="right-sidebar mt-3 d-block text-decoration-none text-reset cursor-pointer transition-all hover-scale" style="background: var(--vn-bg-card) !important; border: 1px solid var(--vn-border) !important; transition: all 0.2s ease;">
                     <div class="right-sidebar__header mb-3 skeleton">
-                        <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Withdraw Money')</h4>
+                        <h4 class="mb-0 fs-18 text-white">@lang('Withdraw Money')</h4>
                         <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Fast automated multi-wallet withdrawals')</p>
                     </div>
                     <div class="right-sidebar__deposit">
-                        <a href="{{ route('user.withdraw.index') }}" class="btn btn-outline--light w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 text-decoration-none fw-semibold border border-dark">
-                            <i class="las la-arrow-circle-up fs-5 text--danger"></i> @lang('Withdraw Funds')
-                        </a>
+                        <div class="btn btn--danger w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 fw-bold shadow-sm text-white" style="background: #dc2626 !important; border-color: #ef4444 !important;">
+                            <i class="las la-arrow-circle-up fs-5 text-white"></i> @lang('Withdraw Funds')
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
     </div>
     <x-flexible-view :view="$activeTemplate . 'user.components.canvas.deposit'" :meta="['gateways' => $gateways]" />

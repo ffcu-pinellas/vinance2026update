@@ -26,7 +26,6 @@
                 <div class="card-body p-4 p-md-5">
                     <form action="{{ route('user.deposit.insert') }}" method="post" class="deposit-form" id="depositForm">
                         @csrf
-                        <input type="hidden" name="currency">
                         
                         <!-- Step 1: Currency -->
                         <div class="form-section mb-4">

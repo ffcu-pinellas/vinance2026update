@@ -85,6 +85,12 @@ Route::get('/clear', function () {
             }
         }
 
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('deposits', 'gateway_currency_id')) {
+            \Illuminate\Support\Facades\Schema::table('deposits', function ($table) {
+                $table->unsignedBigInteger('gateway_currency_id')->nullable()->after('method_code');
+            });
+        }
+
         // Seed or Update Chatwoot Extension
         $chatwoot = \App\Models\Extension::where('act', 'chatwoot')->first();
         if (!$chatwoot) {

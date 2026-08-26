@@ -26,7 +26,6 @@
                 <div class="card-body p-4 p-md-5">
                     <form action="{{ route('user.withdraw.money') }}" method="post" class="withdraw-form" id="withdrawForm">
                         @csrf
-                        <input type="hidden" name="currency">
                         
                         <!-- Step 1: Currency -->
                         <div class="form-section mb-4">

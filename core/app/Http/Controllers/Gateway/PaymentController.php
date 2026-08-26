@@ -115,13 +115,14 @@ class PaymentController extends Controller
             $wallet->save();
         }
 
-        $data                  = new Deposit();
-        $data->wallet_id       = $wallet->id;
-        $data->currency_id     = $wallet->currency_id;
-        $data->user_id         = $user->id;
-        $data->method_code     = $gate->method_code;
-        $data->method_currency = strtoupper($gate->currency);
-        $data->amount          = $request->amount;
+        $data                      = new Deposit();
+        $data->wallet_id           = $wallet->id;
+        $data->currency_id         = $wallet->currency_id;
+        $data->user_id             = $user->id;
+        $data->method_code         = $gate->method_code;
+        $data->gateway_currency_id = $gate->id;
+        $data->method_currency     = strtoupper($gate->currency);
+        $data->amount              = $request->amount;
         $data->charge          = $charge;
         $data->rate            = 1;
         $data->final_amount    = $finalAmount;
