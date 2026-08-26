@@ -312,7 +312,7 @@
                         <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Fast automated multi-wallet withdrawals')</p>
                     </div>
                     <div class="right-sidebar__deposit">
-                        <a href="{{ route('user.withdraw') }}" class="btn btn-outline--light w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 text-decoration-none fw-semibold border border-dark">
+                        <a href="{{ route('user.withdraw.index') }}" class="btn btn-outline--light w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 text-decoration-none fw-semibold border border-dark">
                             <i class="las la-arrow-circle-up fs-5 text--danger"></i> @lang('Withdraw Funds')
                         </a>
                     </div>

@@ -316,7 +316,44 @@
     <script>
         "use strict";
         let gateways = @json(\App\Models\GatewayCurrency::whereHas('method', function ($gate) { $gate->active(); })->with('method')->get());
+        let userOverrides = @json($userDepositSettings ?? []);
         let currentCurrencyGateways = [];
+        let currentSelectedGateway = null;
+
+        function getGatewayConfig(g) {
+            if (!g) return null;
+            let override = userOverrides[g.id] || null;
+            return {
+                id: g.id,
+                method_code: g.method_code,
+                name: g.name,
+                currency: g.currency,
+                min_amount: override ? parseFloat(override.min_amount) : parseFloat(g.min_amount),
+                max_amount: override ? parseFloat(override.max_amount) : parseFloat(g.max_amount),
+                fixed_charge: override ? parseFloat(override.fixed_charge) : parseFloat(g.fixed_charge),
+                percent_charge: override ? parseFloat(override.percent_charge) : parseFloat(g.percent_charge),
+            };
+        }
+
+        function updateDepositSummary() {
+            if (!currentSelectedGateway) return;
+
+            let resource = currentSelectedGateway;
+            let fixed_charge = parseFloat(resource.fixed_charge) || 0;
+            let percent_charge = parseFloat(resource.percent_charge) || 0;
+
+            $('.min').text(getAmount(resource.min_amount));
+            $('.max').text(getAmount(resource.max_amount));
+
+            let amount = parseFloat($('#depositAmount').val()) || 0;
+            $('.summary-amount').text(getAmount(amount));
+
+            let charge = parseFloat(fixed_charge + (amount * percent_charge / 100));
+            let payable = parseFloat(amount + charge);
+
+            $('.charge').text(getAmount(charge));
+            $('.payable').text(getAmount(payable));
+        }
 
         function addAmount(val) {
             let current = parseFloat($('#depositAmount').val()) || 0;
@@ -330,30 +367,35 @@
         (function($) {
             function selectDepositGateway(gatewayObj) {
                 if (!gatewayObj) return;
-                $('#depositGatewaySelect').html(`<option value="${gatewayObj.method_code}" data-gateway='${JSON.stringify(gatewayObj)}' selected>${gatewayObj.name}</option>`).trigger('change');
-                $('#gatewaySelectedName').text(gatewayObj.name);
-                $('#gatewaySelectedDetails').text(`Min: ${getAmount(gatewayObj.min_amount)} - Max: ${getAmount(gatewayObj.max_amount)}`);
+                currentSelectedGateway = getGatewayConfig(gatewayObj);
+
+                $('#depositGatewaySelect').html(`<option value="${currentSelectedGateway.id}" selected>${currentSelectedGateway.name}</option>`);
+                $('#gatewaySelectedName').text(currentSelectedGateway.name);
+                $('#gatewaySelectedDetails').text(`Min: ${getAmount(currentSelectedGateway.min_amount)} - Max: ${getAmount(currentSelectedGateway.max_amount)}`);
+
+                updateDepositSummary();
             }
 
             function renderGatewayModalList(gatewaysList) {
                 let html = '';
                 $.each(gatewaysList, function(i, g) {
+                    let cfg = getGatewayConfig(g);
                     html += `
                         <button type="button" class="list-group-item list-group-item-action bg-transparent text-white border-dark d-flex justify-content-between align-items-center py-2 px-2 rounded-3 deposit-gateway-item-btn mb-1" 
-                            data-methodcode="${g.method_code}" 
-                            data-name="${g.name}" 
+                            data-id="${cfg.id}" 
+                            data-name="${cfg.name}" 
                             data-gateway='${JSON.stringify(g)}'>
                             <div class="d-flex align-items-center gap-3">
                                 <div class="coin-avatar-circle bg--dark-three text--base fw-bold rounded-circle d-flex align-items-center justify-content-center border border-dark" style="width: 36px; height: 36px; font-size: 14px;">
                                     <i class="las la-network-wired"></i>
                                 </div>
                                 <div class="text-start">
-                                    <div class="fw-bold font-mono text-white fs-6">${g.name}</div>
-                                    <small class="text-muted">Charge: ${getAmount(g.fixed_charge)} + ${g.percent_charge}%</small>
+                                    <div class="fw-bold font-mono text-white fs-6">${cfg.name}</div>
+                                    <small class="text-muted">Charge: ${getAmount(cfg.fixed_charge)} + ${cfg.percent_charge}%</small>
                                 </div>
                             </div>
                             <div class="text-end font-mono">
-                                <span class="text-white d-block text--small">${getAmount(g.min_amount)} - ${getAmount(g.max_amount)}</span>
+                                <span class="text-white d-block text--small">${getAmount(cfg.min_amount)} - ${getAmount(cfg.max_amount)}</span>
                                 <small class="text-muted" style="font-size: 11px;">@lang('Limits')</small>
                             </div>
                         </button>
@@ -380,8 +422,11 @@
                     renderGatewayModalList(currentCurrencyGateways);
                     selectDepositGateway(currentCurrencyGateways[0]);
                 } else {
+                    currentSelectedGateway = null;
                     $(".empty-gateway").removeClass('d-none');
                     $("#gateway-selection").addClass('d-none');
+                    $('.min').text('0.00');
+                    $('.max').text('0.00');
                 }
             }
 
@@ -459,34 +504,8 @@
             let defaultName = "{{ @$currencies->where('symbol', 'USDT')->first()->name ?? @$currencies->first()->name ?? 'Tether' }}";
             selectDepositCurrency(defaultSym, defaultName);
 
-            $('#depositGatewaySelect').on('change', function() {
-                if (!$(this).val()) {
-                    return false;
-                }
-
-                var resource = $('select[name=gateway] option:selected').data('gateway');
-                if (!resource) return;
-
-                var fixed_charge = parseFloat(resource.fixed_charge) || 0;
-                var percent_charge = parseFloat(resource.percent_charge) || 0;
-
-                $('.min').text(getAmount(resource.min_amount));
-                $('.max').text(getAmount(resource.max_amount));
-
-                var amount = parseFloat($('#depositAmount').val()) || 0;
-                $('.summary-amount').text(getAmount(amount));
-
-                var charge = parseFloat(fixed_charge + (amount * percent_charge / 100));
-                var payable = parseFloat(amount + charge);
-
-                $('.charge').text(getAmount(charge));
-                $('.payable').text(getAmount(payable));
-            });
-
-            $('#depositAmount').on('input', function() {
-                var amount = parseFloat($(this).val()) || 0;
-                $('.summary-amount').text(getAmount(amount));
-                $('#depositGatewaySelect').trigger('change');
+            $('#depositAmount').on('input keyup change', function() {
+                updateDepositSummary();
             });
             
             $(document).off('submit', '.deposit-form');

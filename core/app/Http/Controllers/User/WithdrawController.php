@@ -30,7 +30,9 @@ class WithdrawController extends Controller
                 $currency->user_balance = $wallet ? (float)$wallet->balance : 0;
             }
         }
-        return view('Template::user.withdraw_page', compact('pageTitle', 'currencies'));
+        $userWithdrawSettings = $user ? \App\Models\UserWithdrawSetting::where('user_id', $user->id)->get()->keyBy('withdraw_method_id') : collect();
+
+        return view('Template::user.withdraw_page', compact('pageTitle', 'currencies', 'userWithdrawSettings'));
     }
 
     public function withdrawStore(Request $request)

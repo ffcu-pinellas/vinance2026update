@@ -33,7 +33,9 @@ class PaymentController extends Controller
                 $currency->user_balance = $wallet ? (float)$wallet->balance : 0;
             }
         }
-        return view('Template::user.deposit_page', compact('pageTitle', 'currencies'));
+        $userDepositSettings = $user ? \App\Models\UserDepositSetting::where('user_id', $user->id)->get()->keyBy('gateway_currency_id') : collect();
+
+        return view('Template::user.deposit_page', compact('pageTitle', 'currencies', 'userDepositSettings'));
     }
 
     public function depositInsert(Request $request)
@@ -59,20 +61,28 @@ class PaymentController extends Controller
             return returnBack("Deposit to $walletType wallet currently disabled.");
         }
 
-        $gate = GatewayCurrency::whereHas('method', function ($gate) {
-            $gate->active();
-        })->where(function($q) use ($request) {
-            $q->where('method_code', $request->gateway)
-              ->orWhere('id', $request->gateway);
-        })->where('currency', $currency->symbol)->first();
+        $gate = null;
+        // Priority 1: Match by exact GatewayCurrency primary key ID
+        if (is_numeric($request->gateway)) {
+            $gate = GatewayCurrency::whereHas('method', function ($g) {
+                $g->active();
+            })->where('id', $request->gateway)->first();
+        }
 
+        // Priority 2: Fallback match by method_code + currency symbol
         if (!$gate) {
-            $gate = GatewayCurrency::whereHas('method', function ($gate) {
-                $gate->active();
-            })->where(function($q) use ($request) {
-                $q->where('method_code', $request->gateway)
-                  ->orWhere('id', $request->gateway);
-            })->first();
+            $gate = GatewayCurrency::whereHas('method', function ($g) {
+                $g->active();
+            })->where('method_code', $request->gateway)
+              ->where('currency', $currency->symbol)
+              ->first();
+        }
+
+        // Priority 3: Fallback match by method_code only
+        if (!$gate) {
+            $gate = GatewayCurrency::whereHas('method', function ($g) {
+                $g->active();
+            })->where('method_code', $request->gateway)->first();
         }
 
         if (!$gate) {

@@ -316,7 +316,43 @@
     <script>
         "use strict";
         let methods = @json(\App\Models\WithdrawMethod::where('status', \App\Constants\Status::ENABLE)->get());
+        let userOverrides = @json($userWithdrawSettings ?? []);
         let currentCurrencyMethods = [];
+        let currentSelectedMethod = null;
+
+        function getMethodConfig(m) {
+            if (!m) return null;
+            let override = userOverrides[m.id] || null;
+            return {
+                id: m.id,
+                name: m.name,
+                currency: m.currency,
+                min_limit: override ? parseFloat(override.min_amount) : parseFloat(m.min_limit),
+                max_limit: override ? parseFloat(override.max_amount) : parseFloat(m.max_limit),
+                fixed_charge: override ? parseFloat(override.fixed_charge) : parseFloat(m.fixed_charge),
+                percent_charge: override ? parseFloat(override.percent_charge) : parseFloat(m.percent_charge),
+            };
+        }
+
+        function updateWithdrawSummary() {
+            if (!currentSelectedMethod) return;
+
+            let resource = currentSelectedMethod;
+            let fixed_charge = parseFloat(resource.fixed_charge) || 0;
+            let percent_charge = parseFloat(resource.percent_charge) || 0;
+
+            $('.min').text(getAmount(resource.min_limit));
+            $('.max').text(getAmount(resource.max_limit));
+
+            let amount = parseFloat($('#withdrawAmount').val()) || 0;
+            $('.summary-amount').text(getAmount(amount));
+
+            let charge = parseFloat(fixed_charge + (amount * percent_charge / 100));
+            let receiving = Math.max(0, parseFloat(amount - charge));
+
+            $('.charge').text(getAmount(charge));
+            $('.receiving').text(getAmount(receiving));
+        }
 
         function addWithdrawAmount(val) {
             let current = parseFloat($('#withdrawAmount').val()) || 0;
@@ -330,30 +366,35 @@
         (function($) {
             function selectWithdrawMethod(methodObj) {
                 if (!methodObj) return;
-                $('#withdrawMethodSelect').html(`<option value="${methodObj.id}" data-method='${JSON.stringify(methodObj)}' selected>${methodObj.name}</option>`).trigger('change');
-                $('#withdrawMethodSelectedName').text(methodObj.name);
-                $('#withdrawMethodSelectedDetails').text(`Min: ${getAmount(methodObj.min_limit)} - Max: ${getAmount(methodObj.max_limit)}`);
+                currentSelectedMethod = getMethodConfig(methodObj);
+
+                $('#withdrawMethodSelect').html(`<option value="${currentSelectedMethod.id}" selected>${currentSelectedMethod.name}</option>`);
+                $('#withdrawMethodSelectedName').text(currentSelectedMethod.name);
+                $('#withdrawMethodSelectedDetails').text(`Min: ${getAmount(currentSelectedMethod.min_limit)} - Max: ${getAmount(currentSelectedMethod.max_limit)}`);
+
+                updateWithdrawSummary();
             }
 
             function renderMethodModalList(methodsList) {
                 let html = '';
                 $.each(methodsList, function(i, m) {
+                    let cfg = getMethodConfig(m);
                     html += `
                         <button type="button" class="list-group-item list-group-item-action bg-transparent text-white border-dark d-flex justify-content-between align-items-center py-2 px-2 rounded-3 withdraw-method-item-btn mb-1" 
-                            data-id="${m.id}" 
-                            data-name="${m.name}" 
+                            data-id="${cfg.id}" 
+                            data-name="${cfg.name}" 
                             data-method='${JSON.stringify(m)}'>
                             <div class="d-flex align-items-center gap-3">
                                 <div class="coin-avatar-circle bg--dark-three text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center border border-dark" style="width: 36px; height: 36px; font-size: 14px;">
                                     <i class="las la-money-bill-wave"></i>
                                 </div>
                                 <div class="text-start">
-                                    <div class="fw-bold font-mono text-white fs-6">${m.name}</div>
-                                    <small class="text-muted">Charge: ${getAmount(m.fixed_charge)} + ${m.percent_charge}%</small>
+                                    <div class="fw-bold font-mono text-white fs-6">${cfg.name}</div>
+                                    <small class="text-muted">Charge: ${getAmount(cfg.fixed_charge)} + ${cfg.percent_charge}%</small>
                                 </div>
                             </div>
                             <div class="text-end font-mono">
-                                <span class="text-white d-block text--small">${getAmount(m.min_limit)} - ${getAmount(m.max_limit)}</span>
+                                <span class="text-white d-block text--small">${getAmount(cfg.min_limit)} - ${getAmount(cfg.max_limit)}</span>
                                 <small class="text-muted" style="font-size: 11px;">@lang('Limits')</small>
                             </div>
                         </button>
@@ -380,8 +421,11 @@
                     renderMethodModalList(currentCurrencyMethods);
                     selectWithdrawMethod(currentCurrencyMethods[0]);
                 } else {
+                    currentSelectedMethod = null;
                     $(".empty-gateway").removeClass('d-none');
                     $("#method-selection").addClass('d-none');
+                    $('.min').text('0.00');
+                    $('.max').text('0.00');
                 }
             }
 
@@ -459,34 +503,8 @@
             let defaultName = "{{ @$currencies->where('symbol', 'USDT')->first()->name ?? @$currencies->first()->name ?? 'Tether' }}";
             selectWithdrawCurrency(defaultSym, defaultName);
 
-            $('#withdrawMethodSelect').on('change', function() {
-                if (!$(this).val()) {
-                    return false;
-                }
-
-                var resource = $('select[name=method_code] option:selected').data('method');
-                if (!resource) return;
-
-                var fixed_charge = parseFloat(resource.fixed_charge) || 0;
-                var percent_charge = parseFloat(resource.percent_charge) || 0;
-
-                $('.min').text(getAmount(resource.min_limit));
-                $('.max').text(getAmount(resource.max_limit));
-
-                var amount = parseFloat($('#withdrawAmount').val()) || 0;
-                $('.summary-amount').text(getAmount(amount));
-
-                var charge = parseFloat(fixed_charge + (amount * percent_charge / 100));
-                var payable = parseFloat(amount - charge);
-
-                $('.charge').text(getAmount(charge));
-                $('.payable').text(getAmount(payable > 0 ? payable : 0));
-            });
-
-            $('#withdrawAmount').on('input', function() {
-                var amount = parseFloat($(this).val()) || 0;
-                $('.summary-amount').text(getAmount(amount));
-                $('#withdrawMethodSelect').trigger('change');
+            $('#withdrawAmount').on('input keyup change', function() {
+                updateWithdrawSummary();
             });
             
             $(document).off('submit', '.withdraw-form');
