@@ -65,7 +65,13 @@ class WithdrawController extends Controller
             return returnBack('Requested withdraw currency wallet not found');
         }
         
-        $method   = WithdrawMethod::where('id', $request->method_code)->where('currency', $currency->symbol)->where('status', Status::ENABLE)->first();
+        $method = null;
+        if (is_numeric($request->method_code)) {
+            $method = WithdrawMethod::where('id', $request->method_code)->where('currency', $currency->symbol)->where('status', Status::ENABLE)->first();
+        }
+        if (!$method) {
+            $method = WithdrawMethod::where('currency', $currency->symbol)->where('status', Status::ENABLE)->first();
+        }
         
         if (!$method) {
             return returnBack('Requested withdraw method not found');

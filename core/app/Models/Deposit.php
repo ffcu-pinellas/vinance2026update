@@ -70,10 +70,6 @@ class Deposit extends Model
     // scope
     public function gatewayCurrency()
     {
-        if ($this->gateway_currency_id) {
-            $gc = GatewayCurrency::find($this->gateway_currency_id);
-            if ($gc) return $gc;
-        }
         return GatewayCurrency::where('method_code', $this->method_code)->where('currency', $this->method_currency)->first();
     }
 

@@ -18,7 +18,7 @@
     <div class="row g-4 justify-content-center">
         <!-- Deposit Card -->
         <div class="col-lg-6 col-md-6">
-            <div class="action-card deposit-card h-100 p-4 p-xl-5">
+            <a href="{{ route('user.deposit.index') }}" class="action-card deposit-card h-100 p-4 p-xl-5 text-decoration-none text-reset d-flex flex-column cursor-pointer">
                 <div class="action-card__badge">
                     <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-3 py-2">
                         <i class="las la-bolt me-1"></i>@lang('Instant Processing')
@@ -38,22 +38,22 @@
                     <li><i class="las la-check-circle text-success me-2"></i>@lang('Instant balance crediting upon network confirmation')</li>
                 </ul>
 
-                <a href="{{ route('user.deposit.index') }}" class="btn btn--base w-100 py-3 fw-bold fs-6">
+                <div class="btn btn--base w-100 py-3 fw-bold fs-6 shadow-sm">
                     <i class="las la-arrow-circle-right me-2 fs-5"></i>@lang('Proceed to Deposit')
-                </a>
-            </div>
+                </div>
+            </a>
         </div>
 
         <!-- Withdraw Card -->
         <div class="col-lg-6 col-md-6">
-            <div class="action-card withdraw-card h-100 p-4 p-xl-5">
+            <a href="{{ route('user.withdraw.index') }}" class="action-card withdraw-card h-100 p-4 p-xl-5 text-decoration-none text-reset d-flex flex-column cursor-pointer">
                 <div class="action-card__badge">
-                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-50 px-3 py-2">
+                    <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 px-3 py-2">
                         <i class="las la-shield-alt me-1"></i>@lang('2FA Protected Payouts')
                     </span>
                 </div>
                 <div class="action-card__icon mb-4">
-                    <div class="icon-box icon-box--primary">
+                    <div class="icon-box icon-box--danger">
                         <i class="las la-money-bill-wave"></i>
                     </div>
                 </div>
@@ -61,15 +61,15 @@
                 <p class="text-muted mb-4">@lang('Request a fast withdrawal of your trading earnings or available balance to external destinations.')</p>
                 
                 <ul class="feature-list mb-5">
-                    <li><i class="las la-check-circle text-primary me-2"></i>@lang('Low gas fees and high-speed settlement processing')</li>
-                    <li><i class="las la-check-circle text-primary me-2"></i>@lang('Custom destination accounts, bank routing & crypto wallets')</li>
-                    <li><i class="las la-check-circle text-primary me-2"></i>@lang('Real-time notification tracking on payout progress')</li>
+                    <li><i class="las la-check-circle text-danger me-2"></i>@lang('Low gas fees and high-speed settlement processing')</li>
+                    <li><i class="las la-check-circle text-danger me-2"></i>@lang('Custom destination accounts, bank routing & crypto wallets')</li>
+                    <li><i class="las la-check-circle text-danger me-2"></i>@lang('Real-time notification tracking on payout progress')</li>
                 </ul>
 
-                <a href="{{ route('user.withdraw.index') }}" class="btn btn-outline--light w-100 py-3 fw-bold fs-6 hover-withdraw">
-                    <i class="las la-arrow-circle-up me-2 fs-5"></i>@lang('Proceed to Withdraw')
-                </a>
-            </div>
+                <div class="btn btn--danger w-100 py-3 fw-bold fs-6 text-white shadow-sm" style="background: #dc2626 !important; border-color: #ef4444 !important;">
+                    <i class="las la-arrow-circle-up me-2 fs-5 text-white"></i>@lang('Proceed to Withdraw')
+                </div>
+            </a>
         </div>
     </div>
 </div>
@@ -105,12 +105,12 @@
     background: #00C087;
 }
 .withdraw-card:hover {
-    border-color: rgba(56, 97, 251, 0.4);
+    border-color: rgba(239, 68, 68, 0.4);
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(56, 97, 251, 0.12);
+    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.12);
 }
 .withdraw-card:hover::before {
-    background: #3861FB;
+    background: #ef4444;
 }
 .icon-box {
     width: 68px;
@@ -126,10 +126,10 @@
     color: #00C087;
     border: 1px solid rgba(0, 192, 135, 0.25);
 }
-.icon-box--primary {
-    background: rgba(56, 97, 251, 0.12);
-    color: #3861FB;
-    border: 1px solid rgba(56, 97, 251, 0.25);
+.icon-box--danger {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.25);
 }
 .feature-list {
     list-style: none;
@@ -143,11 +143,6 @@
     margin-bottom: 12px;
     display: flex;
     align-items: center;
-}
-.hover-withdraw:hover {
-    background: #3861FB !important;
-    border-color: #3861FB !important;
-    color: #fff !important;
 }
 </style>
 @endpush

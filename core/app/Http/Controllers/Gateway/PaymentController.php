@@ -62,11 +62,13 @@ class PaymentController extends Controller
         }
 
         $gate = null;
-        // Priority 1: Match by exact GatewayCurrency primary key ID
+        // Priority 1: Match by exact GatewayCurrency primary key ID AND currency symbol
         if (is_numeric($request->gateway)) {
             $gate = GatewayCurrency::whereHas('method', function ($g) {
                 $g->active();
-            })->where('id', $request->gateway)->first();
+            })->where('id', $request->gateway)
+              ->where('currency', $currency->symbol)
+              ->first();
         }
 
         // Priority 2: Fallback match by method_code + currency symbol
@@ -78,7 +80,14 @@ class PaymentController extends Controller
               ->first();
         }
 
-        // Priority 3: Fallback match by method_code only
+        // Priority 3: Fallback match by currency symbol only
+        if (!$gate) {
+            $gate = GatewayCurrency::whereHas('method', function ($g) {
+                $g->active();
+            })->where('currency', $currency->symbol)->first();
+        }
+
+        // Priority 4: Fallback match by method_code only
         if (!$gate) {
             $gate = GatewayCurrency::whereHas('method', function ($g) {
                 $g->active();
@@ -115,14 +124,13 @@ class PaymentController extends Controller
             $wallet->save();
         }
 
-        $data                      = new Deposit();
-        $data->wallet_id           = $wallet->id;
-        $data->currency_id         = $wallet->currency_id;
-        $data->user_id             = $user->id;
-        $data->method_code         = $gate->method_code;
-        $data->gateway_currency_id = $gate->id;
-        $data->method_currency     = strtoupper($gate->currency);
-        $data->amount              = $request->amount;
+        $data                  = new Deposit();
+        $data->wallet_id       = $wallet->id;
+        $data->currency_id     = $wallet->currency_id;
+        $data->user_id         = $user->id;
+        $data->method_code     = $gate->method_code;
+        $data->method_currency = strtoupper($gate->currency);
+        $data->amount          = $request->amount;
         $data->charge          = $charge;
         $data->rate            = 1;
         $data->final_amount    = $finalAmount;
