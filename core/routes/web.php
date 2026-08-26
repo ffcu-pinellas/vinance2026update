@@ -99,6 +99,22 @@ Route::get('/clear', function () {
             $chatwoot->name = 'Chatwoot Live Chat';
             $chatwoot->description = 'Chatwoot is an open-source customer engagement suite, providing real-time live chat alternative to Tawk.to and Zendesk.';
             $chatwoot->image = 'chatwoot.png';
+            $chatwoot->script = '<script>
+  (function(d,t) {
+    var BASE_URL="{{base_url}}";
+    var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=BASE_URL+"/packs/js/sdk.js";
+    g.defer = true;
+    g.async = true;
+    s.parentNode.insertBefore(g,s);
+    g.onload=function(){
+      window.chatwootSDK.run({
+        websiteToken: "{{website_token}}",
+        baseUrl: BASE_URL
+      })
+    }
+  })(document,"script");
+</script>';
             $chatwoot->shortcode = [
                 'base_url' => [
                     'title' => 'Chatwoot Base URL (e.g. https://app.chatwoot.com)',
@@ -111,46 +127,8 @@ Route::get('/clear', function () {
             ];
             $chatwoot->support = '1. Create a Website channel in your Chatwoot Dashboard.\n2. Copy the Website Token and your Chatwoot Base URL.\n3. Paste them here and enable the extension.';
             $chatwoot->status = 0;
+            $chatwoot->save();
         }
-        $chatwoot->script = '<script>
-  window.chatwootSettings = {
-    position: "right",
-    type: "standard",
-    launcherTitle: "Support",
-    showPopoutButton: true,
-    darkMode: "dark"
-  };
-  (function(d,t) {
-    var BASE_URL="{{base_url}}";
-    var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-    g.src=BASE_URL+"/packs/js/sdk.js";
-    g.defer = true;
-    g.async = true;
-    s.parentNode.insertBefore(g,s);
-    g.onload=function(){
-      window.chatwootSDK.run({
-        websiteToken: "{{website_token}}",
-        baseUrl: BASE_URL
-      });
-    }
-  })(document,"script");
-
-  window.addEventListener("chatwoot:ready", function () {
-    if (window.vinanceUser && window.vinanceUser.id) {
-      window.$chatwoot.setUser(window.vinanceUser.id.toString(), {
-        name: window.vinanceUser.name,
-        email: window.vinanceUser.email,
-        phone_number: window.vinanceUser.mobile || ""
-      });
-      window.$chatwoot.setCustomAttributes({
-        user_id: window.vinanceUser.id,
-        username: window.vinanceUser.username,
-        tier: "Institutional Trader"
-      });
-    }
-  });
-</script>';
-        $chatwoot->save();
 
         // 1. AI Bot Plans Table
         if (!\Illuminate\Support\Facades\Schema::hasTable('ai_bot_plans')) {

@@ -97,18 +97,7 @@
         window.allow_decimal = "{{ gs('allow_decimal_after_number') }}";
     </script>
 
-    @php
-        $authChatUser = auth()->user() ? [
-            'id' => auth()->id(),
-            'name' => auth()->user()->fullname ?: auth()->user()->username,
-            'email' => auth()->user()->email,
-            'username' => auth()->user()->username,
-            'mobile' => auth()->user()->mobile ?? ''
-        ] : null;
-    @endphp
-    <script>
-        window.vinanceUser = {!! json_encode($authChatUser) !!};
-    </script>
+    @stack('script-lib')
 
     @php echo loadExtension('tawk-chat') @endphp
     @php echo loadExtension('chatwoot') @endphp
