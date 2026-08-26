@@ -116,7 +116,7 @@ Route::get('/clear', function () {
   window.chatwootSettings = {
     position: "right",
     type: "standard",
-    launcherTitle: "Support Desk",
+    launcherTitle: "Support",
     showPopoutButton: true,
     darkMode: "dark"
   };
@@ -149,29 +149,7 @@ Route::get('/clear', function () {
       });
     }
   });
-</script>
-<style>
-  .woot--bubble-holder {
-    bottom: 24px !important;
-    right: 24px !important;
-    z-index: 999999 !important;
-  }
-  .woot-widget-bubble {
-    background: linear-gradient(135deg, #00C087 0%, #00875A 100%) !important;
-    box-shadow: 0 8px 25px rgba(0, 192, 135, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.15) !important;
-    border-radius: 50% !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  }
-  .woot-widget-bubble:hover {
-    transform: scale(1.08) !important;
-    box-shadow: 0 12px 35px rgba(0, 192, 135, 0.65), 0 0 0 2px rgba(0, 192, 135, 0.8) !important;
-  }
-  .woot-widget-holder iframe {
-    border-radius: 16px !important;
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
-    overflow: hidden !important;
-  }
-</style>';
+</script>';
         $chatwoot->save();
 
         // 1. AI Bot Plans Table
