@@ -8,6 +8,7 @@ use App\Lib\FormProcessor;
 use App\Models\AdminNotification;
 use App\Models\Currency;
 use App\Models\Deposit;
+use App\Models\Gateway;
 use App\Models\GatewayCurrency;
 use App\Models\Transaction;
 use App\Models\User;
