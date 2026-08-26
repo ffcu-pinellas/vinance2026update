@@ -90,14 +90,17 @@
 
     @include('partials.notify')
 
-    <script>
-        window.vinanceUser = @json(auth()->user() ? [
+    @php
+        $authChatUser = auth()->user() ? [
             'id' => auth()->id(),
             'name' => auth()->user()->fullname ?: auth()->user()->username,
             'email' => auth()->user()->email,
             'username' => auth()->user()->username,
             'mobile' => auth()->user()->mobile ?? ''
-        ] : null);
+        ] : null;
+    @endphp
+    <script>
+        window.vinanceUser = {!! json_encode($authChatUser) !!};
     </script>
 
     @php echo loadExtension('tawk-chat') @endphp
