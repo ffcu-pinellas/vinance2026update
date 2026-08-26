@@ -18,12 +18,11 @@ class Extension extends Model
     public function generateScript()
     {
         if ($this->act == 'chatwoot') {
-            $baseUrl = @$this->shortcode->base_url->value ?: 'https://app.chatwoot.com';
-            $websiteToken = @$this->shortcode->website_token->value;
-            if (!$websiteToken) {
-                return '';
-            }
-            return '<script>
+            $baseUrl = data_get($this->shortcode, 'base_url.value') ?: @$this->shortcode->base_url->value ?: @$this->shortcode['base_url']['value'] ?: 'https://app.chatwoot.com';
+            $websiteToken = data_get($this->shortcode, 'website_token.value') ?: @$this->shortcode->website_token->value ?: @$this->shortcode['website_token']['value'];
+
+            if ($websiteToken) {
+                return '<script>
   window.chatwootSettings = {
     position: "right",
     type: "standard",
@@ -60,11 +59,15 @@ class Extension extends Model
     }
   });
 </script>';
+            }
         }
 
         $script = $this->script;
-        foreach ($this->shortcode as $key => $item) {
-            $script = str_replace('{{' . $key . '}}', $item->value, $script);
+        if ($this->shortcode) {
+            foreach ($this->shortcode as $key => $item) {
+                $val = is_object($item) ? @$item->value : (is_array($item) ? @$item['value'] : (string)$item);
+                $script = str_replace('{{' . $key . '}}', $val, $script);
+            }
         }
         return $script;
     }
