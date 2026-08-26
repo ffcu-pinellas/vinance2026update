@@ -212,7 +212,7 @@
                                     <div>
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h5 class="transection__title mb-0 skeleton"> @lang('Recent Transactions') </h5>
-                                            <a href="{{ route('user.transaction.history') }}" class="text--base text--small">@lang('View All')</a>
+                                            <a href="{{ route('user.transactions') }}" class="text--base text--small">@lang('View All')</a>
                                         </div>
                                         @forelse ($recentTransactions as $recentTransaction)
                                             <div class="transection__item skeleton trx-list-row {{ $loop->iteration > 5 ? 'd-none' : '' }}" data-index="{{ $loop->iteration }}">

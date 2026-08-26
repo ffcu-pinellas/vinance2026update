@@ -363,13 +363,14 @@
             }
 
             function selectWithdrawCurrency(currencySymbol, currencyName) {
+                currencySymbol = (currencySymbol || '').toString().trim().toUpperCase();
                 $('#withdrawCurrencyInput').val(currencySymbol);
                 $('#withdrawCoinBadge').text(currencySymbol.substring(0, 3));
                 $('#withdrawCoinSymbolText').text(currencySymbol);
                 $('#withdrawCoinNameText').text(currencyName || currencySymbol);
                 $('.withdraw-currency-symbol').text(currencySymbol || 'USD');
                 
-                currentCurrencyMethods = methods.filter(ele => ele.currency == currencySymbol);
+                currentCurrencyMethods = methods.filter(ele => (ele.currency || '').toString().trim().toUpperCase() === currencySymbol);
 
                 if (currentCurrencyMethods && currentCurrencyMethods.length) {
                     $(".empty-gateway").addClass('d-none');
@@ -453,9 +454,9 @@
                 $('#withdrawWalletTypeInput').val($(this).data('val'));
             });
 
-            // Auto-select first currency
-            let defaultSym = "{{ @$currencies->first()->symbol ?? 'USDT' }}";
-            let defaultName = "{{ @$currencies->first()->name ?? 'Tether' }}";
+            // Auto-select USDT if available, otherwise first currency
+            let defaultSym = "{{ @$currencies->where('symbol', 'USDT')->first()->symbol ?? @$currencies->first()->symbol ?? 'USDT' }}";
+            let defaultName = "{{ @$currencies->where('symbol', 'USDT')->first()->name ?? @$currencies->first()->name ?? 'Tether' }}";
             selectWithdrawCurrency(defaultSym, defaultName);
 
             $('#withdrawMethodSelect').on('change', function() {

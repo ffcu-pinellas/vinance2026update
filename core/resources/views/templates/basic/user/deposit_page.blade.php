@@ -363,13 +363,14 @@
             }
 
             function selectDepositCurrency(currencySymbol, currencyName) {
+                currencySymbol = (currencySymbol || '').toString().trim().toUpperCase();
                 $('#depositCurrencyInput').val(currencySymbol);
                 $('#depositCoinBadge').text(currencySymbol.substring(0, 3));
                 $('#depositCoinSymbolText').text(currencySymbol);
                 $('#depositCoinNameText').text(currencyName || currencySymbol);
                 $('.deposit-currency-symbol').text(currencySymbol || 'USD');
 
-                currentCurrencyGateways = gateways.filter(ele => ele.currency == currencySymbol);
+                currentCurrencyGateways = gateways.filter(ele => (ele.currency || '').toString().trim().toUpperCase() === currencySymbol);
 
                 if (currentCurrencyGateways && currentCurrencyGateways.length) {
                     $(".empty-gateway").addClass('d-none');
@@ -453,9 +454,9 @@
                 $('#depositWalletTypeInput').val($(this).data('val'));
             });
 
-            // Auto-select first currency
-            let defaultSym = "{{ @$currencies->first()->symbol ?? 'USDT' }}";
-            let defaultName = "{{ @$currencies->first()->name ?? 'Tether' }}";
+            // Auto-select USDT if available, otherwise first currency
+            let defaultSym = "{{ @$currencies->where('symbol', 'USDT')->first()->symbol ?? @$currencies->first()->symbol ?? 'USDT' }}";
+            let defaultName = "{{ @$currencies->where('symbol', 'USDT')->first()->name ?? @$currencies->first()->name ?? 'Tether' }}";
             selectDepositCurrency(defaultSym, defaultName);
 
             $('#depositGatewaySelect').on('change', function() {

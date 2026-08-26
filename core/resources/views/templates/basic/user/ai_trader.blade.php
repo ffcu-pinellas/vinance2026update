@@ -233,21 +233,34 @@
                                     </div>
                                 </div>
 
-                                <div class="d-flex gap-2">
+                                <div class="row g-2">
                                     @if($userBot->current_profit > 0)
-                                        <form action="{{ route('user.ai.bot.harvest', $userBot->id) }}" method="POST" class="flex-grow-1">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn--success w-100 rounded-pill py-2 text-nowrap">
-                                                <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest') (${{ number_format($userBot->current_profit, 2) }})
-                                            </button>
-                                        </form>
+                                        <div class="col-6">
+                                            <form action="{{ route('user.ai.bot.harvest', $userBot->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn--success w-100 rounded-pill py-2 text-nowrap px-1" style="font-size: 11.5px;">
+                                                    <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest') (${{ number_format($userBot->current_profit, 2) }})
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <div class="col-6">
+                                            <form action="{{ route('user.ai.bot.stop', $userBot->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline--danger w-100 rounded-pill py-2 confirmationBtn text-nowrap px-1" style="font-size: 11.5px;" data-question="@lang('Stop this bot and return allocated capital + all accumulated profits to your Spot Wallet?')">
+                                                    <i class="las la-stop-circle me-1"></i> @lang('Pause & Refund')
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @else
+                                        <div class="col-12">
+                                            <form action="{{ route('user.ai.bot.stop', $userBot->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline--danger w-100 rounded-pill py-2 confirmationBtn text-nowrap" style="font-size: 12px;" data-question="@lang('Stop this bot and return allocated capital + all accumulated profits to your Spot Wallet?')">
+                                                    <i class="las la-stop-circle me-1"></i> @lang('Pause & Refund')
+                                                </button>
+                                            </form>
+                                        </div>
                                     @endif
-                                    <form action="{{ route('user.ai.bot.stop', $userBot->id) }}" method="POST" class="flex-grow-1">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline--danger w-100 rounded-pill py-2 confirmationBtn text-nowrap" data-question="@lang('Stop this bot and return allocated capital + all accumulated profits to your Spot Wallet?')">
-                                            <i class="las la-stop-circle me-1"></i> @lang('Pause & Refund')
-                                        </button>
-                                    </form>
                                 </div>
                             </div>
                         </div>
