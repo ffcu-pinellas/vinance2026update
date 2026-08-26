@@ -20,7 +20,12 @@ class PaymentController extends Controller
     {
         $pageTitle = 'Deposit Money';
         $user = auth()->user();
-        $currencies = Currency::active()->get();
+        
+        $activeGatewayCurrencies = GatewayCurrency::whereHas('method', function ($gate) {
+            $gate->active();
+        })->pluck('currency')->unique()->toArray();
+
+        $currencies = Currency::active()->whereIn('symbol', $activeGatewayCurrencies)->get();
         if ($user) {
             $wallets = Wallet::where('user_id', $user->id)->get()->keyBy('currency_id');
             foreach ($currencies as $currency) {
@@ -54,9 +59,21 @@ class PaymentController extends Controller
             return returnBack("Deposit to $walletType wallet currently disabled.");
         }
 
-        $gate = GatewayCurrency::where('currency', $currency->symbol)->whereHas('method', function ($gate) {
+        $gate = GatewayCurrency::whereHas('method', function ($gate) {
             $gate->active();
-        })->where('method_code', $request->gateway)->first();
+        })->where(function($q) use ($request) {
+            $q->where('method_code', $request->gateway)
+              ->orWhere('id', $request->gateway);
+        })->where('currency', $currency->symbol)->first();
+
+        if (!$gate) {
+            $gate = GatewayCurrency::whereHas('method', function ($gate) {
+                $gate->active();
+            })->where(function($q) use ($request) {
+                $q->where('method_code', $request->gateway)
+                  ->orWhere('id', $request->gateway);
+            })->first();
+        }
 
         if (!$gate) {
             return returnBack("Invalid gateway");

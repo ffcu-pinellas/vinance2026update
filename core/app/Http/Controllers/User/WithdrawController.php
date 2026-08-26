@@ -19,7 +19,10 @@ class WithdrawController extends Controller
     {
         $pageTitle = 'Withdraw Money';
         $user = auth()->user();
-        $currencies = Currency::active()->get();
+
+        $activeWithdrawCurrencies = WithdrawMethod::where('status', \App\Constants\Status::ENABLE)->pluck('currency')->unique()->toArray();
+
+        $currencies = Currency::active()->whereIn('symbol', $activeWithdrawCurrencies)->get();
         if ($user) {
             $wallets = Wallet::where('user_id', $user->id)->get()->keyBy('currency_id');
             foreach ($currencies as $currency) {

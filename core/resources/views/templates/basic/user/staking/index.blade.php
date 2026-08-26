@@ -143,7 +143,7 @@
                             $pool = $stake->pool;
                             $effectiveApy = ($pool ? $pool->apy_rate : 0) + $apyBoost;
                         @endphp
-                        <div class="col-lg-6 col-xxl-4">
+                        <div class="col-lg-6 col-xxl-4 {{ $loop->iteration > 4 ? 'extended-active-stake d-none' : '' }}">
                             <div class="active-stake-card p-3 p-sm-4 rounded-4 position-relative overflow-hidden">
                                 <div class="active-stake-glow"></div>
                                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -192,14 +192,14 @@
                                     @if(($stake->live_rewards ?? $stake->accumulated_rewards) > 0)
                                         <form action="{{ route('user.staking.harvest', $stake->id) }}" method="POST" class="flex-grow-1">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn--success w-100 rounded-pill py-2">
+                                            <button type="submit" class="btn btn-sm btn--success w-100 rounded-pill py-2 text-nowrap">
                                                 <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest Yield') (${{ number_format($stake->live_rewards ?? $stake->accumulated_rewards, 2) }})
                                             </button>
                                         </form>
                                     @endif
                                     <form action="{{ route('user.staking.unstake', $stake->id) }}" method="POST" class="flex-grow-1">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline--danger w-100 rounded-pill py-2 confirmationBtn" data-question="@lang('Redeem & unstake your principal + earned rewards back to your Spot Wallet?')">
+                                        <button type="submit" class="btn btn-sm btn-outline--danger w-100 rounded-pill py-2 confirmationBtn text-nowrap" data-question="@lang('Redeem & unstake your principal + earned rewards back to your Spot Wallet?')">
                                             <i class="las la-unlock me-1"></i> @lang('Unstake & Redeem')
                                         </button>
                                     </form>
@@ -208,6 +208,14 @@
                         </div>
                     @endforeach
                 </div>
+
+                @if($activeStakes->count() > 4)
+                    <div class="text-center pt-3 mt-2 border-top border-dark">
+                        <button type="button" class="btn btn-sm btn-outline--light rounded-pill px-4" id="toggleExtendedStakesBtn">
+                            <i class="las la-angle-down me-1"></i> <span id="toggleExtendedStakesText">@lang('Show All') {{ $activeStakes->count() }} @lang('Staking Positions')</span>
+                        </button>
+                    </div>
+                @endif
             @else
                 <div class="text-center py-5">
                     <div class="empty-staking-icon mb-3">
@@ -254,25 +262,36 @@
                             </div>
 
                             <h4 class="text-white fw-bold mb-1">{{ __($pool->name) }}</h4>
-                            <p class="text-muted text--small mb-3">{{ $pool->token_symbol }} Yield Vault</p>
+                            <p class="text-muted text--small mb-3">{{ __($pool->tagline) }}</p>
 
-                            <!-- APY Box -->
+                            <!-- APY Highlight Box -->
                             <div class="apy-highlight-box p-3 rounded-3 mb-3 text-center">
-                                <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Annual Percentage Yield')</span>
-                                <h3 class="text--base fw-bold mb-0 font-mono">{{ number_format($poolEffectiveApy, 2) }}% APY</h3>
-                                <small class="text-muted">@lang('Daily Rate'): <strong class="text--success font-mono">{{ number_format($poolEffectiveApy / 365, 4) }}%</strong></small>
+                                <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Guaranteed APY Yield')</span>
+                                <h3 class="text--base fw-bold mb-0 font-mono">{{ number_format($poolEffectiveApy, 2) }}%</h3>
+                                <small class="text-muted font-mono">Daily Yield: <strong class="text--success font-mono">{{ number_format($poolEffectiveApy / 365, 4) }}%</strong></small>
                             </div>
 
-                            <!-- Min / Max Limits -->
-                            <div class="d-flex justify-content-between text--small mb-3 bg--dark-three p-2 rounded-2">
-                                <span class="text-muted">@lang('Min'): <strong class="text-white font-mono">${{ number_format($pool->min_amount, 0) }}</strong></span>
-                                <span class="text-muted">@lang('Max'): <strong class="text-white font-mono">${{ number_format($pool->max_amount, 0) }}</strong></span>
+                            <div class="investment-limits-box bg--dark-three p-3 rounded-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted text--small">@lang('Min Stake'):</span>
+                                    <span class="text-white font-mono fw-semibold">${{ number_format($pool->min_amount, 2) }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted text--small">@lang('Max Stake'):</span>
+                                    <span class="text-white font-mono fw-semibold">${{ number_format($pool->max_amount, 2) }}</span>
+                                </div>
                             </div>
 
-                            <div class="d-flex justify-content-between text--small text-muted mb-3 px-1">
-                                <span>@lang('Total Staked'):</span>
-                                <strong class="text-white font-mono">${{ number_format($pool->total_staked, 2) }}</strong>
-                            </div>
+                            <ul class="feature-list list-unstyled mb-4 text--small">
+                                @if($pool->features)
+                                    @foreach($pool->features as $feature)
+                                        <li class="d-flex align-items-start gap-2 mb-2">
+                                            <i class="las la-check-circle text--success mt-1"></i>
+                                            <span class="text-light">{{ $feature }}</span>
+                                        </li>
+                                    @endforeach
+                                @endif
+                            </ul>
                         </div>
 
                         <button type="button" class="btn btn--base w-100 rounded-pill py-2 fw-semibold stakeNowBtn"
@@ -284,7 +303,7 @@
                             data-min="{{ $pool->min_amount }}"
                             data-max="{{ $pool->max_amount }}"
                             data-type="{{ $pool->type }}">
-                            <i class="las la-lock me-1"></i> @lang('Stake Now')
+                            <i class="las la-lock me-1"></i> @lang('Stake Assets')
                         </button>
                     </div>
                 </div>
@@ -292,13 +311,13 @@
         </div>
     </div>
 
-    <!-- Stake History Table -->
-    <div id="stakeHistorySection" class="staking-content-section card bg--dark-two border-0 rounded-4 shadow-sm">
+    <!-- Staking History Table -->
+    <div id="stakeHistorySection" class="staking-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
         <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
             <h5 class="text-white mb-0 d-flex align-items-center gap-2">
-                <i class="las la-history text--base"></i> @lang('Staking Position Records')
+                <i class="las la-history text--base"></i> @lang('Staking Activity & Rewards Log')
             </h5>
-            <span class="text-muted text--small font-mono">{{ $stakeHistory->count() }} @lang('Total Records')</span>
+            <span class="text-muted text--small font-mono">{{ $stakeHistory->count() }} @lang('Records')</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -306,18 +325,18 @@
                     <thead>
                         <tr>
                             <th class="ps-3 ps-sm-4">@lang('Start Date')</th>
-                            <th>@lang('Vault Pool')</th>
+                            <th>@lang('Vault')</th>
                             <th>@lang('Asset')</th>
                             <th class="text-end">@lang('Principal')</th>
                             <th class="text-end">@lang('APY Rate')</th>
-                            <th class="text-end">@lang('Total Yield')</th>
+                            <th class="text-end">@lang('Earned Yield')</th>
                             <th class="text-center">@lang('Term')</th>
                             <th class="text-center pe-3 pe-sm-4">@lang('Status')</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($stakeHistory as $stake)
-                            <tr>
+                            <tr class="stake-history-row {{ $loop->iteration > 5 ? 'd-none' : '' }}" data-index="{{ $loop->iteration }}">
                                 <td class="ps-3 ps-sm-4 text-nowrap font-mono">
                                     <span class="text-white fw-medium">{{ $stake->start_time->format('M d, Y') }}</span>
                                     <small class="text-muted d-block">{{ $stake->start_time->format('H:i:s') }}</small>
@@ -360,6 +379,13 @@
                 </table>
             </div>
         </div>
+        @if($stakeHistory->count() > 5)
+            <div class="card-footer bg-transparent border-top border-dark text-center py-3">
+                <button type="button" class="btn btn-sm btn-outline--light rounded-pill px-4" id="loadMoreStakesBtn">
+                    <i class="las la-angle-down me-1"></i> <span id="loadMoreStakesText">@lang('Show 5 More Records')</span>
+                </button>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -803,6 +829,41 @@
             $(this).addClass('active border--base');
             $(this).find('.wallet-icon-box').removeClass('text-muted').addClass('text--base');
             $('#stakingWalletSelect').val($(this).data('val'));
+            if (window.playVinanceSound) window.playVinanceSound('click');
+        });
+
+        // Toggle Extended Active Stakes
+        $(document).on('click', '#toggleExtendedStakesBtn', function() {
+            var $hidden = $('.extended-active-stake');
+            if ($hidden.first().hasClass('d-none')) {
+                $hidden.removeClass('d-none');
+                $('#toggleExtendedStakesText').text("@lang('Show Less')");
+                $(this).find('i').removeClass('la-angle-down').addClass('la-angle-up');
+            } else {
+                $hidden.addClass('d-none');
+                $('#toggleExtendedStakesText').text("@lang('Show All') " + $('.active-stake-card').length + " @lang('Staking Positions')");
+                $(this).find('i').removeClass('la-angle-up').addClass('la-angle-down');
+            }
+            if (window.playVinanceSound) window.playVinanceSound('click');
+        });
+
+        // Paginate Staking History 5 at a time
+        var currentVisibleStakes = 5;
+        $(document).on('click', '#loadMoreStakesBtn', function() {
+            currentVisibleStakes += 5;
+            $('.stake-history-row').each(function() {
+                var idx = parseInt($(this).data('index'));
+                if (idx <= currentVisibleStakes) {
+                    $(this).removeClass('d-none');
+                }
+            });
+            var totalStakes = $('.stake-history-row').length;
+            if (currentVisibleStakes >= totalStakes) {
+                $('#loadMoreStakesBtn').parent().hide();
+            } else {
+                var remaining = totalStakes - currentVisibleStakes;
+                $('#loadMoreStakesText').text("@lang('Show 5 More Records') (" + remaining + " @lang('remaining'))");
+            }
             if (window.playVinanceSound) window.playVinanceSound('click');
         });
     })(jQuery);

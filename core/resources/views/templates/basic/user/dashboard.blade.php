@@ -157,85 +157,109 @@
                         </div>
                         <div class="row gy-4 mb-3 justify-content-center">
                             <div class="col-lg-6">
-                                <div class="transection h-100">
-                                    <h5 class="transection__title skeleton"> @lang('Recent Order') </h5>
-                                    @forelse ($recentOrders as $recentOrder)
-                                        <div class="transection__item skeleton">
-                                            <div class="d-flex flex-wrap align-items-center">
-                                                <div class="transection__date">
-                                                    <h6 class="transection__date-number text-white">
-                                                        {{ showDateTime($recentOrder->created_at, 'd') }}
-                                                    </h6>
-                                                    <span class="transection__date-text">
-                                                        {{ __(strtoupper(showDateTime($recentOrder->created_at, 'M'))) }}
-                                                    </span>
+                                <div class="transection h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 class="transection__title mb-0 skeleton"> @lang('Recent Orders') </h5>
+                                            <a href="{{ route('user.order.open') }}" class="text--base text--small">@lang('View All')</a>
+                                        </div>
+                                        @forelse ($recentOrders as $recentOrder)
+                                            <div class="transection__item skeleton order-list-row {{ $loop->iteration > 5 ? 'd-none' : '' }}" data-index="{{ $loop->iteration }}">
+                                                <div class="d-flex flex-wrap align-items-center">
+                                                    <div class="transection__date">
+                                                        <h6 class="transection__date-number text-white">
+                                                            {{ showDateTime($recentOrder->created_at, 'd') }}
+                                                        </h6>
+                                                        <span class="transection__date-text">
+                                                            {{ __(strtoupper(showDateTime($recentOrder->created_at, 'M'))) }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="transection__content">
+                                                        <h6 class="transection__content-title">
+                                                            @php echo $recentOrder->orderSideBadge; @endphp
+                                                        </h6>
+                                                        <p class="transection__content-desc">
+                                                            @lang('Placed an order in the ')
+                                                            {{ @$recentOrder->pair->symbol }} @lang('pair to')
+                                                            {{ __(strtolower(strip_tags($recentOrder->orderSideBadge))) }}
+                                                            {{ showAmount($recentOrder->amount, currencyFormat: false) }}
+                                                            {{ @$recentOrder->pair->coin->symbol }}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div class="transection__content">
-                                                    <h6 class="transection__content-title">
-                                                        @php echo $recentOrder->orderSideBadge; @endphp
-                                                    </h6>
-                                                    <p class="transection__content-desc">
-                                                        @lang('Placed an order in the ')
-                                                        {{ @$recentOrder->pair->symbol }} @lang('pair to')
-                                                        {{ __(strtolower(strip_tags($recentOrder->orderSideBadge))) }}
-                                                        {{ showAmount($recentOrder->amount, currencyFormat: false) }}
-                                                        {{ @$recentOrder->pair->coin->symbol }}
-                                                    </p>
+                                                @php echo $recentOrder->statusBadge; @endphp
+                                            </div>
+                                        @empty
+                                            <div class="transection__item justify-content-center p-5 skeleton">
+                                                <div class="empty-thumb text-center">
+                                                    <img src="{{ asset('assets/images/extra_images/empty.png') }}" />
+                                                    <p class="fs-14">@lang('No order found')</p>
                                                 </div>
                                             </div>
-                                            @php echo $recentOrder->statusBadge; @endphp
+                                        @endforelse
+                                    </div>
+                                    @if(count($recentOrders) > 5)
+                                        <div class="text-center pt-2 mt-2 border-top border-dark">
+                                            <button type="button" class="btn btn-sm btn-outline--light rounded-pill px-3" id="loadMoreOrdersBtn">
+                                                <i class="las la-angle-down me-1"></i> <span id="loadMoreOrdersText">@lang('Show 5 More Orders')</span>
+                                            </button>
                                         </div>
-                                    @empty
-                                        <div class="transection__item justify-content-center p-5 skeleton">
-                                            <div class="empty-thumb text-center">
-                                                <img src="{{ asset('assets/images/extra_images/empty.png') }}" />
-                                                <p class="fs-14">@lang('No order found')</p>
-                                            </div>
-                                        </div>
-                                    @endforelse
+                                    @endif
                                 </div>
                             </div>
                             <div class="col-lg-6">
-                                <div class="transection h-100">
-                                    <h5 class="transection__title skeleton"> @lang('Recent Transactions') </h5>
-                                    @forelse ($recentTransactions as $recentTransaction)
-                                        <div class="transection__item skeleton">
-                                            <div class="d-flex flex-wrap align-items-center">
-                                                <div class="transection__date">
-                                                    <h6 class="transection__date-number text-white">
-                                                        {{ showDateTime($recentTransaction->created_at, 'd') }}
-                                                    </h6>
-                                                    <span class="transection__date-text">
-                                                        {{ __(strtoupper(showDateTime($recentTransaction->created_at, 'M'))) }}
+                                <div class="transection h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 class="transection__title mb-0 skeleton"> @lang('Recent Transactions') </h5>
+                                            <a href="{{ route('user.transaction.history') }}" class="text--base text--small">@lang('View All')</a>
+                                        </div>
+                                        @forelse ($recentTransactions as $recentTransaction)
+                                            <div class="transection__item skeleton trx-list-row {{ $loop->iteration > 5 ? 'd-none' : '' }}" data-index="{{ $loop->iteration }}">
+                                                <div class="d-flex flex-wrap align-items-center">
+                                                    <div class="transection__date">
+                                                        <h6 class="transection__date-number text-white">
+                                                            {{ showDateTime($recentTransaction->created_at, 'd') }}
+                                                        </h6>
+                                                        <span class="transection__date-text">
+                                                            {{ __(strtoupper(showDateTime($recentTransaction->created_at, 'M'))) }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="transection__content">
+                                                        <h6 class="transection__content-title">
+                                                            {{ __(ucwords(keyToTitle($recentTransaction->remark))) }}
+                                                        </h6>
+                                                        <p class="transection__content-desc">
+                                                            {{ __($recentTransaction->details) }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                @if ($recentTransaction->trx_type == '+')
+                                                    <span class="badge badge--success">
+                                                        @lang('Plus')
                                                     </span>
-                                                </div>
-                                                <div class="transection__content">
-                                                    <h6 class="transection__content-title">
-                                                        {{ __(ucwords(keyToTitle($recentTransaction->remark))) }}
-                                                    </h6>
-                                                    <p class="transection__content-desc">
-                                                        {{ __($recentTransaction->details) }}
-                                                    </p>
+                                                @else
+                                                    <span class="badge badge--danger">
+                                                        @lang('Minus')
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @empty
+                                            <div class="transection__item justify-content-center p-5 skeleton">
+                                                <div class="empty-thumb text-center">
+                                                    <img src="{{ asset('assets/images/extra_images/empty.png') }}" />
+                                                    <p class="fs-14">@lang('No transactions found')</p>
                                                 </div>
                                             </div>
-                                            @if ($recentTransaction->trx_type == '+')
-                                                <span class="badge badge--success">
-                                                    @lang('Plus')
-                                                </span>
-                                            @else
-                                                <span class="badge badge--danger">
-                                                    @lang('Minus')
-                                                </span>
-                                            @endif
+                                        @endforelse
+                                    </div>
+                                    @if(count($recentTransactions) > 5)
+                                        <div class="text-center pt-2 mt-2 border-top border-dark">
+                                            <button type="button" class="btn btn-sm btn-outline--light rounded-pill px-3" id="loadMoreTrxBtn">
+                                                <i class="las la-angle-down me-1"></i> <span id="loadMoreTrxText">@lang('Show 5 More Transactions')</span>
+                                            </button>
                                         </div>
-                                    @empty
-                                        <div class="transection__item justify-content-center p-5 skeleton">
-                                            <div class="empty-thumb text-center">
-                                                <img src="{{ asset('assets/images/extra_images/empty.png') }}" />
-                                                <p class="fs-14">@lang('No transactions found')</p>
-                                            </div>
-                                        </div>
-                                    @endforelse
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -249,14 +273,16 @@
                     <div class="right-sidebar__header mb-3 skeleton">
                         <div class="d-flex flex-between flex-wrap">
                             <div>
-                                <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Wallet Overview')</h4>
-                                <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Available wallet balance including the converted total balance')</p>
+                                <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Wallet')</h4>
+                                <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Spot Wallet Overview')</p>
                             </div>
-                            <span class="toggle-dashboard-right dashboard--popup-close"><i class="las la-times" style="color: var(--vn-text-primary);"></i></span>
+                            <span class="toggle-dashboard-right fs-20 cursor-pointer d-none" style="color: var(--vn-text-secondary) !important;">
+                                <i class="las la-angle-right"></i>
+                            </span>
                         </div>
                     </div>
-                    <div class="text-center mb-3 skeleton">
-                        <h3 class="right-sidebar__number mb-0 pb-0" style="color: var(--vn-text-primary) !important;">
+                    <div class="text-center mb-3">
+                        <h3 class="right-sidebar__number" style="color: var(--vn-text-primary) !important;">
                             {{ showAmount($estimatedBalance) }}
                         </h3>
                         <span class="fs-14 mt-0" style="color: var(--vn-text-secondary) !important;">@lang('Estimated Total Balance')</span>
@@ -272,46 +298,23 @@
                 <div class="right-sidebar mt-3" style="background: var(--vn-bg-card) !important; border: 1px solid var(--vn-border) !important;">
                     <div class="right-sidebar__header mb-3 skeleton">
                         <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Deposit Money')</h4>
-                        <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Make crypto & fiat deposits in a few steps')</p>
+                        <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Instant crypto & multi-chain network deposits')</p>
                     </div>
-                    <div class="right-sidebar__deposit custom-select2">
-                        <form class="skeleton deposit-form">
-                            <div class="form-group position-relative" id="currency_list_wrapper">
-                                <div class="input-group">
-                                    <input type="number" step="any" name="amount" class="form--control form-control ios-input-fix"
-                                        placeholder="@lang('Amount')">
-                                    <div class="input-group-text skeleton">
-                                        <x-currency-list :action="route('user.currency.all')" valueType="2" logCurrency="true" class="ios-select-fix" />
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="deposit__button btn btn--base w-100" type="submit">
-                                <span class="icon-deposit"></span> @lang('Deposit')
-                            </button>
-                        </form>
+                    <div class="right-sidebar__deposit">
+                        <a href="{{ route('user.deposit.index') }}" class="btn btn--base w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 text-decoration-none fw-bold shadow-sm">
+                            <i class="las la-arrow-circle-down fs-5"></i> @lang('Deposit Funds')
+                        </a>
                     </div>
                 </div>
                 <div class="right-sidebar mt-3" style="background: var(--vn-bg-card) !important; border: 1px solid var(--vn-border) !important;">
                     <div class="right-sidebar__header mb-3 skeleton">
                         <h4 class="mb-0 fs-18" style="color: var(--vn-text-primary) !important;">@lang('Withdraw Money')</h4>
-                        <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Withdrawal your balance with our world-class withdrawal process')</p>
+                        <p class="mt-0 fs-12" style="color: var(--vn-text-secondary) !important;">@lang('Fast automated multi-wallet withdrawals')</p>
                     </div>
                     <div class="right-sidebar__deposit">
-                        <form class="skeleton withdraw-form custom-select2">
-                            <div class="form-group position-relative" id="withdraw_currency_list_wrapper">
-                                <div class="input-group">
-                                    <input type="number" name="amount" step="any" class="form--control form-control ios-input-fix"
-                                        placeholder="@lang('Amount')">
-                                    <div class="input-group-text skeleton">
-                                        <x-currency-list :action="route('user.currency.all')" id="withdraw_currency_list" parent="withdraw_currency_list_wrapper"
-                                            valueType="2" logCurrency="true" class="ios-select-fix" />
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="deposit__button btn btn--base w-100" type="submit">
-                                <span class="icon-withdraw"></span> @lang('Withdraw')
-                            </button>
-                        </form>
+                        <a href="{{ route('user.withdraw') }}" class="btn btn-outline--light w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 text-decoration-none fw-semibold border border-dark">
+                            <i class="las la-arrow-circle-up fs-5 text--danger"></i> @lang('Withdraw Funds')
+                        </a>
                     </div>
                 </div>
             </div>
@@ -536,11 +539,42 @@
                 }
             });
 
-            // When closing the deposit/withdraw canvas, show the wallet overview again
-            $(document).on('click', '[data-bs-dismiss="canvas"], .canvas-backdrop', function() {
-                $('.dashboard-right').css('visibility', 'visible').animate({
-                    opacity: 1
-                }, 300);
+            // Paginate Dashboard Orders 5 at a time
+            var currentVisibleOrders = 5;
+            $(document).on('click', '#loadMoreOrdersBtn', function() {
+                currentVisibleOrders += 5;
+                $('.order-list-row').each(function() {
+                    var idx = parseInt($(this).data('index'));
+                    if (idx <= currentVisibleOrders) {
+                        $(this).removeClass('d-none');
+                    }
+                });
+                var totalOrders = $('.order-list-row').length;
+                if (currentVisibleOrders >= totalOrders) {
+                    $('#loadMoreOrdersBtn').parent().hide();
+                } else {
+                    var rem = totalOrders - currentVisibleOrders;
+                    $('#loadMoreOrdersText').text("@lang('Show 5 More Orders') (" + rem + " @lang('remaining'))");
+                }
+            });
+
+            // Paginate Dashboard Transactions 5 at a time
+            var currentVisibleTrx = 5;
+            $(document).on('click', '#loadMoreTrxBtn', function() {
+                currentVisibleTrx += 5;
+                $('.trx-list-row').each(function() {
+                    var idx = parseInt($(this).data('index'));
+                    if (idx <= currentVisibleTrx) {
+                        $(this).removeClass('d-none');
+                    }
+                });
+                var totalTrx = $('.trx-list-row').length;
+                if (currentVisibleTrx >= totalTrx) {
+                    $('#loadMoreTrxBtn').parent().hide();
+                } else {
+                    var remTrx = totalTrx - currentVisibleTrx;
+                    $('#loadMoreTrxText').text("@lang('Show 5 More Transactions') (" + remTrx + " @lang('remaining'))");
+                }
             });
         });
     })(jQuery);

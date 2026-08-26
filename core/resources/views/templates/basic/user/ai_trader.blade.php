@@ -44,9 +44,12 @@
 
     <!-- Mobile View Tab Switcher (Visible only on Mobile screens) -->
     <div class="d-md-none mb-3">
-        <div class="ai-mobile-nav p-1 rounded-pill bg--dark-two d-flex shadow-sm">
+        <div class="ai-mobile-nav p-1 rounded-pill bg--dark-two d-flex shadow-sm gap-1">
             <button type="button" class="btn btn-sm text-white flex-fill rounded-pill py-2 active mobile-tab-btn" data-target="#activeBotsSection">
-                <i class="las la-robot me-1"></i> @lang('Bots') ({{ $activeBots->count() }})
+                <i class="las la-robot me-1"></i> @lang('My Bots') ({{ $activeBots->count() }})
+            </button>
+            <button type="button" class="btn btn-sm text-muted flex-fill rounded-pill py-2 mobile-tab-btn" data-target="#copyTradingSection">
+                <i class="las la-trophy me-1"></i> @lang('Copy')
             </button>
             <button type="button" class="btn btn-sm text-muted flex-fill rounded-pill py-2 mobile-tab-btn" data-target="#liveSignalsSection">
                 <i class="las la-bolt me-1"></i> @lang('Signals')
@@ -156,9 +159,128 @@
         </div>
     </div>
 
+    <!-- Active Bots Section -->
+    <div id="activeBotsSection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4 flex-wrap gap-2">
+            <h5 class="text-white mb-0 d-flex align-items-center gap-2 text-nowrap">
+                <i class="las la-server text--base"></i> <span>@lang('My Active Bots')</span>
+                <span class="badge badge--primary rounded-pill">{{ $activeBots->count() }}</span>
+            </h5>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                @if($activeBots->sum('current_profit') > 0 && $activeBots->count() > 1)
+                    <form action="{{ route('user.ai.bot.harvest.all') }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline--success rounded-pill px-3 text-nowrap">
+                            <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest All') (${{ number_format($activeBots->sum('current_profit'), 2) }})
+                        </button>
+                    </form>
+                @endif
+                <button type="button" class="btn btn-sm btn-outline--base rounded-pill px-3 openMarketplaceBtn text-nowrap">
+                    <i class="las la-plus"></i> @lang('Deploy Bot')
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-3 p-sm-4">
+            @if($activeBots->count() > 0)
+                <div class="row g-3">
+                    @foreach($activeBots as $userBot)
+                        <div class="col-lg-6 col-xxl-4 {{ $loop->iteration > 4 ? 'extended-active-bot d-none' : '' }}">
+                            <div class="active-bot-card p-3 p-sm-4 rounded-4 position-relative overflow-hidden">
+                                <div class="active-bot-glow"></div>
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="text-white fw-bold mb-1">{{ @$userBot->plan->name }}</h5>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <span class="badge badge--dark text-uppercase text--small">{{ @$userBot->plan->strategy_type }}</span>
+                                            <span class="text-muted text--small font-mono"><i class="las la-clock"></i> <span class="bot-uptime" data-start="{{ $userBot->created_at->toISOString() }}">0h 0m</span></span>
+                                        </div>
+                                    </div>
+                                    <span class="badge badge--success-soft rounded-pill px-3 py-1 d-flex align-items-center gap-1 text-nowrap">
+                                        <span class="live-pulse-dot"></span> @lang('RUNNING')
+                                    </span>
+                                </div>
+
+                                <div class="row g-2 mb-3 bg--dark-three p-3 rounded-3">
+                                    <div class="col-6">
+                                        <small class="text-muted text-uppercase d-block">@lang('Capital')</small>
+                                        <strong class="text-white fs-6 font-mono">${{ number_format($userBot->allocated_amount, 2) }}</strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <small class="text-muted text-uppercase d-block">@lang('Profit')</small>
+                                        <strong class="text--success fs-6 font-mono">+${{ number_format($userBot->current_profit, 2) }}</strong>
+                                    </div>
+                                    <div class="col-6 mt-2">
+                                        <small class="text-muted text-uppercase d-block">@lang('Daily ROI')</small>
+                                        <span class="text--base fw-semibold font-mono">{{ @$userBot->plan->daily_roi_min }}% - {{ @$userBot->plan->daily_roi_max }}%</span>
+                                    </div>
+                                    <div class="col-6 text-end mt-2">
+                                        <small class="text-muted text-uppercase d-block">@lang('Trades')</small>
+                                        <span class="text-white font-mono">{{ $userBot->total_trades }} @lang('orders')</span>
+                                    </div>
+                                </div>
+
+                                <!-- Auto-Compound Toggle -->
+                                <div class="d-flex align-items-center justify-content-between p-2 px-3 rounded-3 bg--dark-three border border-dark mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="las la-sync-alt text--info fs-5"></i>
+                                        <div>
+                                            <span class="text-white text--small fw-bold d-block" style="font-size: 12px;">@lang('Auto-Compound Daily Yield')</span>
+                                            <small class="text-muted" style="font-size: 10px;">@lang('Reinvests profits into working capital')</small>
+                                        </div>
+                                    </div>
+                                    <div class="form-check form-switch form-switch-success m-0">
+                                        <input class="form-check-input bot-autocompound-toggle" type="checkbox" role="switch" data-id="{{ $userBot->id }}" {{ $userBot->auto_compound ? 'checked' : '' }}>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    @if($userBot->current_profit > 0)
+                                        <form action="{{ route('user.ai.bot.harvest', $userBot->id) }}" method="POST" class="flex-grow-1">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn--success w-100 rounded-pill py-2 text-nowrap">
+                                                <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest') (${{ number_format($userBot->current_profit, 2) }})
+                                            </button>
+                                        </form>
+                                    @endif
+                                    <form action="{{ route('user.ai.bot.stop', $userBot->id) }}" method="POST" class="flex-grow-1">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline--danger w-100 rounded-pill py-2 confirmationBtn text-nowrap" data-question="@lang('Stop this bot and return allocated capital + all accumulated profits to your Spot Wallet?')">
+                                            <i class="las la-stop-circle me-1"></i> @lang('Pause & Refund')
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                @if($activeBots->count() > 4)
+                    <div class="text-center pt-3 mt-2 border-top border-dark">
+                        <button type="button" class="btn btn-sm btn-outline--light rounded-pill px-4" id="toggleExtendedActiveBotsBtn">
+                            <i class="las la-angle-down me-1"></i> <span id="toggleExtendedActiveBotsText">@lang('Show All') {{ $activeBots->count() }} @lang('Active Bots')</span>
+                        </button>
+                    </div>
+                @endif
+            @else
+                <div class="text-center py-5">
+                    <div class="empty-ai-icon mb-3">
+                        <i class="las la-robot"></i>
+                    </div>
+                    <h5 class="text-white mb-2">@lang('No AI Trading Bots Currently Deployed')</h5>
+                    <p class="text-muted mb-4 mx-auto" style="max-width: 460px;">
+                        @lang('Select one of our institutional strategies to begin automated 24/7 high-frequency quantitative trading.')
+                    </p>
+                    <button type="button" class="btn btn--base rounded-pill px-4 py-2 openMarketplaceBtn">
+                        <i class="las la-rocket me-1"></i> @lang('Deploy AI Bot')
+                    </button>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <!-- INSTITUTIONAL COPY TRADING LEADERBOARD -->
-    <div class="card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
-        <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
+    <div id="copyTradingSection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4 flex-wrap gap-2">
             <div>
                 <h5 class="text-white mb-0 d-flex align-items-center gap-2">
                     <i class="las la-trophy text--warning"></i> @lang('Institutional Copy Trading Leaderboard')
@@ -231,124 +353,15 @@
                     </tbody>
                 </table>
             </div>
-            <!-- See More / Show Less Toggle Button -->
-            @if($copyTradingBots->count() > 5)
-            <div class="card-footer bg-transparent border-top border-dark text-center py-3">
-                <button type="button" class="btn btn-sm btn-outline--light rounded-pill px-4" id="toggleExtendedBotsBtn">
-                    <i class="las la-angle-down me-1"></i> <span id="toggleExtendedBotsText">@lang('View All') {{ $copyTradingBots->count() }} @lang('Institutional Strategies')</span>
-                </button>
-            </div>
-            @endif
-
-    <!-- Active Bots Section -->
-    <div id="activeBotsSection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
-        <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
-            <h5 class="text-white mb-0 d-flex align-items-center gap-2">
-                <i class="las la-server text--base"></i> @lang('My Active Bots')
-                <span class="badge badge--primary rounded-pill">{{ $activeBots->count() }}</span>
-            </h5>
-            <div class="d-flex align-items-center gap-2">
-                @if($activeBots->sum('current_profit') > 0 && $activeBots->count() > 1)
-                    <form action="{{ route('user.ai.bot.harvest.all') }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-sm btn-outline--success rounded-pill px-3">
-                            <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest All') (${{ number_format($activeBots->sum('current_profit'), 2) }})
-                        </button>
-                    </form>
-                @endif
-                <button type="button" class="btn btn-sm btn-outline--base rounded-pill px-3 openMarketplaceBtn">
-                    <i class="las la-plus"></i> @lang('Deploy Bot')
-                </button>
-            </div>
         </div>
-        <div class="card-body p-3 p-sm-4">
-            @if($activeBots->count() > 0)
-                <div class="row g-3">
-                    @foreach($activeBots as $userBot)
-                        <div class="col-lg-6 col-xxl-4">
-                            <div class="active-bot-card p-3 p-sm-4 rounded-4 position-relative overflow-hidden">
-                                <div class="active-bot-glow"></div>
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <h5 class="text-white fw-bold mb-1">{{ @$userBot->plan->name }}</h5>
-                                        <div class="d-flex gap-2 align-items-center">
-                                            <span class="badge badge--dark text-uppercase text--small">{{ @$userBot->plan->strategy_type }}</span>
-                                            <span class="text-muted text--small font-mono"><i class="las la-clock"></i> <span class="bot-uptime" data-start="{{ $userBot->created_at->toISOString() }}">0h 0m</span></span>
-                                        </div>
-                                    </div>
-                                    <span class="badge badge--success-soft rounded-pill px-3 py-1 d-flex align-items-center gap-1">
-                                        <span class="live-pulse-dot"></span> @lang('RUNNING')
-                                    </span>
-                                </div>
-
-                                <div class="row g-2 mb-3 bg--dark-three p-3 rounded-3">
-                                    <div class="col-6">
-                                        <small class="text-muted text-uppercase d-block">@lang('Capital')</small>
-                                        <strong class="text-white fs-6 font-mono">${{ number_format($userBot->allocated_amount, 2) }}</strong>
-                                    </div>
-                                    <div class="col-6 text-end">
-                                        <small class="text-muted text-uppercase d-block">@lang('Profit')</small>
-                                        <strong class="text--success fs-6 font-mono">+${{ number_format($userBot->current_profit, 2) }}</strong>
-                                    </div>
-                                    <div class="col-6 mt-2">
-                                        <small class="text-muted text-uppercase d-block">@lang('Daily ROI')</small>
-                                        <span class="text--base fw-semibold font-mono">{{ @$userBot->plan->daily_roi_min }}% - {{ @$userBot->plan->daily_roi_max }}%</span>
-                                    </div>
-                                    <div class="col-6 text-end mt-2">
-                                        <small class="text-muted text-uppercase d-block">@lang('Trades')</small>
-                                        <span class="text-white font-mono">{{ $userBot->total_trades }} @lang('orders')</span>
-                                    </div>
-                                </div>
-
-                                <!-- Auto-Compound Toggle -->
-                                <div class="d-flex align-items-center justify-content-between p-2 px-3 rounded-3 bg--dark-three border border-dark mb-3">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="las la-sync-alt text--info fs-5"></i>
-                                        <div>
-                                            <span class="text-white text--small fw-bold d-block" style="font-size: 12px;">@lang('Auto-Compound Daily Yield')</span>
-                                            <small class="text-muted" style="font-size: 10px;">@lang('Reinvests profits into working capital')</small>
-                                        </div>
-                                    </div>
-                                    <div class="form-check form-switch form-switch-success m-0">
-                                        <input class="form-check-input bot-autocompound-toggle" type="checkbox" role="switch" data-id="{{ $userBot->id }}" {{ $userBot->auto_compound ? 'checked' : '' }}>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex gap-2">
-                                    @if($userBot->current_profit > 0)
-                                        <form action="{{ route('user.ai.bot.harvest', $userBot->id) }}" method="POST" class="flex-grow-1">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn--success w-100 rounded-pill py-2">
-                                                <i class="las la-hand-holding-usd me-1"></i> @lang('Harvest') (${{ number_format($userBot->current_profit, 2) }})
-                                            </button>
-                                        </form>
-                                    @endif
-                                    <form action="{{ route('user.ai.bot.stop', $userBot->id) }}" method="POST" class="flex-grow-1">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline--danger w-100 rounded-pill py-2 confirmationBtn" data-question="@lang('Stop this bot and return allocated capital + all accumulated profits to your Spot Wallet?')">
-                                            <i class="las la-stop-circle me-1"></i> @lang('Pause & Refund')
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="text-center py-5">
-                    <div class="empty-ai-icon mb-3">
-                        <i class="las la-robot"></i>
-                    </div>
-                    <h5 class="text-white mb-2">@lang('No AI Trading Bots Currently Deployed')</h5>
-                    <p class="text-muted mb-4 mx-auto" style="max-width: 460px;">
-                        @lang('Select one of our institutional strategies to begin automated 24/7 high-frequency quantitative trading.')
-                    </p>
-                    <button type="button" class="btn btn--base rounded-pill px-4 py-2 openMarketplaceBtn">
-                        <i class="las la-rocket me-1"></i> @lang('Deploy AI Bot')
-                    </button>
-                </div>
-            @endif
+        <!-- See More / Show Less Toggle Button -->
+        @if($copyTradingBots->count() > 5)
+        <div class="card-footer bg-transparent border-top border-dark text-center py-3">
+            <button type="button" class="btn btn-sm btn-outline--light rounded-pill px-4" id="toggleExtendedBotsBtn">
+                <i class="las la-angle-down me-1"></i> <span id="toggleExtendedBotsText">@lang('View All') {{ $copyTradingBots->count() }} @lang('Institutional Strategies')</span>
+            </button>
         </div>
+        @endif
     </div>
 
     <!-- Strategy Marketplace (Desktop Full Grid) -->
@@ -362,38 +375,38 @@
 
         <div class="row g-4">
             @foreach($plans as $plan)
-                <div class="col-xl-3 col-md-6">
-                    <div class="bot-plan-card h-100 p-4 rounded-4 d-flex flex-column justify-content-between position-relative">
-                        @if($loop->first)
-                            <div class="popular-ribbon">@lang('POPULAR')</div>
-                        @endif
-
+                <div class="col-md-6 col-xl-4">
+                    <div class="bot-plan-card h-100 p-4 rounded-4 d-flex flex-column justify-content-between position-relative overflow-hidden">
                         <div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
                                 <span class="badge badge--{{ $plan->risk_level == 'low' ? 'success' : ($plan->risk_level == 'medium' ? 'warning' : 'danger') }}-soft rounded-pill px-3 py-1 text-uppercase">
                                     {{ $plan->risk_level }} @lang('Risk')
                                 </span>
-                                <span class="text-muted text--small"><i class="las la-history"></i> {{ $plan->trade_duration_days }} @lang('Days')</span>
+                                <span class="text-muted text--small font-mono"><i class="las la-history"></i> {{ $plan->trade_duration_days }} @lang('Days')</span>
                             </div>
 
                             <h4 class="text-white fw-bold mb-1">{{ __($plan->name) }}</h4>
                             <p class="text-muted text--small mb-3">{{ __($plan->tagline) }}</p>
 
-                            <!-- Daily ROI Box -->
+                            <!-- Daily ROI Highlight Box -->
                             <div class="roi-highlight-box p-3 rounded-3 mb-3 text-center">
-                                <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Daily Return')</span>
+                                <span class="text-muted text--small text-uppercase d-block mb-1">@lang('Target Daily ROI')</span>
                                 <h3 class="text--base fw-bold mb-0 font-mono">{{ $plan->daily_roi_min }}% - {{ $plan->daily_roi_max }}%</h3>
-                                <small class="text-muted">@lang('Win Rate'): <strong class="text--success font-mono">{{ $plan->win_rate }}%</strong></small>
+                                <small class="text-muted">Win Rate: <strong class="text--success font-mono">{{ $plan->win_rate }}%</strong></small>
                             </div>
 
-                            <!-- Min / Max Investment -->
-                            <div class="d-flex justify-content-between text--small mb-3 bg--dark-three p-2 rounded-2">
-                                <span class="text-muted">@lang('Min'): <strong class="text-white font-mono">${{ number_format($plan->min_investment, 0) }}</strong></span>
-                                <span class="text-muted">@lang('Max'): <strong class="text-white font-mono">${{ number_format($plan->max_investment, 0) }}</strong></span>
+                            <div class="investment-limits-box bg--dark-three p-3 rounded-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted text--small">@lang('Min Capital'):</span>
+                                    <span class="text-white font-mono fw-semibold">${{ number_format($plan->min_investment, 2) }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted text--small">@lang('Max Capital'):</span>
+                                    <span class="text-white font-mono fw-semibold">${{ number_format($plan->max_investment, 2) }}</span>
+                                </div>
                             </div>
 
-                            <!-- Features List -->
-                            <ul class="plan-features-list list-unstyled mb-4 text--small">
+                            <ul class="feature-list list-unstyled mb-4 text--small">
                                 @if($plan->features)
                                     @foreach($plan->features as $feature)
                                         <li class="d-flex align-items-start gap-2 mb-2">
@@ -421,82 +434,40 @@
         </div>
     </div>
 
-    <!-- Live AI Signal Feed & Market Intelligence -->
-    <div id="liveSignalsSection" class="ai-content-section row g-4 mb-4">
-        <!-- Live AI Signal Stream -->
-        <div class="col-lg-7">
-            <div class="card bg--dark-two border-0 rounded-4 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
-                    <h5 class="text-white mb-0 d-flex align-items-center gap-2">
-                        <i class="las la-bolt text--base"></i> @lang('Live AI Signals')
-                        <span class="badge badge--success-soft rounded-pill text--small"><span class="live-pulse-dot"></span> @lang('LIVE')</span>
-                    </h5>
-                    <small class="text-muted d-none d-sm-inline font-mono">1.1ms latency</small>
-                </div>
-                <div class="card-body p-3">
-                    <div class="ai-signal-terminal p-3 rounded-3" id="signalTerminal">
-                        <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s') }}]</span> <span class="text--base fw-bold">[QUANT-SCAN]</span> Scanning 48 pairs via WebSocket feed...
-                        </div>
-                        <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-6) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> <strong>BTC/USDT</strong> (@ $77,901.50) Momentum Breakout &rarr; Consensus: 98.6%
-                        </div>
-                        <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-18) }}]</span> <span class="text--info fw-bold">[ARBITRAGE]</span> <strong>SOL/USDT</strong> (@ $195.40) Spread +0.42% captured
-                        </div>
-                        <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-32) }}]</span> <span class="text--success fw-bold">[TAKE-PROFIT]</span> <strong>ETH/USDT</strong> (@ $3,120.80) Target 2 cleared (+3.12%)
-                        </div>
-                        <div class="signal-line text--small mb-2">
-                            <span class="text-muted">[{{ date('H:i:s', time()-47) }}]</span> <span class="text--warning fw-bold">[DEPTH-SWEEP]</span> <strong>XRP/USDT</strong> (@ $0.5840) Bid wall absorbed
-                        </div>
-                    </div>
-                </div>
+    <!-- Live AI Signal Feed -->
+    <div id="liveSignalsSection" class="ai-content-section mb-4">
+        <div class="card bg--dark-two border-0 rounded-4 shadow-sm">
+            <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
+                <h5 class="text-white mb-0 d-flex align-items-center gap-2">
+                    <i class="las la-bolt text--base"></i> @lang('Live AI Signals')
+                    <span class="badge badge--success-soft rounded-pill text--small"><span class="live-pulse-dot"></span> @lang('LIVE')</span>
+                </h5>
+                <small class="text-muted font-mono">1.1ms latency</small>
             </div>
-        </div>
-
-        <!-- Strategy Architecture Insights -->
-        <div class="col-lg-5">
-            <div class="card bg--dark-two border-0 rounded-4 shadow-sm h-100">
-                <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
-                    <h5 class="text-white mb-0 d-flex align-items-center gap-2">
-                        <i class="las la-network-wired text--base"></i> @lang('Engine Telemetry')
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <div class="bg--dark-three p-3 rounded-3">
-                                <small class="text-muted text-uppercase d-block mb-1">@lang('Latency')</small>
-                                <h4 class="text-white fw-bold mb-0 font-mono">1.2 <span class="fs-6 text-muted">ms</span></h4>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="bg--dark-three p-3 rounded-3">
-                                <small class="text-muted text-uppercase d-block mb-1">@lang('Sharpe Ratio')</small>
-                                <h4 class="text--success fw-bold mb-0 font-mono">4.88</h4>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="bg--dark-three p-3 rounded-3">
-                                <small class="text-muted text-uppercase d-block mb-1">@lang('Max Drawdown')</small>
-                                <h4 class="text-white fw-bold mb-0 font-mono">1.2%</h4>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="bg--dark-three p-3 rounded-3">
-                                <small class="text-muted text-uppercase d-block mb-1">@lang('Security')</small>
-                                <h4 class="text--base fw-bold mb-0 font-mono"><i class="las la-lock"></i> AES-256</h4>
-                            </div>
-                        </div>
+            <div class="card-body p-3">
+                <div class="ai-signal-terminal p-3 rounded-3" id="signalTerminal">
+                    <div class="signal-line text--small mb-2">
+                        <span class="text-muted">[{{ date('H:i:s') }}]</span> <span class="text--base fw-bold">[QUANT-SCAN]</span> Scanning 48 pairs via WebSocket feed...
+                    </div>
+                    <div class="signal-line text--small mb-2">
+                        <span class="text-muted">[{{ date('H:i:s', time()-6) }}]</span> <span class="text--success fw-bold">[SIGNAL-BUY]</span> <strong>BTC/USDT</strong> (@ $77,901.50) Momentum Breakout &rarr; Consensus: 98.6%
+                    </div>
+                    <div class="signal-line text--small mb-2">
+                        <span class="text-muted">[{{ date('H:i:s', time()-18) }}]</span> <span class="text--info fw-bold">[ARBITRAGE]</span> <strong>SOL/USDT</strong> (@ $195.40) Spread +0.42% captured
+                    </div>
+                    <div class="signal-line text--small mb-2">
+                        <span class="text-muted">[{{ date('H:i:s', time()-32) }}]</span> <span class="text--success fw-bold">[TAKE-PROFIT]</span> <strong>ETH/USDT</strong> (@ $3,120.80) Target 2 cleared (+3.12%)
+                    </div>
+                    <div class="signal-line text--small mb-2">
+                        <span class="text-muted">[{{ date('H:i:s', time()-47) }}]</span> <span class="text--warning fw-bold">[DEPTH-SWEEP]</span> <strong>XRP/USDT</strong> (@ $0.5840) Bid wall absorbed
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Trade Execution Logs Table -->
-    <div id="tradeHistorySection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm">
+    <!-- Trade Execution Logs Table (Paginated 5-at-a-time) -->
+    <div id="tradeHistorySection" class="ai-content-section card bg--dark-two border-0 rounded-4 shadow-sm mb-4">
         <div class="card-header bg-transparent border-bottom border-dark d-flex justify-content-between align-items-center py-3 px-3 px-sm-4">
             <h5 class="text-white mb-0 d-flex align-items-center gap-2">
                 <i class="las la-history text--base"></i> @lang('Trade History')
@@ -518,9 +489,9 @@
                             <th class="text-center pe-3 pe-sm-4">@lang('Status')</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tradeHistoryTableBody">
                         @forelse($tradeLogs as $trade)
-                            <tr>
+                            <tr class="trade-log-row {{ $loop->iteration > 5 ? 'd-none' : '' }}" data-index="{{ $loop->iteration }}">
                                 <td class="ps-3 ps-sm-4 text-nowrap font-mono">
                                     <span class="text-white fw-medium">{{ showDateTime($trade->created_at, 'M d, Y') }}</span>
                                     <small class="text-muted d-block">{{ showDateTime($trade->created_at, 'H:i:s') }}</small>
@@ -566,6 +537,13 @@
                 </table>
             </div>
         </div>
+        @if($tradeLogs->count() > 5)
+            <div class="card-footer bg-transparent border-top border-dark text-center py-3">
+                <button type="button" class="btn btn-sm btn-outline--light rounded-pill px-4" id="loadMoreTradesBtn">
+                    <i class="las la-angle-down me-1"></i> <span id="loadMoreTradesText">@lang('Show 5 More Trades')</span>
+                </button>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -1417,6 +1395,9 @@
                     $this.prop('checked', !isChecked);
                     notify('error', "@lang('Server connection error')");
                 }
+            });
+        });
+
         // AI Wallet Source Selection
         $(document).on('click', '#aiWalletTypePillsContainer .wallet-type-pill', function() {
             $('#aiWalletTypePillsContainer .wallet-type-pill').removeClass('active border--base');
@@ -1424,6 +1405,82 @@
             $(this).addClass('active border--base');
             $(this).find('.wallet-icon-box').removeClass('text-muted').addClass('text--base');
             $('#walletTypeSelect').val($(this).data('val'));
+            SoundFX.play('click');
+        });
+
+        // Mobile Tabs Switcher - Exclusive visibility on mobile screens (< 768px)
+        function handleMobileAITabs() {
+            if ($(window).width() < 768) {
+                var activeTarget = $('.mobile-tab-btn.active').data('target') || '#activeBotsSection';
+                $('.ai-content-section').addClass('d-none');
+                $(activeTarget).removeClass('d-none');
+            } else {
+                $('.ai-content-section').removeClass('d-none');
+            }
+        }
+
+        handleMobileAITabs();
+        $(window).on('resize', handleMobileAITabs);
+
+        $(document).on('click', '.mobile-tab-btn', function() {
+            $('.mobile-tab-btn').removeClass('active text-white').addClass('text-muted');
+            $(this).addClass('active text-white').removeClass('text-muted');
+
+            var target = $(this).data('target');
+            if ($(window).width() < 768) {
+                $('.ai-content-section').addClass('d-none');
+                $(target).removeClass('d-none');
+            }
+            SoundFX.play('click');
+        });
+
+        // Toggle Extended Active Bots
+        $(document).on('click', '#toggleExtendedActiveBotsBtn', function() {
+            var $hidden = $('.extended-active-bot');
+            if ($hidden.first().hasClass('d-none')) {
+                $hidden.removeClass('d-none');
+                $('#toggleExtendedActiveBotsText').text("@lang('Show Less')");
+                $(this).find('i').removeClass('la-angle-down').addClass('la-angle-up');
+            } else {
+                $hidden.addClass('d-none');
+                $('#toggleExtendedActiveBotsText').text("@lang('Show All') " + $('.active-bot-card').length + " @lang('Active Bots')");
+                $(this).find('i').removeClass('la-angle-up').addClass('la-angle-down');
+            }
+            SoundFX.play('click');
+        });
+
+        // Toggle Extended Copy Trading Strategies
+        $(document).on('click', '#toggleExtendedBotsBtn', function() {
+            var $hidden = $('.extended-bot-row');
+            if ($hidden.first().hasClass('d-none')) {
+                $hidden.removeClass('d-none');
+                $('#toggleExtendedBotsText').text("@lang('Show Less Strategies')");
+                $(this).find('i').removeClass('la-angle-down').addClass('la-angle-up');
+            } else {
+                $hidden.addClass('d-none');
+                $('#toggleExtendedBotsText').text("@lang('View All') " + $('.custom-trades-table tbody tr').length + " @lang('Institutional Strategies')");
+                $(this).find('i').removeClass('la-angle-up').addClass('la-angle-down');
+            }
+            SoundFX.play('click');
+        });
+
+        // Paginate Trade History 5 at a time
+        var currentVisibleTrades = 5;
+        $(document).on('click', '#loadMoreTradesBtn', function() {
+            currentVisibleTrades += 5;
+            $('.trade-log-row').each(function() {
+                var idx = parseInt($(this).data('index'));
+                if (idx <= currentVisibleTrades) {
+                    $(this).removeClass('d-none');
+                }
+            });
+            var totalTrades = $('.trade-log-row').length;
+            if (currentVisibleTrades >= totalTrades) {
+                $('#loadMoreTradesBtn').parent().hide();
+            } else {
+                var remaining = totalTrades - currentVisibleTrades;
+                $('#loadMoreTradesText').text("@lang('Show 5 More Trades') (" + remaining + " @lang('remaining'))");
+            }
             SoundFX.play('click');
         });
     })(jQuery);
