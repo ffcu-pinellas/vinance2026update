@@ -51,15 +51,22 @@
 
                         <!-- Step 2: Amount -->
                         <div class="form-section mb-4">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-2">
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="step-badge">2</span>
                                     <label class="form-label text-white fw-semibold mb-0">@lang('Withdraw Amount')</label>
                                 </div>
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 font-mono fs-12 px-2 py-1">
+                                    <i class="las la-info-circle me-1"></i>@lang('Limit'): <span class="min text-white">0.00</span> - <span class="max text-white">0.00</span> <span class="withdraw-currency-symbol text-white">USD</span>
+                                </span>
                             </div>
                             <div class="input-group input-group-lg">
                                 <input type="number" step="any" class="form--control form-control fs-5" name="amount" id="withdrawAmount" placeholder="0.00" required autocomplete="off">
                                 <span class="input-group-text bg-dark border-secondary text-white fw-bold withdraw-currency-symbol px-3">USD</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-1 px-1 fs-12 text-muted">
+                                <span>@lang('Min'): <strong class="text-white min">0.00</strong> <span class="withdraw-currency-symbol">USD</span></span>
+                                <span>@lang('Max'): <strong class="text-white max">0.00</strong> <span class="withdraw-currency-symbol">USD</span></span>
                             </div>
                             
                             <!-- Quick Amount Preset Pills -->
@@ -381,8 +388,7 @@
                     html += `
                         <button type="button" class="list-group-item list-group-item-action bg-transparent text-white border-dark d-flex justify-content-between align-items-center py-2 px-2 rounded-3 withdraw-method-item-btn mb-1" 
                             data-id="${cfg.id}" 
-                            data-name="${cfg.name}" 
-                            data-method='${JSON.stringify(m)}'>
+                            data-name="${cfg.name}">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="coin-avatar-circle bg--dark-three text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center border border-dark" style="width: 36px; height: 36px; font-size: 14px;">
                                     <i class="las la-money-bill-wave"></i>
@@ -485,8 +491,11 @@
 
             // Select Method Item
             $(document).on('click', '.withdraw-method-item-btn', function() {
-                let mObj = $(this).data('method');
-                selectWithdrawMethod(mObj);
+                let mId = $(this).data('id');
+                let mObj = methods.find(ele => ele.id == mId);
+                if (mObj) {
+                    selectWithdrawMethod(mObj);
+                }
                 $('#withdrawMethodModal').modal('hide');
             });
 
