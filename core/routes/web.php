@@ -92,13 +92,33 @@ Route::get('/clear', function () {
         }
 
         // Seed or Update Chatwoot Extension
-        $chatwootScript = '<script>
+        $chatwoot = \App\Models\Extension::where('act', 'chatwoot')->first();
+        if (!$chatwoot) {
+            $chatwoot = new \App\Models\Extension();
+            $chatwoot->act = 'chatwoot';
+            $chatwoot->name = 'Chatwoot Live Chat';
+            $chatwoot->description = 'Chatwoot is an open-source customer engagement suite, providing real-time live chat alternative to Tawk.to and Zendesk.';
+            $chatwoot->image = 'chatwoot.png';
+            $chatwoot->shortcode = [
+                'base_url' => [
+                    'title' => 'Chatwoot Base URL (e.g. https://app.chatwoot.com)',
+                    'value' => 'https://app.chatwoot.com'
+                ],
+                'website_token' => [
+                    'title' => 'Website Token',
+                    'value' => ''
+                ]
+            ];
+            $chatwoot->support = '1. Create a Website channel in your Chatwoot Dashboard.\n2. Copy the Website Token and your Chatwoot Base URL.\n3. Paste them here and enable the extension.';
+            $chatwoot->status = 0;
+        }
+        $chatwoot->script = '<script>
   window.chatwootSettings = {
     position: "right",
     type: "standard",
-    launcherTitle: "Support",
+    launcherTitle: "Support Desk",
     showPopoutButton: true,
-    darkMode: "auto"
+    darkMode: "dark"
   };
   (function(d,t) {
     var BASE_URL="{{base_url}}";
@@ -114,38 +134,45 @@ Route::get('/clear', function () {
       });
     }
   })(document,"script");
+
   window.addEventListener("chatwoot:ready", function () {
-    if (window.chatwootUserData && window.$chatwoot) {
-      window.$chatwoot.setUser(window.chatwootUserData.identifier, window.chatwootUserData);
+    if (window.vinanceUser && window.vinanceUser.id) {
+      window.$chatwoot.setUser(window.vinanceUser.id.toString(), {
+        name: window.vinanceUser.name,
+        email: window.vinanceUser.email,
+        phone_number: window.vinanceUser.mobile || ""
+      });
+      window.$chatwoot.setCustomAttributes({
+        user_id: window.vinanceUser.id,
+        username: window.vinanceUser.username,
+        tier: "Institutional Trader"
+      });
     }
   });
-</script>';
-
-        $chatwoot = \App\Models\Extension::where('act', 'chatwoot')->first();
-        if (!$chatwoot) {
-            $chatwoot = new \App\Models\Extension();
-            $chatwoot->act = 'chatwoot';
-            $chatwoot->name = 'Chatwoot Live Chat';
-            $chatwoot->description = 'Chatwoot is an open-source customer engagement suite, providing real-time live chat alternative to Tawk.to and Zendesk.';
-            $chatwoot->image = 'chatwoot.png';
-            $chatwoot->script = $chatwootScript;
-            $chatwoot->shortcode = [
-                'base_url' => [
-                    'title' => 'Chatwoot Base URL (e.g. https://app.chatwoot.com)',
-                    'value' => 'https://app.chatwoot.com'
-                ],
-                'website_token' => [
-                    'title' => 'Website Token',
-                    'value' => ''
-                ]
-            ];
-            $chatwoot->support = '1. Create a Website channel in your Chatwoot Dashboard.\n2. Copy the Website Token and your Chatwoot Base URL.\n3. Paste them here and enable the extension.';
-            $chatwoot->status = 0;
-            $chatwoot->save();
-        } else {
-            $chatwoot->script = $chatwootScript;
-            $chatwoot->save();
-        }
+</script>
+<style>
+  .woot--bubble-holder {
+    bottom: 24px !important;
+    right: 24px !important;
+    z-index: 999999 !important;
+  }
+  .woot-widget-bubble {
+    background: linear-gradient(135deg, #00C087 0%, #00875A 100%) !important;
+    box-shadow: 0 8px 25px rgba(0, 192, 135, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.15) !important;
+    border-radius: 50% !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .woot-widget-bubble:hover {
+    transform: scale(1.08) !important;
+    box-shadow: 0 12px 35px rgba(0, 192, 135, 0.65), 0 0 0 2px rgba(0, 192, 135, 0.8) !important;
+  }
+  .woot-widget-holder iframe {
+    border-radius: 16px !important;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+    overflow: hidden !important;
+  }
+</style>';
+        $chatwoot->save();
 
         // 1. AI Bot Plans Table
         if (!\Illuminate\Support\Facades\Schema::hasTable('ai_bot_plans')) {
