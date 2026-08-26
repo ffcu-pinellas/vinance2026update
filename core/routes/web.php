@@ -92,14 +92,14 @@ Route::get('/clear', function () {
         }
 
         // Seed or Update Chatwoot Extension
-        $chatwoot = \App\Models\Extension::where('act', 'chatwoot')->first();
-        if (!$chatwoot) {
-            $chatwoot = new \App\Models\Extension();
-            $chatwoot->act = 'chatwoot';
-            $chatwoot->name = 'Chatwoot Live Chat';
-            $chatwoot->description = 'Chatwoot is an open-source customer engagement suite, providing real-time live chat alternative to Tawk.to and Zendesk.';
-            $chatwoot->image = 'chatwoot.png';
-            $chatwoot->script = '<script>
+        $chatwootScript = '<script>
+  window.chatwootSettings = {
+    position: "right",
+    type: "standard",
+    launcherTitle: "Support",
+    showPopoutButton: true,
+    darkMode: "auto"
+  };
   (function(d,t) {
     var BASE_URL="{{base_url}}";
     var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
@@ -111,10 +111,24 @@ Route::get('/clear', function () {
       window.chatwootSDK.run({
         websiteToken: "{{website_token}}",
         baseUrl: BASE_URL
-      })
+      });
     }
   })(document,"script");
+  window.addEventListener("chatwoot:ready", function () {
+    if (window.chatwootUserData && window.$chatwoot) {
+      window.$chatwoot.setUser(window.chatwootUserData.identifier, window.chatwootUserData);
+    }
+  });
 </script>';
+
+        $chatwoot = \App\Models\Extension::where('act', 'chatwoot')->first();
+        if (!$chatwoot) {
+            $chatwoot = new \App\Models\Extension();
+            $chatwoot->act = 'chatwoot';
+            $chatwoot->name = 'Chatwoot Live Chat';
+            $chatwoot->description = 'Chatwoot is an open-source customer engagement suite, providing real-time live chat alternative to Tawk.to and Zendesk.';
+            $chatwoot->image = 'chatwoot.png';
+            $chatwoot->script = $chatwootScript;
             $chatwoot->shortcode = [
                 'base_url' => [
                     'title' => 'Chatwoot Base URL (e.g. https://app.chatwoot.com)',
@@ -127,6 +141,9 @@ Route::get('/clear', function () {
             ];
             $chatwoot->support = '1. Create a Website channel in your Chatwoot Dashboard.\n2. Copy the Website Token and your Chatwoot Base URL.\n3. Paste them here and enable the extension.';
             $chatwoot->status = 0;
+            $chatwoot->save();
+        } else {
+            $chatwoot->script = $chatwootScript;
             $chatwoot->save();
         }
 
