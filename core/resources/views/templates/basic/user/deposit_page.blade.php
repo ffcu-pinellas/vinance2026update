@@ -98,9 +98,7 @@
                                 </div>
                                 <i class="las la-angle-down text-muted fs-5"></i>
                             </button>
-                            <select class="d-none" name="gateway" id="depositGatewaySelect" required>
-                                <option selected disabled value="">@lang('Select Payment Gateway')</option>
-                            </select>
+                            <input type="hidden" name="gateway" id="depositGatewayInput" value="" required>
                         </div>
 
                         <!-- Step 4: Destination Wallet -->
@@ -375,7 +373,7 @@
                 if (!gatewayObj) return;
                 currentSelectedGateway = getGatewayConfig(gatewayObj);
 
-                $('#depositGatewaySelect').html(`<option value="${currentSelectedGateway.id}" selected>${currentSelectedGateway.name}</option>`);
+                $('#depositGatewayInput').val(currentSelectedGateway.id);
                 $('#gatewaySelectedName').text(currentSelectedGateway.name);
                 $('#gatewaySelectedDetails').text(`Min: ${getAmount(currentSelectedGateway.min_amount)} - Max: ${getAmount(currentSelectedGateway.max_amount)}`);
 

@@ -257,8 +257,8 @@ class PaymentController extends Controller
         abort_if(!$data, 404);
         if ($data->method_code > 999) {
             $pageTitle = 'Confirm Deposit';
-            $method    = $data->gatewayCurrency();
-            $gateway   = $method->method;
+            $gateway   = Gateway::manual()->where('code', $data->method_code)->first() ?? $data->gateway;
+            $method    = GatewayCurrency::where('method_code', $data->method_code)->where('currency', $data->method_currency)->first() ?? $data->gatewayCurrency();
             return view('Template::user.payment.manual', compact('data', 'pageTitle', 'method', 'gateway'));
         }
         abort(404);
@@ -269,10 +269,10 @@ class PaymentController extends Controller
         $track = session()->get('Track');
         $data = Deposit::with('gateway')->where('status', Status::PAYMENT_INITIATE)->where('trx', $track)->first();
         abort_if(!$data, 404);
-        $gatewayCurrency = $data->gatewayCurrency();
-        $gateway = $gatewayCurrency->method;
+        $gateway = Gateway::manual()->where('code', $data->method_code)->first() ?? $data->gateway;
+        $gatewayCurrency = GatewayCurrency::where('method_code', $data->method_code)->where('currency', $data->method_currency)->first() ?? $data->gatewayCurrency();
         
-        $override = \App\Models\UserDepositSetting::where('user_id', auth()->id())->where('gateway_currency_id', $gatewayCurrency->id)->first();
+        $override = \App\Models\UserDepositSetting::where('user_id', auth()->id())->where('gateway_currency_id', @$gatewayCurrency->id)->first();
         $formId = ($override && $override->form_id) ? $override->form_id : $gateway->form_id;
         $form = \App\Models\Form::find($formId);
         

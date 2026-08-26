@@ -98,9 +98,7 @@
                                 </div>
                                 <i class="las la-angle-down text-muted fs-5"></i>
                             </button>
-                            <select class="d-none" name="method_code" id="withdrawMethodSelect" required>
-                                <option selected disabled value="">@lang('Select Withdraw Method')</option>
-                            </select>
+                            <input type="hidden" name="method_code" id="withdrawMethodInput" value="" required>
                         </div>
 
                         <!-- Step 4: Source Wallet -->
@@ -374,7 +372,7 @@
                 if (!methodObj) return;
                 currentSelectedMethod = getMethodConfig(methodObj);
 
-                $('#withdrawMethodSelect').html(`<option value="${currentSelectedMethod.id}" selected>${currentSelectedMethod.name}</option>`);
+                $('#withdrawMethodInput').val(currentSelectedMethod.id);
                 $('#withdrawMethodSelectedName').text(currentSelectedMethod.name);
                 $('#withdrawMethodSelectedDetails').text(`Min: ${getAmount(currentSelectedMethod.min_limit)} - Max: ${getAmount(currentSelectedMethod.max_limit)}`);
 
